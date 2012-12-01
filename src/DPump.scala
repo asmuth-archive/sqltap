@@ -33,6 +33,11 @@ object DPump{
       }
 
     }
+
+    val conn = new DBConnection("jdbc:mysql://localhost:3306/dawanda?user=root");
+    val rslt = conn.execute("select version();")
+
+    println(rslt.head, rslt.data);
   }
 
   def usage(head: Boolean = true) = {

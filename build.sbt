@@ -10,4 +10,6 @@ mainClass in (Compile, run) := Some("com.paulasmuth.dpump.DPump")
 
 scalaVersion := "2.9.1"
 
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.12"
+
 libraryDependencies += "com.google.code.gson" % "gson" % "1.4"
