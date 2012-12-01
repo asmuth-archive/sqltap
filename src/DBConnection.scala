@@ -5,15 +5,26 @@ import scala.collection.mutable.LinkedList;
 
 class DBConnection(db_addr: String) {
 
-  case class DBResult(
-    head: Map[String, String],
-    data: LinkedList[List[String]]
-  )
+  class DBResult(
+    _head: Map[String, String],
+    _data: LinkedList[List[String]]
+  ) {
+    val head = _head
+    val data = _data
+    var qtime: Long = 0
+  }
 
   val conn = java.sql.DriverManager.getConnection(db_addr)
   val stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
 
-  def execute(qry: String) : DBResult  = {
+  def execute(qry: String) : DBResult = {
+    val strt = System.nanoTime()
+    val rslt = execute_without_stopwatch(qry)
+    rslt.qtime = System.nanoTime() - strt
+    rslt
+  }
+
+  def execute_without_stopwatch(qry: String) : DBResult = {
     val rslt = stmt.executeQuery(qry)
     val meta = rslt.getMetaData()
     val enum = 1 to meta.getColumnCount()

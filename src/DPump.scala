@@ -35,9 +35,13 @@ object DPump{
     }
 
     val conn = new DBConnection("jdbc:mysql://localhost:3306/dawanda?user=root");
-    val rslt = conn.execute("select version();")
 
-    println(rslt.head, rslt.data);
+    for (i <- (1 to 1000)){
+      val rslt = conn.execute("select version();")
+    //println(rslt.head)
+    //println(rslt.data)
+      println(rslt.qtime / 1000 / 1000.0)
+    }
   }
 
   def usage(head: Boolean = true) = {
