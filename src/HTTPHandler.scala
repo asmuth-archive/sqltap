@@ -10,7 +10,8 @@ class HTTPHandler extends AbstractHandler {
 
   def handle(target: String, base_req: Request, req: HttpServletRequest, res: HttpServletResponse) {
     res.setStatus(200)
-    res.getWriter().write("fnord")
+    val db_res = DPump.db_pool.execute("select version();")
+    res.getWriter().write(db_res.data.head(0))
     base_req.setHandled(true)
   }
 

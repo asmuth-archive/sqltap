@@ -13,6 +13,8 @@ object DPump{
   var debug   = false
   var verbose = false
 
+  val db_pool = new DBConnectionPool
+
   def main(args: Array[String]) : Unit = {
     var n = 0
 
@@ -34,15 +36,21 @@ object DPump{
 
     }
 
-    val conn = new DBConnection("jdbc:mysql://localhost:3306/dawanda?user=root");
+    DPump.log("dpumpd " + VERSION + " booting...")
+    db_pool.connect("jdbc:mysql://localhost:3306/dawanda?user=root", 10)
 
-    /*for (i <- (1 to 10000)){
-      val id = (8910842 - ((Math.random * 100000).toInt * 4)).toString
-      val rslt = conn.execute("select * from users where id = " + id + ";")
-    //println(rslt.head)
-    //println(rslt.data)
-      println(rslt.qtime / 1000 / 1000.0)
-    }*/
+/*
+    for (n <- 1 to 10) {
+      val tstart = System.nanoTime()
+
+      for (i <- (1 to 10000)){
+        val id = (8910842 - ((Math.random * 100000).toInt * 4)).toString
+        val rslt = pool.execute("select * from users where id = " + id + ";")
+      }
+
+      println((System.nanoTime() - tstart) / 1000 / 1000.0)
+    }
+*/
 
     val http = new HTTPServer(8080)
   }
