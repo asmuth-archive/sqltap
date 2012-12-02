@@ -6,13 +6,12 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.io.PrintStream
 import java.io.OutputStream
 
-class HTTPServer(port: Int) {
+class HTTPServer(port: Int, num_threads: Int) {
 
   org.eclipse.jetty.util.log.Log.setLog(null);
 
   val pool = new QueuedThreadPool
-  pool.setMinThreads(4)
-  pool.setMaxThreads(8)
+  pool.setMaxThreads(num_threads)
 
   val server = new Server
   server.setThreadPool(pool)

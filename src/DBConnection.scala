@@ -5,7 +5,9 @@ import scala.collection.mutable.LinkedList;
 
 class DBConnection(db_addr: String) {
 
-  val conn = java.sql.DriverManager.getConnection(db_addr)
+  DPump.log_debug("Connect: " + db_addr)
+
+  val conn = java.sql.DriverManager.getConnection("jdbc:" + db_addr)
   val stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
 
   def execute(qry: String) : DBResult = {

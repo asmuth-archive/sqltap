@@ -41,7 +41,6 @@ class DBConnectionPool {
 
   def connect(addr: String, num_workers: Int) : Unit = {
     for (i <- 1 to num_workers) {
-      DPump.log("Connect: " + addr)
       val conn = new DBConnection(addr)
       val worker = new Worker(conn)
       worker.start()

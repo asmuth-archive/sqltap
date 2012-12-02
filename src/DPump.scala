@@ -10,6 +10,9 @@ object DPump{
   val VERSION = "v0.0.1"
   val CONFIG  = HashMap[Symbol,String]()
 
+  var db_threads   = 10
+  var http_threads = 10
+
   var debug   = false
   var verbose = false
 
@@ -36,24 +39,22 @@ object DPump{
 
     }
 
+    boot
+  }
+
+  def boot = try {
+    val http_port = 8080  // FIXPAUL
+    val db_addr = "mysql://localhost:3306/dawanda?user=root" // FIXPAUL
+
     DPump.log("dpumpd " + VERSION + " booting...")
-    db_pool.connect("jdbc:mysql://localhost:3306/dawanda?user=root", 10)
 
-/*
-    for (n <- 1 to 10) {
-      val tstart = System.nanoTime()
+    db_pool.connect(db_addr, db_threads)
+    DPump.log("Connected to mysql...")
 
-      for (i <- (1 to 10000)){
-        val id = (8910842 - ((Math.random * 100000).toInt * 4)).toString
-        val rslt = pool.execute("select * from users where id = " + id + ";")
-      }
-
-      println((System.nanoTime() - tstart) / 1000 / 1000.0)
-    }
-*/
-
-    val http = new HTTPServer(8080)
+    val http = new HTTPServer(http_port, http_threads)
     DPump.log("Listening on http://0.0.0.0:8080")
+  } catch {
+    case e: Exception => exception(e, true)
   }
 
   def usage(head: Boolean = true) = {
@@ -78,16 +79,16 @@ object DPump{
     log("[ERROR] " + msg)
 
 
-  def debug(msg: String) =
-    log("[DEBUG] " + msg)
+  def log_debug(msg: String) =
+    if (debug)
+      log("[DEBUG] " + msg)
 
 
   def exception(ex: Exception, fatal: Boolean) = {
     error(ex.toString)
 
-    if (debug)
-      for (line <- ex.getStackTrace)
-        debug(line.toString)
+    for (line <- ex.getStackTrace)
+      log_debug(line.toString)
 
     if (fatal)
       System.exit(1)
