@@ -12,4 +12,6 @@ scalaVersion := "2.9.1"
 
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.12"
 
+libraryDependencies += "org.eclipse.jetty" % "jetty-server" % "8.0.1.v20110908"
+
 libraryDependencies += "com.google.code.gson" % "gson" % "1.4"

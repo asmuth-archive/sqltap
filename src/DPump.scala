@@ -36,12 +36,15 @@ object DPump{
 
     val conn = new DBConnection("jdbc:mysql://localhost:3306/dawanda?user=root");
 
-    for (i <- (1 to 1000)){
-      val rslt = conn.execute("select version();")
+    for (i <- (1 to 10000)){
+      val id = (8910842 - ((Math.random * 100000).toInt * 4)).toString
+      val rslt = conn.execute("select * from users where id = " + id + ";")
     //println(rslt.head)
     //println(rslt.data)
       println(rslt.qtime / 1000 / 1000.0)
     }
+
+    val http = new HTTPServer(8080)
   }
 
   def usage(head: Boolean = true) = {
