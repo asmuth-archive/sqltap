@@ -3,12 +3,15 @@ package com.paulasmuth.dpump
 import java.util.Locale
 import java.util.Date
 import java.text.DateFormat
+import java.io.File
 import scala.collection.mutable.HashMap;
 
 object DPump{
 
   val VERSION = "v0.0.1"
   val CONFIG  = HashMap[Symbol,String]()
+
+  val manifest = HashMap[String,ResourceManifest]()
 
   var db_threads   = 10
   var http_threads = 10
@@ -26,6 +29,9 @@ object DPump{
       if((args(n) == "-l") || (args(n) == "--listen"))
         { CONFIG += (('listen, args(n+1))); n += 2 }
 
+      if((args(n) == "-c") || (args(n) == "--config"))
+        { CONFIG += (('config_dir, args(n+1))); n += 2 }
+
       else if((args(n) == "-d") || (args(n) == "--debug"))
         { debug = true; n += 1 }
 
@@ -39,6 +45,9 @@ object DPump{
 
     }
 
+    if (CONFIG contains 'config_dir unary_!)
+      error("--config required", true)
+
     boot
   }
 
@@ -48,6 +57,8 @@ object DPump{
 
     DPump.log("dpumpd " + VERSION + " booting...")
 
+    load_config
+
     db_pool.connect(db_addr, db_threads)
     DPump.log("Connected to mysql...")
 
@@ -55,6 +66,16 @@ object DPump{
     DPump.log("Listening on http://0.0.0.0:8080")
   } catch {
     case e: Exception => exception(e, true)
+  }
+
+
+  def load_config = {
+    for (file <- new File(CONFIG('config_dir)).list()){
+      val raw = io.Source.fromFile(CONFIG('config_dir) + "/" + file).mkString
+      val xml = scala.xml.XML.loadString(raw).head
+
+      val resource = new ResourceManifest(xml)
+    }
   }
 
   def usage(head: Boolean = true) = {
@@ -75,8 +96,12 @@ object DPump{
   }
 
 
-  def error(msg: String) =
+  def error(msg: String, fatal: Boolean) = {
     log("[ERROR] " + msg)
+
+    if (fatal)
+      System.exit(1)
+  }
 
 
   def log_debug(msg: String) =
@@ -85,7 +110,7 @@ object DPump{
 
 
   def exception(ex: Exception, fatal: Boolean) = {
-    error(ex.toString)
+    error(ex.toString, false)
 
     for (line <- ex.getStackTrace)
       log_debug(line.toString)
