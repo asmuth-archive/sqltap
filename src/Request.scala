@@ -13,6 +13,9 @@ class Request(_req_str: String) {
   var resp_data : String = null
 
   def execute = {
+    stack.head.name = "execute"
+    stack.push_down
+
     (new RequestParser(this)).parse
 
     //if (ready unary_!)

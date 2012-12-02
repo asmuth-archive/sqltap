@@ -26,7 +26,7 @@ class RequestParser(req: Request) {
     }
 
     if (DPump.debug)
-      inspect
+      req.stack.inspect
   }
 
 
@@ -101,17 +101,6 @@ class RequestParser(req: Request) {
     req.resp_status = 400
     req.error_str = msg
     req.ready = true
-  }
-
-  private def inspect() : Unit =
-    inspect_one(req.stack.root, 0)
-
-  private def inspect_one(cur: req.stack.Instruction, lvl: Int) : Unit = {
-    DPump.log_debug((" " * (lvl*2)) + "> name: " + cur.name + ", args: " + (
-      if (cur.args.size > 0) cur.args.mkString(", ") else "none"))
-
-    for (next <- cur.next)
-      inspect_one(next, lvl+1)
   }
 
 }
