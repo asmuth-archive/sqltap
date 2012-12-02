@@ -13,6 +13,7 @@ class RequestParser(req: Request) {
   val t_cbrs = """^\{(.*)""".r
   val t_cbre = """^\}(.*)""".r
   val t_ssep = """^,(.*)""".r
+  val t_fall = """\*(\}.*)""".r
 
   def parse : Unit = {
     if(req.req_str == null)
@@ -32,6 +33,9 @@ class RequestParser(req: Request) {
     println("parse: " + next)
     var done = true
 
+    if (next == "")
+      return
+
     next match {
 
       case t_rbrs(tail: String) =>
@@ -46,6 +50,25 @@ class RequestParser(req: Request) {
       case t_cbre(tail: String) =>
         { req.stack.pop; parse_next(tail) }
 
+      case t_ssep(tail: String) =>
+        { req.stack.pop; req.stack.push_down; parse_next(tail) }
+
+      case _ => done = false
+    }
+
+    if (done)
+      return
+    else
+      done = true
+
+    next match {
+
+      case t_rsrc(arg: String, tail: String) =>
+        { req.stack.push_arg(arg); parse_next(tail) }
+
+      case t_func(name: String, tail: String) =>
+        { req.stack.head.name = name; parse_next(tail) }
+
       case _ => done = false
     }
 
@@ -54,11 +77,8 @@ class RequestParser(req: Request) {
 
     next match {
 
-      case t_rsrc(arg: String, tail: String) =>
-        { req.stack.push_down; req.stack.push_arg(arg); parse_next(tail) }
-
-      case t_func(name: String, tail: String) =>
-        { req.stack.head.name = name; parse_next(tail) }
+      case t_fall(tail: String) =>
+        { req.stack.head.name = "fetch_all"; parse_next(tail) }
 
       case t_sfld(name: String, tail: String) =>
         { req.stack.head.name = "fetch"; req.stack.push_arg(name); parse_next(tail) }

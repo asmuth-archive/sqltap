@@ -3,8 +3,6 @@ package com.paulasmuth.dpump
 class InstructionStack {
 
   val root = new Instruction
-  root.name = "execute"
-
   var head = root
 
   class Instruction {
