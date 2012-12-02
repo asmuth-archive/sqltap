@@ -4,7 +4,7 @@ object ResponseWriter {
 
   def serialize(req: Request) =
     if (req.resp_status == 200)
-      req.resp_data = "fnord"
+      req.resp_data = req.req_str
     else
       serialize_error(req)
 

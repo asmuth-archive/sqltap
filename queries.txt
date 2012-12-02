@@ -8,7 +8,7 @@ user.findOne(123){ username, email }
 user.findOne(123){
   username,
   email,
-  shop.find{ * },
+  shop.fetchAll,
   products.findSome("id DESC", 100, 0){ id },
   shipping_profiles.findAll
 }

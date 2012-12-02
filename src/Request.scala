@@ -7,13 +7,10 @@ class Request(_req_str: String) {
   var ready = false
   var error_str = ""
 
-  var resp_status : Int = 0
+  var resp_status : Int = 200
   var resp_data : String = null
 
   def execute = {
-    resp_status = 200
-    resp_data = "fnord"
-
     RequestParser.parse(this)
 
     //if (ready unary_!)
