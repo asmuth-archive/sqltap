@@ -25,12 +25,12 @@ class RequestParser(req: Request) {
       case e: ParseException => error(req, e.toString)
     }
 
-    inspect
+    if (DPump.debug)
+      inspect
   }
 
 
   def parse_next(next: String) : Unit = {
-    println("parse: " + next)
     var done = true
 
     if (next == "")
@@ -107,7 +107,7 @@ class RequestParser(req: Request) {
     inspect_one(req.stack.root, 0)
 
   private def inspect_one(cur: req.stack.Instruction, lvl: Int) : Unit = {
-    println((" " * (lvl*2)) + "> name: " + cur.name + ", args: " + (
+    DPump.log_debug((" " * (lvl*2)) + "> name: " + cur.name + ", args: " + (
       if (cur.args.size > 0) cur.args.mkString(", ") else "none"))
 
     for (next <- cur.next)
