@@ -20,5 +20,5 @@ if [[ "$1" == "jar" ]]; then
   done
 
 else
-  shift; sbt $@
+  sbt $@
 fi

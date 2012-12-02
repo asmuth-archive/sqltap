@@ -96,7 +96,6 @@ object DPump{
     println("[" + now.format(new Date()) + "] " + msg)
   }
 
-
   def error(msg: String, fatal: Boolean) = {
     log("[ERROR] " + msg)
 

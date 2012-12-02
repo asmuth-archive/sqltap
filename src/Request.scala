@@ -7,11 +7,13 @@ class Request(_req_str: String) {
   var ready = false
   var error_str = ""
 
+  val stack = new InstructionStack
+
   var resp_status : Int = 200
   var resp_data : String = null
 
   def execute = {
-    RequestParser.parse(this)
+    (new RequestParser(this)).parse
 
     //if (ready unary_!)
     //  RequestExecutor.execute(this)

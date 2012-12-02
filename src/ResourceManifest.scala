@@ -2,10 +2,6 @@ package com.paulasmuth.dpump
 
 class ResourceManifest(doc: xml.Node) {
 
-  class ParseException(msg: String) extends Exception{
-    override def toString = msg
-  }
-
   class Field(elem: xml.Node) {
 
     val name : String = doc.attribute("name").getOrElse("").toString
