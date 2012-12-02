@@ -8,12 +8,11 @@ class ResourceManifest(doc: xml.Node) {
 
   class Field(elem: xml.Node) {
 
-    val name = doc.attribute("name").getOrElse(null)
+    val name : String = doc.attribute("name").getOrElse("").toString
 
-    if (name == null)
+    if (name == "")
       throw new ParseException("missing required attribute: name => " + doc.toString)
 
-    //println(f.attribute("nadme").getOrElse(null).toString) )
   }
 
   class HasOneRelation {}
@@ -23,19 +22,19 @@ class ResourceManifest(doc: xml.Node) {
   if (doc.label != "resource")
     throw new ParseException("xml root must be one or more <resource> elements")
 
-  val name = doc.attribute("name").getOrElse(null)
+  val name : String = doc.attribute("name").getOrElse("").toString
 
-  if (name == null)
+  if (name == "")
     throw new ParseException("missing required attribute: name => " + doc.toString)
 
-  val table_name = doc.attribute("name").getOrElse(null)
+  val table_name : String = doc.attribute("name").getOrElse("").toString
 
-  if (table_name == null)
+  if (table_name == "")
     throw new ParseException("missing required attribute: table_name => " + doc.toString)
 
-  val id_field = doc.attribute("id_field").getOrElse(null)
+  val id_field : String = doc.attribute("id_field").getOrElse("").toString
 
-  if (name == null)
+  if (name == "")
     throw new ParseException("missing required attribute: id_field => " + doc.toString)
 
   val fields =

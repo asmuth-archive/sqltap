@@ -75,6 +75,7 @@ object DPump{
       val xml = scala.xml.XML.loadString(raw).head
 
       val resource = new ResourceManifest(xml)
+      manifest += ((resource.name, resource))
     }
   }
 
