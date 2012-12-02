@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ "$1" == "jar" ]]; then
+
+  sbt assembly || exit 1
+
+  for f in $(ls -1 target | grep .jar | grep -v _executable.jar); do
+    tf=target/${f/.jar/}_executable.jar
+    echo "#!/usr/bin/java -jar" > $tf
+    cat target/$f >> $tf
+    chmod +x $tf
+    echo ">> build: $tf"
+  done
+
+else
+  shift; sbt $@
+fi
