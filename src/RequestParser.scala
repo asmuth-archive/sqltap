@@ -51,7 +51,10 @@ class RequestParser(req: Request) {
         { req.stack.pop; parse_next(tail) }
 
       case t_ssep(tail: String) =>
-        { req.stack.pop; req.stack.push_down; parse_next(tail) }
+        if (scope == 'root)
+          { req.stack.pop; req.stack.push_down; parse_next(tail) }
+        else
+          { parse_next(tail) }
 
       case _ => done = false
     }
