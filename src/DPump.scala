@@ -53,6 +53,7 @@ object DPump{
 */
 
     val http = new HTTPServer(8080)
+    DPump.log("Listening on http://0.0.0.0:8080")
   }
 
   def usage(head: Boolean = true) = {
