@@ -7,7 +7,8 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 class HTTPServer(port: Int) {
 
   val pool = new QueuedThreadPool
-  pool.setMaxThreads(50)
+  pool.setMinThreads(4)
+  pool.setMaxThreads(8)
 
   val server = new Server
   server.setThreadPool(pool)

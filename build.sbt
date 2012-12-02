@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 name := "DPump"
 
 organization := "com.paulasmuth"
@@ -12,6 +14,10 @@ scalaVersion := "2.9.1"
 
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.12"
 
-libraryDependencies += "org.eclipse.jetty" % "jetty-server" % "8.0.1.v20110908"
+libraryDependencies += "org.eclipse.jetty" % "jetty-server" % "7.2.2.v20101205"
 
 libraryDependencies += "com.google.code.gson" % "gson" % "1.4"
+
+assemblySettings
+
+jarName in assembly <<= (version) { v => "dpump_" + v + ".jar" }
