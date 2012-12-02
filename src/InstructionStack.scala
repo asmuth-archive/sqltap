@@ -21,6 +21,9 @@ class InstructionStack {
     head = next
   }
 
+  def pop : Unit =
+    head = head.prev
+
   def push_arg(arg: String) =
     head.args = head.args :+ arg
 
