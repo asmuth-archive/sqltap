@@ -35,6 +35,16 @@ class RequestExecutor(req: Request) {
           if (next.args.size > 1)
             next.object_id = next.args.remove(1).toInt
 
+          if (cur.name == "execute")
+            next.resource = DPump.manifest(next.args(0))
+          else {
+            val relation = cur.resource.relation(next.args(0))
+
+            if (relation == null)
+              throw new ExecutionException("relation not found: " + cur.resource.name + "->" + next.args(0))
+
+          }
+
           stack += next
           build(next)
         }
@@ -75,9 +85,18 @@ class RequestExecutor(req: Request) {
     cur.name match {
 
     case "findOne" => {
+      println(cur.prev.name)
+
+      /*if (cur.prev.name == "execute") {
+        cur.resource = DPump.manifest(cur.args(0))
+      } else {
+        println("fnord: " + cur.prev.resource
+        resource = DPump.manifest(cur.args(0))
+      }*/
+
       if (cur.object_id == 0) return
-      val resource = DPump.manifest(cur.args(0))
-      val query = SQLBuilder.sql_find_one(resource, List("*"), cur.object_id)
+
+      val query = SQLBuilder.sql_find_one(cur.resource, List("*"), cur.object_id)
       cur.job = DPump.db_pool.execute(query)
     }
 
