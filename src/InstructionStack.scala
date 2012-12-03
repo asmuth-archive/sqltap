@@ -5,14 +5,6 @@ class InstructionStack {
   val root = new Instruction
   var head = root
 
-  class Instruction {
-    var name : String = null
-    var args = List[String]()
-    var next = List[Instruction]()
-    var prev : Instruction = null
-    var job : DPump.db_pool.Job = null
-  }
-
   def push_down : Unit = {
     val next = new Instruction
     head.next = head.next :+ next
@@ -24,7 +16,7 @@ class InstructionStack {
     head = head.prev
 
   def push_arg(arg: String) =
-    head.args = head.args :+ arg
+    head.args += arg
 
   def inspect() : Unit =
     inspect_one(root, 0)

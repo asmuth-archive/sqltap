@@ -23,7 +23,7 @@ class ResourceManifest(doc: xml.Node) {
   if (name == "")
     throw new ParseException("missing required attribute: name => " + doc.toString)
 
-  val table_name : String = doc.attribute("name").getOrElse("").toString
+  val table_name : String = doc.attribute("table_name").getOrElse("").toString
 
   if (table_name == "")
     throw new ParseException("missing required attribute: table_name => " + doc.toString)

@@ -18,8 +18,8 @@ class Request(_req_str: String) {
 
     (new RequestParser(this)).parse
 
-    //if (ready unary_!)
-    //  RequestExecutor.execute(this)
+    if (ready unary_!)
+      (new RequestExecutor(this)).run
 
     ResponseWriter.serialize(this)
   }
