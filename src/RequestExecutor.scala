@@ -25,30 +25,7 @@ class RequestExecutor(req: Request) {
         if (stack(idx).running) return next
       }
 
-    if (stack.head.ready unary_!) {
-      if (stack.head.job == null)
-        throw new ExecutionException("deadlock while executing")
-
-      stack.head.job.retrieve
-      stack.head.ready = true
-
-      if (DPump.debug) {
-        val qtime = (stack.head.job.result.qtime / 1000000.0).toString
-        val otime = ((System.nanoTime - stime) / 1000000.0).toString
-        DPump.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + stack.head.job.query)
-      }
-
-      if (stack.head.job.retrieve.data.size > 0) {
-
-        if (stack.head.relation.rtype == "has_one")
-          stack.head.record_id = stack.head.job.retrieve.get(0,
-            stack.head.relation.resource.id_field).toInt
-
-      }
-
-    }
-
-    stack.remove(0)
+    pop(stack.remove(0))
 
     if (stack.length > 0)
       next
@@ -126,31 +103,26 @@ class RequestExecutor(req: Request) {
     }
   }
 
-  /*private def expand(cur: Instruction) : Unit =
-    for (next <- cur.next) next.name match {
+  private def pop(cur: Instruction) : Unit = {
+    if (cur.ready)
+      return
 
-      case "fetch" =>
-        cur.args += next.args.head
+    if (cur.job == null)
+      throw new ExecutionException("deadlock while executing: " + 
+        cur.name + ", " + cur.args.mkString(","))
 
-      case "fetch_all" =>
-        cur.args += "*"
+    cur.job.retrieve
+    cur.ready = true
 
-      case "findOne" => {
-        if (cur.name == "execute") {
-          next.relation = DPump.manifest(next.args(0)).to_relation
-          next.record_id = next.args.remove(1).toInt
-        } else {
-          next.relation = cur.relation.resource.relation(next.args(0))
-        }
+    if (DPump.debug) {
+      val qtime = (cur.job.result.qtime / 1000000.0).toString
+      val otime = ((System.nanoTime - stime) / 1000000.0).toString
+      DPump.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.job.query)
+    }
 
-        if (next.relation == null)
-          throw new ExecutionException("relation not found: " + next.args(0))
+    if (cur.job.retrieve.data.size == 1 && cur.relation.rtype == "has_one")
+      cur.record_id = cur.job.retrieve.get(0, cur.relation.resource.id_field).toInt
 
-        stack += next
-
-        build(next)
-      }
-
-    }*/
+  }
 
 }
