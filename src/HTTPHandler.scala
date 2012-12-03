@@ -8,7 +8,7 @@ class HTTPHandler extends AbstractHandler {
 
   def handle(target: String, base_req: org.eclipse.jetty.server.Request, req: HttpServletRequest, res: HttpServletResponse) = try {
     val request = new Request(req.getQueryString())
-    request.execute
+    request.run
     res.setStatus(request.resp_status)
     res.getWriter().write(request.resp_data)
     base_req.setHandled(true)

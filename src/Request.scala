@@ -12,28 +12,29 @@ class Request(_req_str: String) {
   var resp_status : Int = 200
   var resp_data : String = null
 
-  def execute = {
+  def run = try {
     DPump.log_debug("-"*80)
 
     stack.head.name = "execute"
     stack.head.running = false
     stack.push_down
 
-    (new RequestParser(this)).parse
+    (new RequestParser(this)).run
 
     if (ready unary_!)
-      (new RequestExecutor(this)).run
+      (new RequestExecutor(stack.root)).run
 
     ResponseWriter.serialize(this)
 
     DPump.log_debug("-"*80)
+  } catch {
+    case e: ExecutionException => error(e.toString)
   }
 
-  def error(msg: String) : Unit = {
+  private def error(msg: String) : Unit = {
     resp_status = 400
     error_str = msg
     ready = true
   }
-
 
 }

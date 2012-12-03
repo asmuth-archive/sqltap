@@ -2,21 +2,15 @@ package com.paulasmuth.dpump
 
 import scala.collection.mutable.ListBuffer;
 
-class RequestExecutor(req: Request) {
+class RequestExecutor(root: Instruction) {
 
   var stack = ListBuffer[Instruction]()
-  var stime : Long = 0
+  var stime = System.nanoTime
 
-  def run  = try {
-    stack += req.stack.root
+  stack += root
 
-    if (DPump.debug)
-      stime = System.nanoTime
-
+  def run() : Unit =
     next
-  } catch {
-    case e: ExecutionException => req.error(e.toString)
-  }
 
   private def next() : Unit = {
     for (idx <- (0 to stack.length - 1).reverse)

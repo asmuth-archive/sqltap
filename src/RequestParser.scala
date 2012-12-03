@@ -15,17 +15,13 @@ class RequestParser(req: Request) {
   val t_ssep = """^,(.*)""".r
   val t_fall = """\*(\}.*)""".r
 
-  def parse : Unit = {
+  def run : Unit = {
     if(req.req_str == null)
-      return req.error("no query string")
+      throw new ParseException("no query string")
 
     DPump.log_debug("Request: " + req.req_str)
 
-    try {
-      parse_next(req.req_str)
-    } catch {
-      case e: ParseException => req.error(e.toString)
-    }
+    parse(req.req_str)
 
     if (DPump.debug) {
       DPump.log_debug("Parser stack:")
@@ -34,7 +30,7 @@ class RequestParser(req: Request) {
   }
 
 
-  def parse_next(next: String) : Unit = {
+  def parse(next: String) : Unit = {
     var done = true
 
     if (next == "")
@@ -43,22 +39,22 @@ class RequestParser(req: Request) {
     next match {
 
       case t_rbrs(tail: String) =>
-        { scope = 'arg; parse_next(tail) }
+        { scope = 'arg; parse(tail) }
 
       case t_rbre(tail: String) =>
-        { scope = 'root; parse_next(tail) }
+        { scope = 'root; parse(tail) }
 
       case t_cbrs(tail: String) =>
-        { req.stack.push_down; parse_next(tail) }
+        { req.stack.push_down; parse(tail) }
 
       case t_cbre(tail: String) =>
-        { req.stack.pop; parse_next(tail) }
+        { req.stack.pop; parse(tail) }
 
       case t_ssep(tail: String) =>
         if (scope == 'root)
-          { req.stack.pop; req.stack.push_down; parse_next(tail) }
+          { req.stack.pop; req.stack.push_down; parse(tail) }
         else
-          { parse_next(tail) }
+          { parse(tail) }
 
       case _ => done = false
     }
@@ -71,10 +67,10 @@ class RequestParser(req: Request) {
     next match {
 
       case t_rsrc(arg: String, tail: String) =>
-        { req.stack.push_arg(arg); parse_next(tail) }
+        { req.stack.push_arg(arg); parse(tail) }
 
       case t_func(name: String, tail: String) =>
-        { req.stack.head.name = name; parse_next(tail) }
+        { req.stack.head.name = name; parse(tail) }
 
       case _ => done = false
     }
@@ -85,14 +81,14 @@ class RequestParser(req: Request) {
     next match {
 
       case t_fall(tail: String) =>
-        { req.stack.head.name = "fetch_all"; parse_next(tail) }
+        { req.stack.head.name = "fetch_all"; parse(tail) }
 
       case t_sfld(name: String, tail: String) =>
-        { req.stack.head.name = "fetch"; req.stack.push_arg(name); parse_next(tail) }
+        { req.stack.head.name = "fetch"; req.stack.push_arg(name); parse(tail) }
 
       case t_sarg(arg: String, tail: String) =>
         if (scope == 'arg)
-          { req.stack.push_arg(arg); parse_next(tail) }
+          { req.stack.push_arg(arg); parse(tail) }
         else
           throw new ParseException("unexpected token: " + arg)
 
