@@ -17,14 +17,14 @@ class RequestParser(req: Request) {
 
   def parse : Unit = {
     if(req.req_str == null)
-      return error(req, "no query string")
+      return req.error("no query string")
 
     DPump.log_debug("Request: " + req.req_str)
 
     try {
       parse_next(req.req_str)
     } catch {
-      case e: ParseException => error(req, e.toString)
+      case e: ParseException => req.error(e.toString)
     }
 
     if (DPump.debug) {
@@ -99,12 +99,6 @@ class RequestParser(req: Request) {
       case _ => println("nomatch: " + next)
 
     }
-  }
-
-  private def error(req: Request, msg: String) : Unit = {
-    req.resp_status = 400
-    req.error_str = msg
-    req.ready = true
   }
 
 }

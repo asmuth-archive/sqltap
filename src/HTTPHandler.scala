@@ -13,7 +13,7 @@ class HTTPHandler extends AbstractHandler {
     res.getWriter().write(request.resp_data)
     base_req.setHandled(true)
   } catch {
-    case e: Exception => DPump.exception(e, true)
+    case e: Exception => DPump.exception(e, false)
   }
 
 }

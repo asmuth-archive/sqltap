@@ -28,4 +28,11 @@ class Request(_req_str: String) {
     DPump.log_debug("-"*80)
   }
 
+  def error(msg: String) : Unit = {
+    resp_status = 400
+    error_str = msg
+    ready = true
+  }
+
+
 }
