@@ -13,6 +13,8 @@ class Request(_req_str: String) {
   var resp_data : String = null
 
   def execute = {
+    DPump.log_debug("-"*80)
+
     stack.head.name = "execute"
     stack.push_down
 
@@ -22,6 +24,8 @@ class Request(_req_str: String) {
       (new RequestExecutor(this)).run
 
     ResponseWriter.serialize(this)
+
+    DPump.log_debug("-"*80)
   }
 
 }

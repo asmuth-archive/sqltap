@@ -19,11 +19,10 @@ class InstructionStack {
     head.args += arg
 
   def inspect() : Unit =
-    inspect_one(root, 0)
+    inspect_one(root, 1)
 
   private def inspect_one(cur: Instruction, lvl: Int) : Unit = {
-    DPump.log_debug((" " * (lvl*2)) + "> name: " + cur.name + ", args: " + (
-      if (cur.args.size > 0) cur.args.mkString(", ") else "none"))
+    cur.inspect(lvl)
 
     for (next <- cur.next)
       inspect_one(next, lvl+1)

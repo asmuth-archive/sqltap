@@ -19,14 +19,18 @@ class RequestParser(req: Request) {
     if(req.req_str == null)
       return error(req, "no query string")
 
+    DPump.log_debug("Request: " + req.req_str)
+
     try {
       parse_next(req.req_str)
     } catch {
       case e: ParseException => error(req, e.toString)
     }
 
-    if (DPump.debug)
+    if (DPump.debug) {
+      DPump.log_debug("Parser stack:")
       req.stack.inspect
+    }
   }
 
 

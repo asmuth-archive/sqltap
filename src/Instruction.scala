@@ -9,4 +9,8 @@ class Instruction {
   var prev : Instruction = null
   var job : DPump.db_pool.Job = null
   var object_id : Int = 0
+
+  def inspect(lvl: Int) : Unit = 
+    DPump.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: " + (
+      if (args.size > 0) args.mkString(", ") else "none"))
 }

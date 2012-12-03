@@ -51,6 +51,7 @@ class DBConnectionPool {
   def execute(qry: String) : Job = {
     val job = new Job(qry)
     queue.put(job)
+
     job
   }
 

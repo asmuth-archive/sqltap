@@ -6,12 +6,20 @@ class RequestExecutor(req: Request) {
 
   var stack = ListBuffer[Instruction]()
 
-  def run =
-    { build(req.stack.root); println(stack); next }
+  def run ={
+    build(req.stack.root); 
+
+    if (DPump.debug) {
+      DPump.log_debug("Execution stack:")
+
+      for (instruction <- stack)
+        instruction.inspect(1)
+    }
+
+    next
+  }
 
   private def build(cur: Instruction) : Unit = {
-    println("--> build: " + cur.name)
-
     for (next <- cur.next) { 
       next.name match {
 
@@ -37,8 +45,14 @@ class RequestExecutor(req: Request) {
       if (stack(idx).job == null)
         execute(stack(idx))
 
-    if (stack.head.job != null)
+    if (stack.head.job != null) {
       stack.head.job.retrieve
+
+      if (DPump.debug) {
+        val qtime = (stack.head.job.result.qtime / 1000000.0).toString
+        DPump.log_debug("Execute (" + qtime + "ms): "  + stack.head.job.query)
+      }
+    }
 
     stack.remove(0)
 
@@ -47,15 +61,12 @@ class RequestExecutor(req: Request) {
   }
 
   private def execute(cur: Instruction) : Unit = {
-    println("--> execute: " + cur.name)
-
     cur.name match {
 
     case "findOne" => {
       if (cur.object_id == 0) return
       val resource = DPump.manifest(cur.args(0))
       val query = SQLBuilder.sql_find_one(resource, List("*"), cur.object_id)
-      println(query)
       cur.job = DPump.db_pool.execute(query)
     }
 
