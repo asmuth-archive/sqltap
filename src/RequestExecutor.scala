@@ -78,12 +78,9 @@ class RequestExecutor(req: Request) {
       next
   }
 
-  private def execute(cur: Instruction) : Unit = {
-    println("execute: " + cur.name + " - " + cur.args.mkString(", "))
-    cur.name match {
+  private def execute(cur: Instruction) : Unit = cur.name match {
 
     case "findOne" => {
-      println(cur.prev.name)
 
       // via id as arg
       if (
@@ -117,6 +114,6 @@ class RequestExecutor(req: Request) {
 
     }
 
-  }}
+  }
 
 }
