@@ -106,6 +106,22 @@ class RequestExecutor(req: Request) {
               cur.record_id))
         }
 
+
+      case "findSome" =>
+
+        // via parent->id
+        if (cur.relation.join_foreign == true && cur.prev.record_id != 0) {
+          cur.running = true
+          cur.record_id = cur.prev.record_id
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_some(
+              cur.relation.resource, List("*"),
+              cur.relation.join_field,
+              cur.record_id,
+              "", "id DESC", 10, 0))
+        }
+
+
   }
 
 
