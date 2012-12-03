@@ -40,12 +40,17 @@ class RequestExecutor(req: Request) {
         execute(next)
     }
 
+    case "findAll" => {
+      cur.name = "findSome"
+      execute(cur)
+    }
+
     case _ => {
       if (cur.relation == null) {
         if (cur.prev.name == "execute") {
           cur.relation = DPump.manifest(cur.args(0)).to_relation
 
-          if(cur.name == "findOne" && cur.args.size == 1)
+          if(cur.name == "findOne" && cur.args.size == 2)
             cur.record_id = cur.args.remove(1).toInt
 
         } else {
