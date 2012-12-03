@@ -9,7 +9,9 @@ class Instruction {
   var prev : Instruction = null
 
   var job : DPump.db_pool.Job = null
+
   var ready = false
+  var running = false
 
   var relation : ResourceRelation = null
   var record_id = 0

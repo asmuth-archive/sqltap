@@ -52,6 +52,8 @@ class DBConnectionPool {
     val job = new Job(qry)
     queue.put(job)
 
+    DPump.log_debug("Execute: " + qry)
+
     job
   }
 

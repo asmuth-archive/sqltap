@@ -16,6 +16,7 @@ class Request(_req_str: String) {
     DPump.log_debug("-"*80)
 
     stack.head.name = "execute"
+    stack.head.running = false
     stack.push_down
 
     (new RequestParser(this)).parse

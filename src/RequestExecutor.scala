@@ -8,79 +8,42 @@ class RequestExecutor(req: Request) {
   var stime : Long = 0
 
   def run  = try {
-    build(req.stack.root)
+    stack += req.stack.root
 
-    if (DPump.debug) {
-      DPump.log_debug("Execution stack:")
-
-      for (instruction <- stack)
-        instruction.inspect(1)
-
+    if (DPump.debug)
       stime = System.nanoTime
-    }
 
     next
   } catch {
     case e: ExecutionException => req.error(e.toString)
   }
 
-  private def build(cur: Instruction) : Unit = {
-    for (next <- cur.next) { 
-      next.name match {
-
-        case "fetch" =>
-          stack.head.args += cur.args.head
-
-        case "fetch_all" =>
-          stack.head.args += "*"
-
-        case "findOne" => {
-          if (cur.name == "execute") {
-            next.relation = DPump.manifest(next.args(0)).to_relation
-            next.record_id = next.args.remove(1).toInt
-          } else {
-            next.relation = cur.relation.resource.relation(next.args(0))
-          }
-
-          if (next.relation == null)
-            throw new ExecutionException("relation not found: " + next.args(0))
-
-          stack += next
-          build(next)
-        }
-
-        case "findAll" => {
-          stack += next
-          build(next)
-        }
-
-      }
-    }
-    //req.stack.inspect
-  }
-
   private def next() : Unit = {
+    DPump.log_debug("--- next ---")
     for (idx <- (0 to stack.length - 1).reverse)
-      if (stack(idx).ready == false)
+      if (stack(idx).running == false)
         execute(stack(idx))
 
-    if (stack.head.job == null)
-      throw new ExecutionException("deadlock while executing")
+    if (stack.head.ready unary_!) {
+      if (stack.head.job == null)
+        throw new ExecutionException("deadlock while executing")
 
-    stack.head.job.retrieve
-    stack.head.ready = true
+      stack.head.job.retrieve
+      stack.head.ready = true
 
-    if (DPump.debug) {
-      val qtime = (stack.head.job.result.qtime / 1000000.0).toString
-      val otime = ((System.nanoTime - stime) / 1000000.0).toString
-      DPump.log_debug("Execute (" + qtime + "ms) @ " + otime + "ms: "  + stack.head.job.query)
-    }
+      if (DPump.debug) {
+        val qtime = (stack.head.job.result.qtime / 1000000.0).toString
+        val otime = ((System.nanoTime - stime) / 1000000.0).toString
+        DPump.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + stack.head.job.query)
+      }
 
-    if (stack.head.job.retrieve.data.size > 0) {
+      if (stack.head.job.retrieve.data.size > 0) {
 
-      if (stack.head.relation.rtype == "has_one")
-        stack.head.record_id = stack.head.job.retrieve.get(0,
-          stack.head.relation.resource.id_field).toInt
+        if (stack.head.relation.rtype == "has_one")
+          stack.head.record_id = stack.head.job.retrieve.get(0,
+            stack.head.relation.resource.id_field).toInt
+
+      }
 
     }
 
@@ -90,15 +53,44 @@ class RequestExecutor(req: Request) {
       next
   }
 
-  private def execute(cur: Instruction) : Unit = cur.name match {
+  private def execute(cur: Instruction) : Unit = {
+  {
+        cur.inspect(1)
+    //println("peek: " + cur.name)
+
+    cur.name match {
+
+    case "execute" => {
+      cur.ready = true
+
+      for (next <- cur.next)
+        execute(next)
+    }
 
     case "findOne" => {
+      if (cur.relation == null) {
+        if (cur.prev.name == "execute") {
+          cur.relation = DPump.manifest(cur.args(0)).to_relation
+          cur.record_id = cur.args.remove(1).toInt
+        } else {
+          cur.relation = cur.prev.relation.resource.relation(cur.args(0))
+        }
+
+        if (cur.relation == null)
+          throw new ExecutionException("relation not found: " + cur.args(0))
+
+        stack += cur
+
+        for (next <- cur.next)
+          execute(next)
+      }
 
       // via cur->record_id
       if (
         cur.relation.rtype == "has_one" &&
         cur.record_id != 0
       ) {
+        cur.running = true
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql_find_one(
             cur.relation.resource, List("*"),
@@ -112,6 +104,7 @@ class RequestExecutor(req: Request) {
         cur.relation.join_foreign == false &&
         cur.prev.ready
       ) {
+        cur.running = true
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql_find_one(
             cur.relation.resource, List("*"),
@@ -122,8 +115,10 @@ class RequestExecutor(req: Request) {
       // via parent->id
       else if (
         cur.relation.rtype == "has_one" &&
-        cur.relation.join_foreign == true
+        cur.relation.join_foreign == true &&
+        cur.prev.record_id != 0
       ) {
+        cur.running = true
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
             cur.relation.join_field,
@@ -131,7 +126,33 @@ class RequestExecutor(req: Request) {
       }
 
     }
+  }}}
 
-  }
+  /*private def expand(cur: Instruction) : Unit =
+    for (next <- cur.next) next.name match {
+
+      case "fetch" =>
+        cur.args += next.args.head
+
+      case "fetch_all" =>
+        cur.args += "*"
+
+      case "findOne" => {
+        if (cur.name == "execute") {
+          next.relation = DPump.manifest(next.args(0)).to_relation
+          next.record_id = next.args.remove(1).toInt
+        } else {
+          next.relation = cur.relation.resource.relation(next.args(0))
+        }
+
+        if (next.relation == null)
+          throw new ExecutionException("relation not found: " + next.args(0))
+
+        stack += next
+
+        build(next)
+      }
+
+    }*/
 
 }
