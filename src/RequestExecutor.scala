@@ -65,6 +65,7 @@ class RequestExecutor(req: Request) {
       throw new ExecutionException("deadlock while executing")
 
     stack.head.job.retrieve
+    stack.head.ready = true
 
     if (DPump.debug) {
       val qtime = (stack.head.job.result.qtime / 1000000.0).toString
@@ -84,16 +85,36 @@ class RequestExecutor(req: Request) {
     case "findOne" => {
       println(cur.prev.name)
 
-      /*if (cur.prev.name == "execute") {
-        cur.resource = DPump.manifest(cur.args(0))
-      } else {
-        println("fnord: " + cur.prev.resource
-        resource = DPump.manifest(cur.args(0))
-      }*/
+      // via id as arg
+      if (
+        cur.relation_args.size == 1 &&
+        cur.relation.rtype == "has_one"
+      ) {
+        cur.job = DPump.db_pool.execute(
+          SQLBuilder.sql_find_one(cur.relation.resource, List("*"), cur.relation_args.head))
+      }
 
-      if (cur.relation_args.size != 1) return
-      val query = SQLBuilder.sql_find_one(cur.relation.resource, List("*"), cur.relation_args.head)
-      cur.job = DPump.db_pool.execute(query)
+      // via parent->foreign_key
+      else if (
+        cur.relation_args.size != 1 &&
+        cur.relation.rtype == "has_one" &&
+        cur.relation.join_foreign == false &&
+        cur.prev.ready
+      ) {
+        cur.job = DPump.db_pool.execute(
+          SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
+            cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt))
+      }
+
+      // via parent->id
+      else if (
+        cur.relation_args.size != 1 &&
+        cur.relation.rtype == "has_one" &&
+        cur.relation.join_foreign == true
+      ) {
+        println("try fetch id from parent")
+      }
+
     }
 
   }}

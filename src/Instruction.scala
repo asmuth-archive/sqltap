@@ -7,7 +7,9 @@ class Instruction {
   var args = ListBuffer[String]()
   var next = List[Instruction]()
   var prev : Instruction = null
+
   var job : DPump.db_pool.Job = null
+  var ready = false
 
   var relation : ResourceRelation = null
   var relation_args = List[Int]()

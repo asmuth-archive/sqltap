@@ -11,11 +11,19 @@ class ResourceField(elem: xml.Node) {
 trait ResourceRelation {
   val name : String
   def resource : ResourceManifest
+
+  val rtype : String = "has_one"
+
+  val join_foreign : Boolean
+  val join_field : String
 }
 
 class RealResourceRelation(elem: xml.Node) extends ResourceRelation {
-  val name : String = elem.attribute("name").getOrElse("").toString
   val _resource : String = elem.attribute("resource").getOrElse("").toString
+
+  val name : String = elem.attribute("name").getOrElse("").toString
+  val join_field : String = elem.attribute("join_field").getOrElse("").toString
+  val join_foreign : Boolean = false
 
   if (name == "")
     throw new ParseException("missing required attribute: name => " + elem.toString)
@@ -26,6 +34,9 @@ class RealResourceRelation(elem: xml.Node) extends ResourceRelation {
 
 class DummyResourceRelation(_resource: ResourceManifest) extends ResourceRelation {
   val name = _resource.name
+
+  val join_field : String = null
+  val join_foreign : Boolean = false
 
   def resource : ResourceManifest =
     _resource
@@ -67,7 +78,6 @@ class ResourceManifest(doc: xml.Node) {
   }
 
   def relation(name: String) : ResourceRelation = {
-    println("find relation: " + name)
     relations.find(_.name == name).getOrElse(null)
   }
 

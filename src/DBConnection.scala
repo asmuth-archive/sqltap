@@ -23,9 +23,13 @@ class DBConnection(db_addr: String) {
     val enum = 1 to meta.getColumnCount()
     var data = new LinkedList[List[String]]()
 
-    val head = (Map[String, String]() /: enum) (
+    /*val head = (Map[String, String]() /: enum) (
       (h: Map[String, String], i: Int) =>
         h + ((meta.getColumnName(i), meta.getColumnTypeName(i))))
+    */
+
+    val head = (List[String]() /: enum) (
+      _ :+ meta.getColumnName(_))
 
     while (rslt.next)
       data = (List[String]() /: enum) (
