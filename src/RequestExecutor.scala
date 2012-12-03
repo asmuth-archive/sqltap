@@ -44,7 +44,10 @@ class RequestExecutor(req: Request) {
       if (cur.relation == null) {
         if (cur.prev.name == "execute") {
           cur.relation = DPump.manifest(cur.args(0)).to_relation
-          cur.record_id = cur.args.remove(1).toInt
+
+          if(cur.name == "findOne" && cur.args.size == 1)
+            cur.record_id = cur.args.remove(1).toInt
+
         } else {
           cur.relation = cur.prev.relation.resource.relation(cur.args(0))
         }
@@ -63,51 +66,42 @@ class RequestExecutor(req: Request) {
 
   }
 
-  private def peek(cur: Instruction) : Unit = {
+  private def peek(cur: Instruction) : Unit = cur.name match {
 
-      // via cur->record_id
-      if (
-        cur.relation.rtype == "has_one" &&
-        cur.record_id != 0
-      ) {
-        cur.running = true
-        cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_one(
-            cur.relation.resource, List("*"),
-            cur.relation.resource.id_field,
-            cur.record_id))
-      }
+      case "findOne" =>
 
-      // via parent->foreign_key
-      else if (
-        cur.relation.rtype == "has_one" &&
-        cur.relation.join_foreign == false &&
-        cur.prev.ready
-      ) {
-        cur.running = true
-        cur.record_id = cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt
-        cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_one(
-            cur.relation.resource, List("*"),
-            cur.prev.relation.resource.id_field,
-            cur.record_id))
-      }
+        // via cur->record_id
+        if (cur.record_id != 0) {
+          cur.running = true
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_one(
+              cur.relation.resource, List("*"),
+              cur.relation.resource.id_field,
+              cur.record_id))
+        }
 
-      // via parent->id
-      else if (
-        cur.relation.rtype == "has_one" &&
-        cur.relation.join_foreign == true &&
-        cur.prev.record_id != 0
-      ) {
-        cur.running = true
-        cur.record_id = cur.prev.record_id
-        cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
-            cur.relation.join_field,
-            cur.record_id))
-      }
+        // via parent->foreign_key
+        else if (cur.relation.join_foreign == false && cur.prev.ready) {
+          cur.running = true
+          cur.record_id = cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_one(
+              cur.relation.resource, List("*"),
+              cur.prev.relation.resource.id_field,
+              cur.record_id))
+        }
 
-    }
+        // via parent->id
+        else if (cur.relation.join_foreign == true && cur.prev.record_id != 0) {
+          cur.running = true
+          cur.record_id = cur.prev.record_id
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
+              cur.relation.join_field,
+              cur.record_id))
+        }
+
+  }
 
 
   private def pop(cur: Instruction) : Unit = {
@@ -127,7 +121,7 @@ class RequestExecutor(req: Request) {
       DPump.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.job.query)
     }
 
-    if (cur.job.retrieve.data.size == 1 && cur.relation.rtype == "has_one")
+    if (cur.name == "findOne" && cur.job.retrieve.data.size == 1)
       cur.record_id = cur.job.retrieve.get(0, cur.relation.resource.id_field).toInt
 
   }

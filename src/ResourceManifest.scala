@@ -12,8 +12,6 @@ trait ResourceRelation {
   val name : String
   def resource : ResourceManifest
 
-  val rtype : String = "has_one"
-
   val join_foreign : Boolean
   val join_field : String
 }
