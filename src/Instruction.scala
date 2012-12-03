@@ -10,13 +10,13 @@ class Instruction {
 
   var job : DPump.db_pool.Job = null
 
-  var ready = false
   var running = false
+  var ready = false
 
   var relation : ResourceRelation = null
   var record_id = 0
 
   def inspect(lvl: Int) : Unit = 
     DPump.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: " + (
-      if (args.size > 0) args.mkString(", ") else "none"))
+      if (args.size > 0) args.mkString(", ") else "none") + " running: " + running.toString + " ready: " + ready.toString)
 }

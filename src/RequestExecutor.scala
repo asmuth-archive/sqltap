@@ -19,10 +19,11 @@ class RequestExecutor(req: Request) {
   }
 
   private def next() : Unit = {
-    DPump.log_debug("--- next ---")
     for (idx <- (0 to stack.length - 1).reverse)
-      if (stack(idx).running == false)
+      if (stack(idx).running == false) {
         execute(stack(idx))
+        if (stack(idx).running) return next
+      }
 
     if (stack.head.ready unary_!) {
       if (stack.head.job == null)
@@ -53,12 +54,7 @@ class RequestExecutor(req: Request) {
       next
   }
 
-  private def execute(cur: Instruction) : Unit = {
-  {
-        cur.inspect(1)
-    //println("peek: " + cur.name)
-
-    cur.name match {
+  private def execute(cur: Instruction) : Unit = cur.name match {
 
     case "execute" => {
       cur.ready = true
@@ -105,11 +101,12 @@ class RequestExecutor(req: Request) {
         cur.prev.ready
       ) {
         cur.running = true
+        cur.record_id = cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql_find_one(
             cur.relation.resource, List("*"),
             cur.prev.relation.resource.id_field,
-            cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt))
+            cur.record_id))
       }
 
       // via parent->id
@@ -119,14 +116,15 @@ class RequestExecutor(req: Request) {
         cur.prev.record_id != 0
       ) {
         cur.running = true
+        cur.record_id = cur.prev.record_id
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
             cur.relation.join_field,
-            cur.prev.record_id))
+            cur.record_id))
       }
 
     }
-  }}}
+  }
 
   /*private def expand(cur: Instruction) : Unit =
     for (next <- cur.next) next.name match {
