@@ -5,6 +5,7 @@ import scala.collection.mutable.ListBuffer;
 class RequestExecutor(req: Request) {
 
   var stack = ListBuffer[Instruction]()
+  var stime : Long = 0
 
   def run  = try {
     build(req.stack.root)
@@ -14,6 +15,8 @@ class RequestExecutor(req: Request) {
 
       for (instruction <- stack)
         instruction.inspect(1)
+
+      stime = System.nanoTime
     }
 
     next
@@ -58,7 +61,7 @@ class RequestExecutor(req: Request) {
 
   private def next() : Unit = {
     for (idx <- (0 to stack.length - 1).reverse)
-      if (stack(idx).job == null)
+      if (stack(idx).ready == false)
         execute(stack(idx))
 
     if (stack.head.job == null)
@@ -69,7 +72,16 @@ class RequestExecutor(req: Request) {
 
     if (DPump.debug) {
       val qtime = (stack.head.job.result.qtime / 1000000.0).toString
-      DPump.log_debug("Execute (" + qtime + "ms): "  + stack.head.job.query)
+      val otime = ((System.nanoTime - stime) / 1000000.0).toString
+      DPump.log_debug("Execute (" + qtime + "ms) @ " + otime + "ms: "  + stack.head.job.query)
+    }
+
+    if (stack.head.job.retrieve.data.size > 0) {
+
+      if (stack.head.relation.rtype == "has_one")
+        stack.head.record_id = stack.head.job.retrieve.get(0,
+          stack.head.relation.resource.id_field).toInt
+
     }
 
     stack.remove(0)
