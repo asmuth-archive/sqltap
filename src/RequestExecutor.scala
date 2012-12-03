@@ -40,7 +40,7 @@ class RequestExecutor(req: Request) {
         execute(next)
     }
 
-    case "findOne" => {
+    case _ => {
       if (cur.relation == null) {
         if (cur.prev.name == "execute") {
           cur.relation = DPump.manifest(cur.args(0)).to_relation
@@ -57,6 +57,13 @@ class RequestExecutor(req: Request) {
         for (next <- cur.next)
           execute(next)
       }
+
+      peek(cur)
+    }
+
+  }
+
+  private def peek(cur: Instruction) : Unit = {
 
       // via cur->record_id
       if (
@@ -101,7 +108,7 @@ class RequestExecutor(req: Request) {
       }
 
     }
-  }
+
 
   private def pop(cur: Instruction) : Unit = {
     if (cur.ready)
