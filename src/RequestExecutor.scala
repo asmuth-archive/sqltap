@@ -34,7 +34,7 @@ class RequestExecutor(req: Request) {
         case "findOne" => {
           if (cur.name == "execute") {
             next.relation = DPump.manifest(next.args(0)).to_relation
-            next.relation_args = List(next.args.remove(1).toInt)
+            next.record_id = next.args.remove(1).toInt
           } else {
             next.relation = cur.relation.resource.relation(next.args(0))
           }
@@ -82,34 +82,40 @@ class RequestExecutor(req: Request) {
 
     case "findOne" => {
 
-      // via id as arg
+      // via cur->record_id
       if (
-        cur.relation_args.size == 1 &&
-        cur.relation.rtype == "has_one"
+        cur.relation.rtype == "has_one" &&
+        cur.record_id != 0
       ) {
         cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_one(cur.relation.resource, List("*"), cur.relation_args.head))
+          SQLBuilder.sql_find_one(
+            cur.relation.resource, List("*"),
+            cur.relation.resource.id_field,
+            cur.record_id))
       }
 
       // via parent->foreign_key
       else if (
-        cur.relation_args.size != 1 &&
         cur.relation.rtype == "has_one" &&
         cur.relation.join_foreign == false &&
         cur.prev.ready
       ) {
         cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
+          SQLBuilder.sql_find_one(
+            cur.relation.resource, List("*"),
+            cur.prev.relation.resource.id_field,
             cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt))
       }
 
       // via parent->id
       else if (
-        cur.relation_args.size != 1 &&
         cur.relation.rtype == "has_one" &&
         cur.relation.join_foreign == true
       ) {
-        println("try fetch id from parent")
+        cur.job = DPump.db_pool.execute(
+          SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
+            cur.relation.join_field,
+            cur.prev.record_id))
       }
 
     }

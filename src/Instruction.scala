@@ -12,7 +12,7 @@ class Instruction {
   var ready = false
 
   var relation : ResourceRelation = null
-  var relation_args = List[Int]()
+  var record_id = 0
 
   def inspect(lvl: Int) : Unit = 
     DPump.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: " + (

@@ -23,7 +23,7 @@ class RealResourceRelation(elem: xml.Node) extends ResourceRelation {
 
   val name : String = elem.attribute("name").getOrElse("").toString
   val join_field : String = elem.attribute("join_field").getOrElse("").toString
-  val join_foreign : Boolean = false
+  val join_foreign : Boolean = (elem.attribute("join_foreign").getOrElse("").toString == "true")
 
   if (name == "")
     throw new ParseException("missing required attribute: name => " + elem.toString)

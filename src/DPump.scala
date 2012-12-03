@@ -13,7 +13,7 @@ object DPump{
 
   val manifest = HashMap[String,ResourceManifest]()
 
-  var db_threads   = 10
+  var db_threads   = 30
   var http_threads = 10
 
   var debug   = false

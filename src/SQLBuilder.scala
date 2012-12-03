@@ -2,9 +2,9 @@ package com.paulasmuth.dpump
 
 object SQLBuilder {
 
-  def sql_find_one(res: ResourceManifest, fields: List[String], id: Int) =
+  def sql_find_one(res: ResourceManifest, fields: List[String], id_field: String, id: Int) =
     "select " + sql_fields(res, fields) + " from " + res.table_name +
-    " where id = " + id.toString + ";"
+    " where `" + id_field + "` = " + id.toString + ";"
 
   def sql_find_some(res: ResourceManifest, fields: List[String], order: String, limit: Int, offset: Int) =
     "select " + sql_fields(res, fields) + " from " + res.table_name +
