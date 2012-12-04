@@ -2,12 +2,12 @@ package com.paulasmuth.dpump
 
 import scala.collection.mutable.ListBuffer;
 
-class RequestExecutor(root: Instruction) {
+class RequestExecutor(base: InstructionStack) {
 
   var stack = ListBuffer[Instruction]()
   var stime = System.nanoTime
 
-  stack += root
+  stack += base.root
 
   def run() : Unit =
     next
@@ -42,9 +42,7 @@ class RequestExecutor(root: Instruction) {
       DPump.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.job.query)
     }
 
-    if (cur.name == "findOne" && cur.job.retrieve.data.size == 1)
-      cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
-
+    fetch(cur)
   }
 
   private def execute(cur: Instruction) : Unit = cur.name match {
@@ -78,16 +76,32 @@ class RequestExecutor(root: Instruction) {
         if (cur.relation == null)
           throw new ExecutionException("relation not found: " + cur.args(0))
 
-
         stack += cur
 
-        for (next <- cur.next)
-          execute(next)
+        if (cur.name != "findSome")
+          for (next <- cur.next)
+            execute(next)
+
       }
 
       peek(cur)
     }
 
+  }
+
+  private def fetch(cur: Instruction) = {
+
+    if (cur.name == "findOne" && cur.job.retrieve.data.size == 1)
+      cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
+
+    else if (cur.name == "findSome" && cur.job.retrieve.data.size > 0) {
+      InstructionFactory.expand(cur)
+
+      for (ins <- cur.next)
+        stack += ins
+    }
+
+    base.inspect
   }
 
   private def peek(cur: Instruction) : Unit = cur.name match {

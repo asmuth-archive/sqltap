@@ -21,7 +21,7 @@ class Request(_req_str: String) {
 
     (new RequestParser(this)).run
 
-    (new RequestExecutor(stack.root)).run
+    (new RequestExecutor(stack)).run
 
     ResponseWriter.serialize(this)
 
