@@ -27,12 +27,17 @@ class Request(_req_str: String) {
 
     DPump.log_debug("-"*80)
   } catch {
-    case e: ExecutionException => error(e.toString)
+    case e: ParseException => error(400, e.toString)
+    case e: ExecutionException => error(500, e.toString)
+    case e => { error(500, "internal error:" + e.toString); }
   }
 
-  private def error(msg: String) : Unit = {
-    resp_status = 400
+  private def error(code: Int, msg: String) : Unit = {
+    resp_status = code
     error_str = msg
+
+    ResponseWriter.serialize(this)
+
     ready = true
   }
 
