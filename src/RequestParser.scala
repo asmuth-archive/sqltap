@@ -3,6 +3,8 @@ package com.paulasmuth.dpump
 class RequestParser(req: Request) {
 
   var scope = 'root
+  var depth = 0
+  var funcb = 0
 
   val t_rsrc = """^([0-9a-z]+)\.(.*)""".r // fixpaul
   val t_sfld = """^([0-9a-z]+)([,\}].*)""".r // fixpaul
@@ -23,6 +25,12 @@ class RequestParser(req: Request) {
 
     parse(req.req_str)
 
+    if (depth != 0)
+      throw new ParseException("unbalanced braces")
+
+    if (funcb != 0)
+      throw new ParseException("instruction missing {}-body")
+
     if (DPump.debug) {
       DPump.log_debug("Parser stack:")
       req.stack.inspect
@@ -30,7 +38,7 @@ class RequestParser(req: Request) {
   }
 
 
-  def parse(next: String) : Unit = {
+  private def parse(next: String) : Unit = {
     var done = true
 
     if (next == "")
@@ -45,14 +53,14 @@ class RequestParser(req: Request) {
         { scope = 'root; parse(tail) }
 
       case t_cbrs(tail: String) =>
-        { req.stack.push_down; parse(tail) }
+        { push_down; parse(tail); funcb -= 1 }
 
       case t_cbre(tail: String) =>
-        { req.stack.pop; parse(tail) }
+        { pop; parse(tail) }
 
       case t_ssep(tail: String) =>
         if (scope == 'root)
-          { req.stack.pop; req.stack.push_down; parse(tail) }
+          { pop; push_down; parse(tail) }
         else
           { parse(tail) }
 
@@ -70,7 +78,7 @@ class RequestParser(req: Request) {
         { req.stack.push_arg(arg); parse(tail) }
 
       case t_func(name: String, tail: String) =>
-        { req.stack.head.name = name; parse(tail) }
+        { req.stack.head.name = name; parse(tail); funcb += 1 }
 
       case _ => done = false
     }
@@ -96,5 +104,14 @@ class RequestParser(req: Request) {
 
     }
   }
+
+  private def push_down =
+    { depth += 1; emit; req.stack.push_down }
+
+  private def pop =
+    { depth -= 1; emit; req.stack.pop }
+
+  private def emit =
+    InstructionParser.parse(req.stack.head)
 
 }
