@@ -104,38 +104,35 @@ class RequestExecutor(base: InstructionStack) {
 
   private def peek(cur: Instruction) : Unit = cur.name match {
 
-      case "findOne" =>
+      case "findOne" => {
+        var join_id : Int = 0
+        var join_field : String = null
 
-        // via cur->record.id
         if (cur.record.has_id) {
-          cur.running = true
-          cur.job = DPump.db_pool.execute(
-            SQLBuilder.sql_find_one(
-              cur.relation.resource, List("*"),
-              cur.relation.resource.id_field,
-              cur.record.id))
+          join_id = cur.record.id
+          join_field = cur.relation.resource.id_field
         }
 
-        // via parent->foreign_key
         else if (cur.relation.join_foreign == false && cur.prev.ready) {
-          cur.running = true
           cur.record.set_id(cur.prev.record.get(cur.relation.join_field))
+          join_id = cur.record.id
+          join_field = cur.prev.relation.resource.id_field
+        }
+
+        else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
+          cur.record.set_id(cur.prev.record.id)
+          join_id = cur.record.id
+          join_field = cur.relation.join_field
+        }
+
+        if (join_id != 0) {
+          cur.running = true
           cur.job = DPump.db_pool.execute(
             SQLBuilder.sql_find_one(
               cur.relation.resource, List("*"),
-              cur.prev.relation.resource.id_field,
-              cur.record.id))
+              join_field, join_id))
         }
-
-        // via parent->id
-        else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
-          cur.running = true
-          cur.record.set_id(cur.prev.record.id)
-          cur.job = DPump.db_pool.execute(
-            SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
-              cur.relation.join_field,
-              cur.record.id))
-        }
+      }
 
 
       case "findSome" =>
