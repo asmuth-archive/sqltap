@@ -25,100 +25,6 @@ class RequestExecutor(root: Instruction) {
       next
   }
 
-  private def execute(cur: Instruction) : Unit = cur.name match {
-
-    case "execute" => {
-      cur.ready = true
-
-      for (next <- cur.next)
-        execute(next)
-    }
-
-    case "findAll" => {
-      cur.name = "findSome"
-      execute(cur)
-    }
-
-    case _ => {
-      if (cur.relation == null) {
-        if (cur.prev.name == "execute") {
-          cur.relation = DPump.manifest(cur.args(0)).to_relation
-
-          if(cur.name == "findOne" && cur.args.size == 2)
-            cur.record_id = cur.args.remove(1).toInt
-
-        } else {
-          cur.relation = cur.prev.relation.resource.relation(cur.args(0))
-        }
-
-        if (cur.relation == null)
-          throw new ExecutionException("relation not found: " + cur.args(0))
-
-        stack += cur
-
-        for (next <- cur.next)
-          execute(next)
-      }
-
-      peek(cur)
-    }
-
-  }
-
-  private def peek(cur: Instruction) : Unit = cur.name match {
-
-      case "findOne" =>
-
-        // via cur->record_id
-        if (cur.record_id != 0) {
-          cur.running = true
-          cur.job = DPump.db_pool.execute(
-            SQLBuilder.sql_find_one(
-              cur.relation.resource, List("*"),
-              cur.relation.resource.id_field,
-              cur.record_id))
-        }
-
-        // via parent->foreign_key
-        else if (cur.relation.join_foreign == false && cur.prev.ready) {
-          cur.running = true
-          cur.record_id = cur.prev.job.retrieve.get(0, cur.relation.join_field).toInt
-          cur.job = DPump.db_pool.execute(
-            SQLBuilder.sql_find_one(
-              cur.relation.resource, List("*"),
-              cur.prev.relation.resource.id_field,
-              cur.record_id))
-        }
-
-        // via parent->id
-        else if (cur.relation.join_foreign == true && cur.prev.record_id != 0) {
-          cur.running = true
-          cur.record_id = cur.prev.record_id
-          cur.job = DPump.db_pool.execute(
-            SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
-              cur.relation.join_field,
-              cur.record_id))
-        }
-
-
-      case "findSome" =>
-
-        // via parent->id
-        if (cur.relation.join_foreign == true && cur.prev.record_id != 0) {
-          cur.running = true
-          cur.record_id = cur.prev.record_id
-          cur.job = DPump.db_pool.execute(
-            SQLBuilder.sql_find_some(
-              cur.relation.resource, List("*"),
-              cur.relation.join_field,
-              cur.record_id,
-              "", "id DESC", 10, 0))
-        }
-
-
-  }
-
-
   private def pop(cur: Instruction) : Unit = {
     if (cur.ready)
       return
@@ -137,7 +43,103 @@ class RequestExecutor(root: Instruction) {
     }
 
     if (cur.name == "findOne" && cur.job.retrieve.data.size == 1)
-      cur.record_id = cur.job.retrieve.get(0, cur.relation.resource.id_field).toInt
+      cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
+
+  }
+
+  private def execute(cur: Instruction) : Unit = cur.name match {
+
+    case "execute" => {
+      cur.ready = true
+
+      for (next <- cur.next)
+        execute(next)
+    }
+
+    case "findAll" => {
+      cur.name = "findSome"
+      execute(cur)
+    }
+
+    case _ => {
+      if (cur.relation == null) {
+        if (cur.prev.name == "execute") {
+          cur.relation = DPump.manifest(cur.args(0)).to_relation
+          cur.prepare
+
+          if(cur.name == "findOne" && cur.args.size == 2)
+            cur.record.set_id(cur.args.remove(1).toInt)
+
+        } else {
+          cur.relation = cur.prev.relation.resource.relation(cur.args(0))
+          cur.prepare
+        }
+
+        if (cur.relation == null)
+          throw new ExecutionException("relation not found: " + cur.args(0))
+
+
+        stack += cur
+
+        for (next <- cur.next)
+          execute(next)
+      }
+
+      peek(cur)
+    }
+
+  }
+
+  private def peek(cur: Instruction) : Unit = cur.name match {
+
+      case "findOne" =>
+
+        // via cur->record.id
+        if (cur.record.has_id) {
+          cur.running = true
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_one(
+              cur.relation.resource, List("*"),
+              cur.relation.resource.id_field,
+              cur.record.id))
+        }
+
+        // via parent->foreign_key
+        else if (cur.relation.join_foreign == false && cur.prev.ready) {
+          cur.running = true
+          cur.record.set_id(cur.prev.record.get(cur.relation.join_field))
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_one(
+              cur.relation.resource, List("*"),
+              cur.prev.relation.resource.id_field,
+              cur.record.id))
+        }
+
+        // via parent->id
+        else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
+          cur.running = true
+          cur.record.set_id(cur.prev.record.id)
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_one(cur.relation.resource, List("*"),
+              cur.relation.join_field,
+              cur.record.id))
+        }
+
+
+      case "findSome" =>
+
+        // via parent->id
+        if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
+          cur.running = true
+          cur.record.set_id(cur.prev.record.id)
+          cur.job = DPump.db_pool.execute(
+            SQLBuilder.sql_find_some(
+              cur.relation.resource, List("*"),
+              cur.relation.join_field,
+              cur.record.id,
+              "", "id DESC", 10, 0))
+        }
+
 
   }
 

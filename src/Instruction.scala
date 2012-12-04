@@ -8,15 +8,17 @@ class Instruction {
   var next = List[Instruction]()
   var prev : Instruction = null
 
-  var job : DPump.db_pool.Job = null
-
   var running = false
   var ready = false
 
+  var job : DPump.db_pool.Job = null
   var relation : ResourceRelation = null
-  var record_id = 0
+  var record : Record = null
+
+  def prepare : Unit =
+    record = new Record(relation.resource)
 
   def inspect(lvl: Int) : Unit = 
     DPump.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: [" + (
-      if (args.size > 0) args.mkString(", ") else "none") + "], record_id: " + record_id.toString)
+      if (args.size > 0) args.mkString(", ") else "none") + "]")
 }

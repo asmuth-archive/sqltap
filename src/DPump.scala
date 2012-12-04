@@ -53,7 +53,7 @@ object DPump{
 
   def boot = try {
     val http_port = 8080  // FIXPAUL
-    val db_addr = "mysql://localhost:3306/dawanda?user=root" // FIXPAUL
+    val db_addr = "mysql://localhost:3306/dawanda_development?user=root" // FIXPAUL
 
     DPump.log("dpumpd " + VERSION + " booting...")
 
@@ -109,7 +109,7 @@ object DPump{
       log("[DEBUG] " + msg)
 
 
-  def exception(ex: Exception, fatal: Boolean) = {
+  def exception(ex: Throwable, fatal: Boolean) = {
     error(ex.toString, false)
 
     for (line <- ex.getStackTrace)
