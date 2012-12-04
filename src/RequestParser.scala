@@ -81,7 +81,7 @@ class RequestParser(req: Request) {
     next match {
 
       case t_fall(tail: String) =>
-        { req.stack.head.name = "fetch_all"; parse(tail) }
+        { req.stack.head.name = "fetch"; req.stack.push_arg("*"); parse(tail) }
 
       case t_sfld(name: String, tail: String) =>
         { req.stack.head.name = "fetch"; req.stack.push_arg(name); parse(tail) }

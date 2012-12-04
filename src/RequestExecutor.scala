@@ -54,6 +54,11 @@ class RequestExecutor(base: InstructionStack) {
         execute(next)
     }
 
+    case "fetch" => {
+      cur.prev.next = cur.prev.next diff List(cur)
+      cur.prev.args = cur.prev.args :+ cur.args.head
+    }
+
     case "findAll" => {
       cur.name = "findSome"
       execute(cur)
