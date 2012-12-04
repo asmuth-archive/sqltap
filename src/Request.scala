@@ -21,8 +21,7 @@ class Request(_req_str: String) {
 
     (new RequestParser(this)).run
 
-    if (ready unary_!)
-      (new RequestExecutor(stack.root)).run
+    (new RequestExecutor(stack.root)).run
 
     ResponseWriter.serialize(this)
 
