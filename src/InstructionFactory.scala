@@ -3,8 +3,6 @@ package com.paulasmuth.dpump
 object InstructionFactory {
 
   def expand(cur: Instruction) : Unit = {
-    DPump.log_debug("expand called")
-
     val instructions = (List[Instruction]() /: cur.job.retrieve.data)(
       (lst: List[Instruction], row: List[String]) => {
         val ins = new Instruction

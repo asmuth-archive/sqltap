@@ -10,5 +10,5 @@ findSomeWhere(condition, limit, [, offset [, order]])
 
 -------
 
-findSingle(id, condition, order)
-findMulti(limit, offset, condition, order)
+findSingle(res, id, condition, order, fields...)
+findMulti(res, limit, offset, condition, order)

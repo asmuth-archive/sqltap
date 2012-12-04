@@ -60,7 +60,7 @@ class RequestExecutor(base: InstructionStack) {
     }
 
     case "findAll" => {
-      cur.name = "findSome"
+      cur.name = "findMulti"
       execute(cur)
     }
 
@@ -70,7 +70,7 @@ class RequestExecutor(base: InstructionStack) {
           cur.relation = DPump.manifest(cur.args(0)).to_relation
           cur.prepare
 
-          if(cur.name == "findOne" && cur.args.size == 2)
+          if(cur.name == "findSingle" && cur.args(1) != null)
             cur.record.set_id(cur.args.remove(1).toInt)
 
         } else {
@@ -83,7 +83,7 @@ class RequestExecutor(base: InstructionStack) {
 
         stack += cur
 
-        if (cur.name != "findSome")
+        if (cur.name != "findMulti")
           for (next <- cur.next)
             execute(next)
 
@@ -96,10 +96,10 @@ class RequestExecutor(base: InstructionStack) {
 
   private def fetch(cur: Instruction) = {
 
-    if (cur.name == "findOne" && cur.job.retrieve.data.size == 1)
+    if (cur.name == "findSingle" && cur.job.retrieve.data.size == 1)
       cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
 
-    else if (cur.name == "findSome" && cur.job.retrieve.data.size > 0) {
+    else if (cur.name == "findMulti" && cur.job.retrieve.data.size > 0) {
       InstructionFactory.expand(cur)
 
       for (ins <- cur.next)
@@ -109,7 +109,7 @@ class RequestExecutor(base: InstructionStack) {
 
   private def peek(cur: Instruction) : Unit = cur.name match {
 
-    case "findOne" => {
+    case "findSingle" => {
       var join_id : Int = 0
       var join_field : String = null
 
@@ -139,7 +139,7 @@ class RequestExecutor(base: InstructionStack) {
       }
     }
 
-    case "findSome" => {
+    case "findMulti" => {
       var join_id : Int = 0
       var join_field : String = null
 
