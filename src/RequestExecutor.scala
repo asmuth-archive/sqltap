@@ -138,7 +138,10 @@ class RequestExecutor(base: InstructionStack) {
       var join_id : Int = 0
       var join_field : String = null
 
-      if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
+      if (cur.relation.join_foreign == false)
+        throw new ParseException("findSome on a non-foreign relation")
+
+      else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
         cur.record.set_id(cur.prev.record.id)
         join_id = cur.record.id
         join_field = cur.relation.join_field
