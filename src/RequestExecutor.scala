@@ -61,7 +61,7 @@ class RequestExecutor(base: InstructionStack) {
 
     case _ => {
       if (cur.relation == null) {
-        if (cur.prev.name == "execute") {
+        if (cur.prev == base.root) {
           cur.relation = DPump.manifest(cur.args(0)).to_relation
           cur.prepare
 
@@ -100,8 +100,6 @@ class RequestExecutor(base: InstructionStack) {
       for (ins <- cur.next)
         stack += ins
     }
-
-    base.inspect
   }
 
   private def peek(cur: Instruction) : Unit = cur.name match {

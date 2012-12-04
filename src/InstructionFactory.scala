@@ -11,7 +11,7 @@ object InstructionFactory {
         ins.name = "execute"
         ins.relation = cur.relation
         ins.prepare
-        ins.record.load(row, cur.job.retrieve.data.head)
+        ins.record.load(cur.job.retrieve.head, row)
         deep_copy(cur, ins)
         lst :+ ins
       })
