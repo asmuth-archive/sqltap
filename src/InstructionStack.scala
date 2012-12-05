@@ -5,6 +5,10 @@ class InstructionStack {
   val root = new Instruction
   var head = root
 
+  head.name = "execute"
+  head.running = false
+  push_down
+
   def push_down : Unit = {
     val next = new Instruction
     head.next = head.next :+ next

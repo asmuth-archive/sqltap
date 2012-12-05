@@ -12,18 +12,14 @@ class Request(_req_str: String) {
   var resp_status : Int = 200
   var resp_data : String = null
 
-  def run = try {
+  var qtime = List[Long]()
+
+  def run : Unit = try {
     DPump.log_debug("-"*80)
+    run_unsafe
 
-    stack.head.name = "execute"
-    stack.head.running = false
-    stack.push_down
-
-    (new RequestParser(this)).run
-
-    (new RequestExecutor(stack)).run
-
-    ResponseWriter.serialize(this)
+    DPump.log_debug("QTime (parse, exec, write): " +
+      qtime.sliding(2).map(x=>(x(1)-x(0)) / 1000000.0).mkString(", "))
 
     DPump.log_debug("-"*80)
   } catch {
@@ -33,6 +29,19 @@ class Request(_req_str: String) {
       DPump.exception(e, false)
       error(500, "internal error: " + e.toString)
     }
+  }
+
+  private def run_unsafe : Unit = {
+    qtime = qtime :+ System.nanoTime
+
+    (new RequestParser(this)).run
+    qtime = qtime :+ System.nanoTime
+
+    (new RequestExecutor(stack)).run
+    qtime = qtime :+ System.nanoTime
+
+    ResponseWriter.serialize(this)
+    qtime = qtime :+ System.nanoTime
   }
 
   private def error(code: Int, msg: String) : Unit = {
