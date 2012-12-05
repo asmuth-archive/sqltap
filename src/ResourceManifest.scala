@@ -57,6 +57,8 @@ class ResourceManifest(doc: xml.Node) {
 
   val id_field : String = doc.attribute("id_field").getOrElse("").toString
 
+  val default_order = "id DESC"
+
   if (name == "")
     throw new ParseException("missing required attribute: id_field => " + doc.toString)
 

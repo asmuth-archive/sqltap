@@ -54,16 +54,6 @@ class RequestExecutor(base: InstructionStack) {
         execute(next)
     }
 
-    case "fetch" => {
-      cur.prev.next = cur.prev.next diff List(cur)
-      cur.prev.args = cur.prev.args :+ cur.args.head
-    }
-
-    case "findAll" => {
-      cur.name = "findMulti"
-      execute(cur)
-    }
-
     case _ => {
       if (cur.relation == null) {
         if (cur.prev == base.root) {
@@ -71,7 +61,7 @@ class RequestExecutor(base: InstructionStack) {
           cur.prepare
 
           if(cur.name == "findSingle" && cur.args(1) != null)
-            cur.record.set_id(cur.args.remove(1).toInt)
+            cur.record.set_id(cur.args(1).toInt)
 
         } else {
           cur.relation = cur.prev.relation.resource.relation(cur.args(0))
@@ -113,6 +103,9 @@ class RequestExecutor(base: InstructionStack) {
       var join_id : Int = 0
       var join_field : String = null
 
+      if (cur.args.size < 5)
+        throw new ParseException("emtpy field list")
+
       if (cur.record.has_id) {
         join_id = cur.record.id
         join_field = cur.relation.resource.id_field
@@ -133,33 +126,39 @@ class RequestExecutor(base: InstructionStack) {
       if (join_id != 0) {
         cur.running = true
         cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_one(
-            cur.relation.resource, List("*"),
-            join_field, join_id))
+          SQLBuilder.sql(cur.relation.resource,
+            join_field, join_id.toString,
+            cur.args.slice(4, cur.args.size).toList,
+            cur.args(2), cur.args(3), null, null))
       }
     }
 
     case "findMulti" => {
-      var join_id : Int = 0
-      var join_field : String = null
 
-      if (cur.relation.join_foreign == false)
-        throw new ParseException("findSome on a non-foreign relation")
+      if (cur.args.size < 6)
+        throw new ParseException("emtpy field list")
+
+      if (cur.prev == base.root) {
+        cur.running = true
+        cur.job = DPump.db_pool.execute(
+          SQLBuilder.sql(cur.relation.resource, null, null,
+            cur.args.slice(5, cur.args.size).toList,
+            cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
+      }
 
       else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
         cur.record.set_id(cur.prev.record.id)
-        join_id = cur.record.id
-        join_field = cur.relation.join_field
-      }
-
-      if (join_id != 0) {
         cur.running = true
         cur.job = DPump.db_pool.execute(
-          SQLBuilder.sql_find_some(
-            cur.relation.resource, List("*"),
-            join_field, join_id,
-            "", "id DESC", 10, 0))
+          SQLBuilder.sql(cur.relation.resource,
+            cur.relation.join_field, cur.record.id.toString,
+            cur.args.slice(5, cur.args.size).toList,
+            cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
       }
+
+      else if (cur.relation.join_foreign == false)
+        throw new ParseException("findSome on a non-foreign relation")
+
     }
 
   }
