@@ -15,7 +15,8 @@ class Request(_req_str: String) {
   var etime = List[Long]()
 
   def qtime : List[Double] =
-    etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
+    if (etime.size < 2) List[Double]() else
+      etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
 
   def run : Unit = try {
     DPump.log_debug("-"*80)
