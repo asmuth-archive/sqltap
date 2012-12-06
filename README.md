@@ -15,6 +15,7 @@ Instructions
       findOneWhere(condition)
       findAllWhere(condition)
       findSomeWhere(condition, limit, [, offset [, order]])
+      count
 
 
     INTERNAL
