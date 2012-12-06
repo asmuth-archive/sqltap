@@ -11,6 +11,9 @@ class HTTPHandler extends AbstractHandler {
     request.run
 
     res.setStatus(request.resp_status)
+    res.addHeader("X-DPump-QTime", request.qtime.mkString(", "))
+    res.addHeader("X-DPump-Version", DPump.VERSION)
+    res.addHeader("Server", "dpumpd " + DPump.VERSION)
 
     if (request.resp_data != null)
       res.getWriter().write(request.resp_data)

@@ -12,14 +12,17 @@ class Request(_req_str: String) {
   var resp_status : Int = 200
   var resp_data : String = null
 
-  var qtime = List[Long]()
+  var etime = List[Long]()
+
+  def qtime : List[Double] =
+    etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
 
   def run : Unit = try {
     DPump.log_debug("-"*80)
     run_unsafe
 
     DPump.log_debug("QTime (parse, exec, write): " +
-      qtime.sliding(2).map(x=>(x(1)-x(0)) / 1000000.0).mkString(", "))
+      qtime.mkString(", "))
 
     DPump.log_debug("-"*80)
   } catch {
@@ -32,16 +35,16 @@ class Request(_req_str: String) {
   }
 
   private def run_unsafe : Unit = {
-    qtime = qtime :+ System.nanoTime
+    etime = etime :+ System.nanoTime
 
     (new RequestParser(this)).run
-    qtime = qtime :+ System.nanoTime
+    etime = etime :+ System.nanoTime
 
     (new RequestExecutor(stack)).run
-    qtime = qtime :+ System.nanoTime
+    etime = etime :+ System.nanoTime
 
     ResponseWriter.serialize(this)
-    qtime = qtime :+ System.nanoTime
+    etime = etime :+ System.nanoTime
   }
 
   private def error(code: Int, msg: String) : Unit = {
