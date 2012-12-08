@@ -21,12 +21,15 @@ class JSONWriter(req: Request) {
         { indent; s = scope((("{","}"))) }
 
       case "findSingle" =>
-        { write(json(cur.relation.name) + ": "); s = scope((("{","}"))) } 
+        { write(json(cur.relation.name) + ": "); s = scope((("{","}"))) }
 
       case "findMulti" =>
         { write(json(cur.relation.name) + ": "); s = scope((("[","]"))) }
 
     }
+
+    if (cur.record != null)
+      dump(cur)
 
     for (nxt <- cur.next)
       next(nxt)
@@ -36,8 +39,13 @@ class JSONWriter(req: Request) {
     buf.append(",\n")
   }
 
+  private def dump(cur: Instruction) =
+    for ((field, ind) <- cur.record.fields.zipWithIndex)
+      write(json(field) + ": " + json(cur.record.data(ind)) + ",\n")
+
   private def json(str: String) : String =
-    "\"" + str.replaceAll("\"", "\\\"") + "\""
+    if (str == null) "null" else
+      "\"" + str.replaceAll("\"", "\\\"") + "\""
 
   private def write(str: String) : Unit =
     if (str != null) buf.append((INDENT * ind) + str)
