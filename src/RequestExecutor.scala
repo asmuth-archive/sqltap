@@ -108,8 +108,8 @@ class RequestExecutor(base: InstructionStack) {
 
       InstructionFactory.expand(cur)
 
-      //if (skip_execution)
-        //return
+      if (skip_execution)
+        return
 
       for (ins <- cur.next)
         stack += ins
