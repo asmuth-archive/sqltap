@@ -4,6 +4,8 @@ import scala.collection.mutable.ListBuffer;
 
 class RequestExecutor(base: InstructionStack) {
 
+  val SEARCH_DEPTH = 50 // max stack search depth
+
   var stack = ListBuffer[Instruction]()
   var stime = System.nanoTime
 
@@ -13,10 +15,15 @@ class RequestExecutor(base: InstructionStack) {
     next
 
   private def next() : Unit = {
-    for (idx <- (0 to stack.length - 1).reverse)
+    val search_depth =
+      Math.min(SEARCH_DEPTH, stack.length - 1)
+
+    for (idx <- (0 to search_depth).reverse)
       if (stack(idx).running == false) {
         execute(stack(idx))
-        if (stack(idx).running) return next
+
+        if (stack(idx).running) 
+          return next
       }
 
     pop(stack.remove(0))
@@ -45,52 +52,64 @@ class RequestExecutor(base: InstructionStack) {
     fetch(cur)
   }
 
-  private def execute(cur: Instruction) : Unit = cur.name match {
+  private def execute(cur: Instruction) : Unit =
 
-    case "execute" => {
+    if (cur.name == "execute") {
       cur.ready = true
 
       for (next <- cur.next)
         execute(next)
     }
 
-    case _ => {
+    else {
       if (cur.relation == null) {
-        if (cur.prev == base.root) {
-          cur.relation = DPump.manifest(cur.args(0)).to_relation
-          cur.prepare
-
-          if(cur.name == "findSingle" && cur.args(1) != null)
-            cur.record.set_id(cur.args(1).toInt)
-
-        } else {
-          cur.relation = cur.prev.relation.resource.relation(cur.args(0))
-          cur.prepare
-        }
-
-        if (cur.relation == null)
-          throw new ExecutionException("relation not found: " + cur.args(0))
+        prepare(cur)
 
         stack += cur
 
         if (cur.name != "findMulti")
-          for (next <- cur.next)
-            execute(next)
+          for (nxt <- cur.next)
+            execute(nxt)
 
       }
 
       peek(cur)
     }
 
+
+
+  private def prepare(cur: Instruction) = {
+
+    if (cur.prev == base.root) {
+      cur.relation = DPump.manifest(cur.args(0)).to_relation
+      cur.prepare
+
+      if(cur.name == "findSingle" && cur.args(1) != null)
+        cur.record.set_id(cur.args(1).toInt)
+
+    } else {
+      cur.relation = cur.prev.relation.resource.relation(cur.args(0))
+      cur.prepare
+    }
+
+    if (cur.relation == null)
+      throw new ExecutionException("relation not found: " + cur.args(0))
+
   }
 
-  private def fetch(cur: Instruction) = {
+
+  private def fetch(cur: Instruction) : Unit = {
 
     if (cur.name == "findSingle" && cur.job.retrieve.data.size == 1)
       cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
 
     else if (cur.name == "findMulti" && cur.job.retrieve.data.size > 0) {
+      val skip_execution = (cur.next.length == 0)
+
       InstructionFactory.expand(cur)
+
+      //if (skip_execution)
+        //return
 
       for (ins <- cur.next)
         stack += ins
