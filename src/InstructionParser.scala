@@ -1,5 +1,9 @@
 package com.paulasmuth.dpump
 
+// Internal Instructions:
+//   -> findSingle(res, id, condition, order, fields...)
+//   -> findMulti(res, condition, order, limit, offset, fields...)
+
 object InstructionParser {
 
   def parse(cur: Instruction) : Unit = cur.name match {
