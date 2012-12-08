@@ -1,33 +1,86 @@
+FnorDB
+======
 
+here be dragons
+
+
+Usage
+-----
+
+### Starting FnorDB
+
+here be dragons
+
+### Sending queries
+
+retrieve user record id#2342 with all fields:
+
+    user.findOne(2342){*}
+
+retrieve user record id#2342 with fields: username and email):
+
+
+    user.findOne(2342){username,email}
+
+retrieve user record with id#2342 with all orders and all fields::
+
+    user.findOne(2342){*,orders.findAll{*}}
 
 
 Instructions
 ------------
 
-    findOne(id)
-    findOne
-    findAll
+### findOne
 
-    TODO:
+    resource.findOne(id)
+
+    relation.findOne
+
+
+
+### findAll
+
+    relation.findAll
+
+
+### findSome
+
     findSome(limit, [, offset [, order]])
+
+
+### findWhere
+
     findOneWhere(condition)
+
     findAllWhere(condition)
+
     findSomeWhere(condition, limit, [, offset [, order]])
-    count
+
+
+### count
+
+    relation.count
+
+
+
+Installation
+------------
+
+here be dragons
 
 
 Todo
 ----
 
--> timeouts (http + sql)
--> {*,fnord} issue
--> implement last commands
--> stats aggregation
--> /config.xml action
--> json writer fixes
--> serialize qtime + query
--> serialize relation name
--> catch exceptions in sql conn
++ timeouts (http + sql)
++ {*,fnord} issue
++ implement last commands
++ stats aggregation
++ /config.xml action
++ json writer fixes
++ serialize qtime + query
++ serialize relation name
++ catch exceptions in sql conn
 
 
 
