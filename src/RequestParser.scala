@@ -6,8 +6,8 @@ class RequestParser(req: Request) {
   var depth = 0
   var funcb = 0
 
-  val t_rsrc = """^([0-9a-z]+)\.(.*)""".r // fixpaul
-  val t_sfld = """^([0-9a-z]+)([,\}].*)""".r // fixpaul
+  val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
+  val t_sfld = """^([0-9a-z_\-]+)([,\}].*)""".r // fixpaul
   val t_sarg = """^([^,\)]+)(.*)""".r
   val t_func = """^(findOne|findSome|findAll)\.?(.*)""".r
   val t_rbrs = """^\((.*)""".r
