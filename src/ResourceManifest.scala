@@ -1,77 +1,41 @@
 package com.paulasmuth.dpump
 
-class ResourceField(elem: xml.Node) {
-  val name : String = elem.attribute("name").getOrElse("").toString
-
-  if (name == "")
-    throw new ParseException("missing required attribute: name => " + elem.toString)
-
-}
-
-trait ResourceRelation {
-  val name : String
-  def resource : ResourceManifest
-
-  val join_foreign : Boolean
-  val join_field : String
-}
-
-class RealResourceRelation(elem: xml.Node) extends ResourceRelation {
-  val _resource : String = elem.attribute("resource").getOrElse("").toString
-
-  val name : String = elem.attribute("name").getOrElse("").toString
-  val join_field : String = elem.attribute("join_field").getOrElse("").toString
-  val join_foreign : Boolean = (elem.attribute("join_foreign").getOrElse("").toString == "true")
-
-  if (name == "")
-    throw new ParseException("missing required attribute: name => " + elem.toString)
-
-  def resource : ResourceManifest =
-    DPump.manifest(_resource)
-}
-
-class DummyResourceRelation(_resource: ResourceManifest) extends ResourceRelation {
-  val name = _resource.name
-
-  val join_field : String = null
-  val join_foreign : Boolean = false
-
-  def resource : ResourceManifest =
-    _resource
-}
-
 class ResourceManifest(doc: xml.Node) {
+
+  class ResourceField(doc: xml.Node) {
+    val elem = new XMLHelper(doc)
+
+    val name : String =
+      elem.attr("name", true)
+  }
+
+  val elem = new XMLHelper(doc)
 
   if (doc.label != "resource")
     throw new ParseException("xml root must be one or more <resource> elements")
 
-  val name : String = doc.attribute("name").getOrElse("").toString
 
-  if (name == "")
-    throw new ParseException("missing required attribute: name => " + doc.toString)
+  val name : String =
+    elem.attr("name", true)
 
-  val table_name : String = doc.attribute("table_name").getOrElse("").toString
+  val table_name : String =
+    elem.attr("table_name", true)
 
-  if (table_name == "")
-    throw new ParseException("missing required attribute: table_name => " + doc.toString)
+  val default_order : String =
+    elem.attr("default_order", false, "id DESC")
 
-  val id_field : String = doc.attribute("id_field").getOrElse("").toString
+  val id_field : String =
+    elem.attr("id_field", false, "id")
 
-  val default_order = "id DESC"
 
-  if (name == "")
-    throw new ParseException("missing required attribute: id_field => " + doc.toString)
+  val relations =
+    ((List[ResourceRelation]() /: (doc \ "relation"))
+      (_ :+ new RealResourceRelation(_)))
 
   val fields =
-    (List[ResourceField]() /: (doc \ "field"))(_ :+ new ResourceField(_))
+    ((List[ResourceField]() /: (doc \ "field"))
+      (_ :+ new ResourceField(_)))
 
-  val relations =
-    (List[ResourceRelation]() /: (doc \ "relation"))(_ :+ new RealResourceRelation(_))
-/*
-  val relations =
-    (List[ResourceRelation]() /: (doc \ "relation"))((l: List[ResourceRelation], x: xml.Node) =>
-      (l :+ (new RealResourceRelation(x).asInstanceOf[ResourceRelation])))
-*/
 
   def field(name: String) : ResourceField = {
     fields.find(_.name == name).getOrElse(null)

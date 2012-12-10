@@ -167,6 +167,10 @@ class RequestExecutor(base: InstructionStack) {
       else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
         cur.record.set_id(cur.prev.record.id)
         cur.running = true
+
+        if (cur.args(1) == null && cur.relation.join_cond != null)
+          cur.args(1) = cur.relation.join_cond
+
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource,
             cur.relation.join_field, cur.record.id.toString,
