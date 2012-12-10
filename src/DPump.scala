@@ -53,7 +53,7 @@ object DPump{
 
   def boot = try {
     val http_port = 8080  // FIXPAUL
-    val db_addr = "mysql://localhost:3306/dawanda?user=root" // FIXPAUL
+    val db_addr = "mysql://localhost:3306/dawanda_development?user=root" // FIXPAUL
 
     DPump.log("dpumpd " + VERSION + " booting...")
 
@@ -71,6 +71,8 @@ object DPump{
 
   def load_config = {
     for (file <- new File(CONFIG('config_dir)).list()){
+      log_debug("Loading: " + file)
+
       val raw = io.Source.fromFile(CONFIG('config_dir) + "/" + file).mkString
       val xml = scala.xml.XML.loadString(raw).head
 

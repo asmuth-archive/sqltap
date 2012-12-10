@@ -82,18 +82,17 @@ class RequestExecutor(base: InstructionStack) {
 
     if (cur.prev == base.root) {
       cur.relation = DPump.manifest(cur.args(0)).to_relation
-      cur.prepare
-
-      if(cur.name == "findSingle" && cur.args(1) != null)
-        cur.record.set_id(cur.args(1).toInt)
-
     } else {
       cur.relation = cur.prev.relation.resource.relation(cur.args(0))
-      cur.prepare
     }
 
-    if (cur.relation == null)
+    if (cur.relation != null)
+      cur.prepare
+    else
       throw new ExecutionException("relation not found: " + cur.args(0))
+
+    if(cur.name == "findSingle" && cur.args(1) != null)
+      cur.record.set_id(cur.args(1).toInt)
 
   }
 
