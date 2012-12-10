@@ -80,7 +80,7 @@ Todo
 + serialize qtime + query
 + serialize relation name
 + catch exceptions in sql conn
-
++ multi-find (product.findOne(){},product.findOne(){}...)
 
 
 License
