@@ -8,51 +8,52 @@ class JSONWriter(req: Request) {
   val buf = new StringBuffer
 
   def run : Unit = {
-    next(req.stack.root)
+    next(req.stack.root, true)
     req.resp_data = buf.toString
   }
 
-  private def next(cur: Instruction) : Unit = {
-    var s : (() => Unit) = null
+  private def next(cur: Instruction, first: Boolean = false) : Unit = {
+    var scope : String = null
+
+    if (first unary_!)
+      buf.append(",\n")
 
     cur.name match {
 
       case "execute" =>
-        { indent; s = scope((("{","}"))) }
+        { write("{\n"); scope = "}"; ind += 1; }
 
       case "findSingle" =>
-        { write(json(cur.relation.name) + ": "); s = scope((("{","}"))) }
+        { write(json(cur.relation.name) + ": {\n"); scope = "}"; ind += 1; }
 
       case "findMulti" =>
-        { write(json(cur.relation.name) + ": "); s = scope((("[","]"))) }
+        { write(json(cur.relation.name) + ": [\n"); scope = "]"; ind += 1; }
 
     }
 
-    if (cur.record != null)
-      dump(cur)
+    if (cur.name != "findMulti" && cur.record != null)
+      { dump(cur); if (cur.next.length > 0) buf.append(",\n") }
 
-    for (nxt <- cur.next)
-      next(nxt)
+    for ((nxt, ind) <- cur.next.zipWithIndex)
+      next(nxt, ind == 0)
 
-    if (s != null) s()
+    if (scope != null)
+      { buf.append("\n"); ind -= 1; write(scope) }
 
-    buf.append(",\n")
   }
 
   private def dump(cur: Instruction) =
-    for ((field, ind) <- cur.record.fields.zipWithIndex)
-      write(json(field) + ": " + json(cur.record.data(ind)) + ",\n")
+    for ((field, ind) <- cur.record.fields.zipWithIndex) {
+      if (ind != 0) buf.append(",\n")
+      write(json(field) + ": " + json(cur.record.data(ind)))
+    }
 
   private def json(str: String) : String =
     if (str == null) "null" else
-      "\"" + str.replaceAll("\"", "\\\"") + "\""
+      "\"" + str.replaceAll("\"", "'").replaceAll("\n", "") + "\"" // FIXPAUL
 
   private def write(str: String) : Unit =
     if (str != null) buf.append((INDENT * ind) + str)
-
-  private def scope(s: (String, String)) : (() => Unit) =
-    { buf.append(s._1 + "\n"); ind += 1; (() =>
-      { ind -= 1; write(s._2) })}
 
   private def indent : Unit =
     buf.append(INDENT * ind)
