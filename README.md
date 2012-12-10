@@ -77,7 +77,6 @@ Todo
 + implement last commands
 + stats aggregation
 + /config.xml action
-+ json writer fixes
 + serialize qtime + query
 + serialize relation name
 + catch exceptions in sql conn
