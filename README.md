@@ -73,7 +73,6 @@ Todo
 ----
 
 + timeouts (http + sql)
-+ {*,fnord} issue
 + implement last commands
 + stats aggregation
 + /config.xml action

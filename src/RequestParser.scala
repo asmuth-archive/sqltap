@@ -15,7 +15,7 @@ class RequestParser(req: Request) {
   val t_cbrs = """^\{(.*)""".r
   val t_cbre = """^\}(.*)""".r
   val t_ssep = """^,(.*)""".r
-  val t_fall = """\*(\}.*)""".r
+  val t_fall = """\*([\},].*)""".r
 
   def run : Unit = {
     if(req.req_str == null)
