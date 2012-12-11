@@ -72,12 +72,11 @@ here be dragons
 Todo
 ----
 
-+ timeouts (http + sql)
 + implement last commands
 + stats aggregation
-+ /config.xml action
 + serialize qtime + query
-
++ timeouts (http + sql)
++ cmdline opts
 
 License
 -------

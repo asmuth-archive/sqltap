@@ -17,5 +17,8 @@ class XMLHelper(elem: xml.Node) {
 
   }
 
+  def to_xml : String =
+    elem.toString
+
 }
 
