@@ -14,39 +14,48 @@ class JSONWriter(req: Request) {
 
   private def next(cur: Instruction, first: Boolean = false) : Unit = {
     var scope : String = null
+    var scopei = 1
 
     if (first unary_!)
       buf.append(",\n")
 
-    cur.name match {
+    if (cur.name == "execute" && cur.prev == null)
+      { write("[\n"); scope = "]"; ind += 1; }
+    else if (cur.name == "execute")
+      { write("{\n"); scope = "}"; ind += 1; }
 
-      case "execute" =>
-        { write("{\n"); scope = "}"; ind += 1; }
+    if (cur.name == "findMulti") {
+      write(json(cur.relation.name) + ": [\n")
+      scope = "]"; ind += 1
+    } else {
 
-      case "findSingle" =>
-        { write(json(cur.relation.name) + ": {\n"); scope = "}"; ind += 1; }
+      if (cur.name == "findSingle") {
+        write("{\n"); ind += 1
+        write(json(cur.relation.name) + ": {\n")
+        scope = INDENT + "}\n" + (INDENT*(ind-1)) + "}"
+        ind += 1; scopei = 2
+      }
 
-      case "findMulti" =>
-        { write(json(cur.relation.name) + ": [\n"); scope = "]"; ind += 1; }
+      if (cur.record != null) { 
+        for ((field, ind) <- cur.record.fields.zipWithIndex) {
+          if (ind != 0) 
+            buf.append(",\n")
 
+          write(json(field) + ": " + json(cur.record.data(ind)))
+        }
+
+        if (cur.next.length > 0)
+          buf.append(",\n")
+      }
     }
-
-    if (cur.name != "findMulti" && cur.record != null)
-      { dump(cur); if (cur.next.length > 0) buf.append(",\n") }
 
     for ((nxt, ind) <- cur.next.zipWithIndex)
       next(nxt, ind == 0)
 
     if (scope != null)
-      { buf.append("\n"); ind -= 1; write(scope) }
+      { buf.append("\n"); ind -= scopei; write(scope) }
 
   }
-
-  private def dump(cur: Instruction) =
-    for ((field, ind) <- cur.record.fields.zipWithIndex) {
-      if (ind != 0) buf.append(",\n")
-      write(json(field) + ": " + json(cur.record.data(ind)))
-    }
 
   private def json(str: String) : String =
     if (str == null) "null" else
@@ -54,8 +63,5 @@ class JSONWriter(req: Request) {
 
   private def write(str: String) : Unit =
     if (str != null) buf.append((INDENT * ind) + str)
-
-  private def indent : Unit =
-    buf.append(INDENT * ind)
 
 }

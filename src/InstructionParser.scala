@@ -34,6 +34,7 @@ object InstructionParser {
 
     case "findSingle" => ()
     case "findMulti" => ()
+    case "execute" => ()
 
     case _ =>
       throw new ParseException("invalid instruction: " + cur.name)
