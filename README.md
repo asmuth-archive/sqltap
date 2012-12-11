@@ -78,7 +78,6 @@ Todo
 + stats aggregation
 + /config.xml action
 + serialize qtime + query
-+ serialize relation name
 
 
 License

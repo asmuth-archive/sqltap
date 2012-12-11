@@ -36,11 +36,12 @@ class JSONWriter(req: Request) {
         ind += 1; scopei = 2
       }
 
-      if (cur.record != null) { 
-        for ((field, ind) <- cur.record.fields.zipWithIndex) {
-          if (ind != 0) 
-            buf.append(",\n")
+      if (cur.record != null) {
+        write(json("__resource") + ": " +
+          json(cur.record.resource.name))
 
+        for ((field, ind) <- cur.record.fields.zipWithIndex) {
+          buf.append(",\n")
           write(json(field) + ": " + json(cur.record.data(ind)))
         }
 
