@@ -10,14 +10,16 @@ class DBConnection(db_addr: String) {
   val conn = java.sql.DriverManager.getConnection("jdbc:" + db_addr)
   val stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
 
-  def execute(qry: String) : DBResult = {
+  def execute(qry: String) : DBResult = try {
     val strt = System.nanoTime()
     val rslt = execute_without_stopwatch(qry)
     rslt.qtime = System.nanoTime() - strt
     rslt
+  } catch {
+    case e: Exception => error(e)
   }
 
-  def execute_without_stopwatch(qry: String) : DBResult = {
+  private def execute_without_stopwatch(qry: String) : DBResult = {
     val rslt = stmt.executeQuery(qry)
     val meta = rslt.getMetaData()
     val enum = 1 to meta.getColumnCount()
@@ -36,6 +38,12 @@ class DBConnection(db_addr: String) {
         _ :+ rslt.getString(_)) +: data
 
     new DBResult(head, data)
+  }
+
+  private def error(e: Exception) : DBResult = {
+    val rslt = new DBResult(null, null)
+    rslt.error = e.toString
+    rslt
   }
 
 }

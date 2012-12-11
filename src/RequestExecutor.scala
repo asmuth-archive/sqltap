@@ -40,7 +40,9 @@ class RequestExecutor(base: InstructionStack) {
       throw new ExecutionException("deadlock while executing: " + 
         cur.name + ", " + cur.args.mkString(","))
 
-    cur.job.retrieve
+    if (cur.job.retrieve.error != null)
+      throw new ExecutionException(cur.job.retrieve.error)
+
     cur.ready = true
 
     if (DPump.debug) {

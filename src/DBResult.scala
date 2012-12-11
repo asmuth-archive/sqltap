@@ -9,4 +9,5 @@ class DBResult(
   val head = _head
   val data = _data
   var qtime: Long = 0
+  var error: String = null
 }
