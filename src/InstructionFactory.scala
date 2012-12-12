@@ -10,6 +10,7 @@ object InstructionFactory {
         ins.relation = cur.relation
         ins.prepare
         ins.record.load(cur.job.retrieve.head, row)
+        ins.prev = cur
         deep_copy(cur, ins)
         lst :+ ins
       })

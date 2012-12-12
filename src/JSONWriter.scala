@@ -3,25 +3,27 @@ package com.paulasmuth.dpump
 class JSONWriter(req: Request) {
 
   val INDENT = "  "
-  var ind = 0
+  var ind = 1
 
   val buf = new StringBuffer
 
   def run : Unit = {
-    next(req.stack.root, true)
+    buf.append("[\n")
+
+    for (ind <- (0 until req.stack.root.next.length))
+      next(req.stack.root, ind)
+
+    buf.append("\n]")
     req.resp_data = buf.toString
   }
 
-  private def next(cur: Instruction, first: Boolean = false) : Unit = {
+  private def next(cur: Instruction, index: Int) : Unit = {
     var scope : String = null
-    var scopei = 1
 
-    if (first unary_!)
+    if (index != 0 && cur.name != "findSingle")
       buf.append(",\n")
 
-    if (cur.name == "execute" && cur.prev == null)
-      { write("[\n"); scope = "]"; ind += 1; }
-    else if (cur.name == "execute")
+    if (cur.name == "execute")
       { write("{\n"); scope = "}"; ind += 1; }
 
     if (cur.name == "findMulti") {
@@ -30,10 +32,8 @@ class JSONWriter(req: Request) {
     } else {
 
       if (cur.name == "findSingle") {
-        write("{\n"); ind += 1
         write(json(cur.relation.name) + ": {\n")
-        scope = INDENT + "}\n" + (INDENT*(ind-1)) + "}"
-        ind += 1; scopei = 2
+        scope = "}"; ind += 1
       }
 
       if (cur.record != null) {
@@ -50,11 +50,15 @@ class JSONWriter(req: Request) {
       }
     }
 
-    for ((nxt, ind) <- cur.next.zipWithIndex)
-      next(nxt, ind == 0)
+    if (cur.name == "execute" && cur.prev == null)
+      next(cur.next(index), index)
+
+    else
+      for ((nxt, nxt_ind) <- cur.next.zipWithIndex)
+        next(nxt, nxt_ind)
 
     if (scope != null)
-      { buf.append("\n"); ind -= scopei; write(scope) }
+      { buf.append("\n"); ind -= 1; write(scope) }
 
   }
 
