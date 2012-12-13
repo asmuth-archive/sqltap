@@ -121,34 +121,30 @@ class RequestExecutor extends RequestVisitor {
   private def peek(cur: Instruction) : Unit = cur.name match {
 
     case "findSingle" => {
-      var join_id : Int = 0
       var join_field : String = null
 
       if (cur.args.size < 5)
         throw new ParseException("emtpy field list")
 
       if (cur.record.has_id) {
-        join_id = cur.record.id
         join_field = cur.relation.resource.id_field
       }
 
       else if (cur.relation.join_foreign == false && cur.prev.ready) {
-        cur.record.set_id(cur.prev.record.get(cur.relation.join_field))
-        join_id = cur.record.id
-        join_field = cur.prev.relation.resource.id_field
+        cur.record.set_id(cur.prev.record.get(cur.relation.join_field).toInt)
+        join_field = cur.relation.resource.id_field
       }
 
       else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
         cur.record.set_id(cur.prev.record.id)
-        join_id = cur.record.id
         join_field = cur.relation.join_field
       }
 
-      if (join_id != 0) {
+      if (join_field != null) {
         cur.running = true
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource,
-            join_field, join_id.toString,
+            join_field, cur.record.id.toString,
             cur.args.slice(4, cur.args.size).toList,
             cur.args(2), cur.args(3), null, null))
       }

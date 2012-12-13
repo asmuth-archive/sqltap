@@ -16,7 +16,8 @@ class DBConnection(db_addr: String) {
     rslt.qtime = System.nanoTime() - strt
     rslt
   } catch {
-    case e: Exception => error(e)
+    case e: Exception => error(
+      new Exception(e.toString + "(" + qry + ")"))
   }
 
   private def execute_without_stopwatch(qry: String) : DBResult = {
