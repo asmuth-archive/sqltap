@@ -1,7 +1,6 @@
 package com.paulasmuth.dpump
 
-class Request[+P <: RequestVisitor, +E <: RequestVisitor, +W <: RequestVisitor]
-  (_req_str: String)(implicit parser: P, executor: E, writer: W) {
+class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor, writer: RequestVisitor) {
 
   val req_str = _req_str
 
