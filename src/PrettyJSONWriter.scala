@@ -33,8 +33,12 @@ class PrettyJSONWriter extends RequestVisitor {
       { write("{\n"); scope = "}"; ind += 1; }
 
     if (cur.name == "findMulti") {
-      write(json(cur.relation.name) + ": [\n")
-      scope = "]"; ind += 1
+      if (cur.next.length == 0)
+        write(json(cur.relation.name) + ": []")
+      else {
+        write(json(cur.relation.name) + ": [\n")
+        scope = "]"; ind += 1
+      }
     } else {
 
       if (cur.name == "findSingle") {
