@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SBT_OPTS="-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:PermSize=256M -XX:MaxPermSize=512M"
+
 which sbt &> /dev/null
 
 if [[ "$?" != 0 ]]; then
