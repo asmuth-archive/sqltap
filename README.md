@@ -2,7 +2,7 @@ FnorDB
 ======
 
 FnorDB is a HTTP+JSON <=> MySQL gateway. It fetches nested records from the
-database without using SQL JOIN.
+database without using SQL JOIN and parallizes queries where possible.
 
 
 Usage
@@ -11,6 +11,12 @@ Usage
 ### Starting FnorDB
 
     ./fnordb --db "mysql://localhost:3306/?user=root" --http 8080 -c config/
+
+
+### Schema and Relations
+
+    mkdir -p config
+    cp project/example_resource.xml config/my_resource.xml
 
 
 ### Sending queries
@@ -60,6 +66,11 @@ Instructions
     relation.count
 
 
+
+Configuration
+-------------
+
+here be dragons
 
 Installation
 ------------
