@@ -26,7 +26,7 @@ class PrettyJSONWriter extends RequestVisitor {
   private def next(cur: Instruction, index: Int) : Unit = {
     var scope : String = null
 
-    if (index != 0 && cur.name != "findSingle")
+    if (index != 0)
       buf.append(",\n")
 
     if (cur.name == "execute")
