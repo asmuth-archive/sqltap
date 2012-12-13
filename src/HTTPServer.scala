@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.nio.SelectChannelConnector

@@ -1,16 +1,16 @@
-FnorDB
+SQLTap
 ======
 
-FnorDB is a HTTP+JSON <=> MySQL gateway. It fetches nested records from the
+SQLTap is a HTTP+JSON <=> MySQL gateway. It fetches nested records from the
 database without using SQL JOIN and parallizes queries where possible.
 
 
 Usage
 -----
 
-### Starting FnorDB
+### Starting SQLTap
 
-    ./fnordb --db "mysql://localhost:3306/?user=root" --http 8080 -c config/
+    ./sqltap --db "mysql://localhost:3306/?user=root" --http 8080 -c config/
 
 
 ### Schema and Relations
@@ -75,7 +75,7 @@ here be dragons
 Installation
 ------------
 
-You need java and sbt to build FnorDB:
+You need java and sbt to build SQLTap:
 
     ./build jar
 

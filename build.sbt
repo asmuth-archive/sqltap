@@ -8,7 +8,7 @@ version := "0.0.1"
 
 scalaSource in Compile <<= baseDirectory(_ / "src")
 
-mainClass in (Compile, run) := Some("com.paulasmuth.dpump.DPump")
+mainClass in (Compile, run) := Some("com.paulasmuth.sqltap.SQLTap")
 
 scalaVersion := "2.9.1"
 
@@ -18,4 +18,4 @@ libraryDependencies += "org.eclipse.jetty" % "jetty-server" % "7.2.2.v20101205"
 
 assemblySettings
 
-jarName in assembly <<= (version) { v => "dpump_" + v + ".jar" }
+jarName in assembly <<= (version) { v => "sqltap_" + v + ".jar" }

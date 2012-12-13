@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 class ParseException(msg: String) extends Exception{
   override def toString = msg

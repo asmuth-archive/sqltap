@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor, writer: RequestVisitor) {
 
@@ -19,19 +19,19 @@ class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor
       etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
 
   def run : Unit = try {
-    DPump.log_debug("-"*80)
+    SQLTap.log_debug("-"*80)
     run_unsafe
 
-    DPump.log_debug("QTime (parse, exec, write): " +
+    SQLTap.log_debug("QTime (parse, exec, write): " +
       qtime.mkString(", "))
 
-    DPump.log_debug("-"*80)
+    SQLTap.log_debug("-"*80)
   } catch {
     case e: ParseException => error(400, e.toString)
     case e: ExecutionException => error(500, e.toString)
     case e: NotFoundException => error(404, e.toString)
     case e => {
-      DPump.exception(e, false)
+      SQLTap.exception(e, false)
       error(500, "internal error: " + e.toString)
     }
   }

@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 class XMLHelper(elem: xml.Node) {
 

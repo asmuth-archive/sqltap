@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -7,8 +7,8 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 class HTTPHandler extends AbstractHandler {
 
   def handle(target: String, base_req: org.eclipse.jetty.server.Request, req: HttpServletRequest, res: HttpServletResponse) = try {
-    res.addHeader("Server", "dpumpd " + DPump.VERSION)
-    res.addHeader("X-DPump-Version", DPump.VERSION)
+    res.addHeader("Server", "sqltapd " + SQLTap.VERSION)
+    res.addHeader("X-SQLTap-Version", SQLTap.VERSION)
 
     req.getRequestURI match {
       case "/query" => action_query(req, res)
@@ -22,7 +22,7 @@ class HTTPHandler extends AbstractHandler {
 
     base_req.setHandled(true)
   } catch {
-    case e: Exception => DPump.exception(e, false)
+    case e: Exception => SQLTap.exception(e, false)
   }
 
   private def action_query(req: HttpServletRequest, res: HttpServletResponse) : Unit = {
@@ -32,7 +32,7 @@ class HTTPHandler extends AbstractHandler {
     request.run
 
     res.setStatus(request.resp_status)
-    res.addHeader("X-DPump-QTime", request.qtime.mkString(", "))
+    res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))
 
     if (request.resp_data != null)
       res.getWriter().write(request.resp_data)
@@ -43,7 +43,7 @@ class HTTPHandler extends AbstractHandler {
 
     config.append("<resources>\n")
 
-    for ((name, resource) <- DPump.manifest)
+    for ((name, resource) <- SQLTap.manifest)
       config.append(resource.elem.to_xml + "\n")
 
     config.append("</resources>")

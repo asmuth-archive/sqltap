@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 import java.util.concurrent._
 import scala.collection.mutable.ListBuffer
@@ -52,7 +52,7 @@ class DBConnectionPool {
     val job = new Job(qry)
     queue.put(job)
 
-    DPump.log_debug("Execute: " + qry)
+    SQLTap.log_debug("Execute: " + qry)
 
     job
   }

@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 trait ResourceRelation {
   val name : String
@@ -40,6 +40,6 @@ class RealResourceRelation(doc: xml.Node) extends ResourceRelation {
     (elem.attr("join_foreign", false) == "true")
 
   def resource : ResourceManifest =
-    DPump.manifest(_resource)
+    SQLTap.manifest(_resource)
 }
 

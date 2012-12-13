@@ -1,11 +1,11 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 import java.sql.ResultSet;
 import scala.collection.mutable.LinkedList;
 
 class DBConnection(db_addr: String) {
 
-  DPump.log_debug("Connect: " + db_addr)
+  SQLTap.log_debug("Connect: " + db_addr)
 
   val conn = java.sql.DriverManager.getConnection("jdbc:" + db_addr)
   val stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)

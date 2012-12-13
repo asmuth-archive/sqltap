@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 // Internal Instructions:
 //   -> findSingle(res, id, condition, order, fields...)

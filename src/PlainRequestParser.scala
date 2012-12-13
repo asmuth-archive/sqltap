@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 class PlainRequestParser extends RequestVisitor {
 
@@ -21,7 +21,7 @@ class PlainRequestParser extends RequestVisitor {
     if(req.req_str == null)
       throw new ParseException("no query string")
 
-    DPump.log_debug("Request: " + req.req_str)
+    SQLTap.log_debug("Request: " + req.req_str)
 
     parse(req.req_str)
 
@@ -31,8 +31,8 @@ class PlainRequestParser extends RequestVisitor {
     if (funcb != 0)
       throw new ParseException("instruction missing {}-body")
 
-    if (DPump.debug) {
-      DPump.log_debug("Parser stack:")
+    if (SQLTap.debug) {
+      SQLTap.log_debug("Parser stack:")
       req.stack.inspect
     }
   }

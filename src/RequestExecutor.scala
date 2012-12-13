@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 import scala.collection.mutable.ListBuffer;
 
@@ -46,10 +46,10 @@ class RequestExecutor extends RequestVisitor {
 
     cur.ready = true
 
-    if (DPump.debug) {
+    if (SQLTap.debug) {
       val qtime = (cur.job.result.qtime / 1000000.0).toString
       val otime = ((System.nanoTime - stime) / 1000000.0).toString
-      DPump.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.job.query)
+      SQLTap.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.job.query)
     }
 
     fetch(cur)
@@ -84,7 +84,7 @@ class RequestExecutor extends RequestVisitor {
   private def prepare(cur: Instruction) = {
 
     if (cur.prev == req.stack.root) {
-      cur.relation = DPump.manifest(cur.args(0)).to_relation
+      cur.relation = SQLTap.manifest(cur.args(0)).to_relation
     } else {
       cur.relation = cur.prev.relation.resource.relation(cur.args(0))
     }
@@ -149,7 +149,7 @@ class RequestExecutor extends RequestVisitor {
 
       if (join_field != null) {
         cur.running = true
-        cur.job = DPump.db_pool.execute(
+        cur.job = SQLTap.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource,
             join_field, cur.record.id.toString,
             cur.args.slice(4, cur.args.size).toList,
@@ -164,7 +164,7 @@ class RequestExecutor extends RequestVisitor {
 
       if (cur.prev == req.stack.root) {
         cur.running = true
-        cur.job = DPump.db_pool.execute(
+        cur.job = SQLTap.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource, null, null,
             cur.args.slice(5, cur.args.size).toList,
             cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
@@ -177,7 +177,7 @@ class RequestExecutor extends RequestVisitor {
         if (cur.args(1) == null && cur.relation.join_cond != null)
           cur.args(1) = cur.relation.join_cond
 
-        cur.job = DPump.db_pool.execute(
+        cur.job = SQLTap.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource,
             cur.relation.join_field, cur.record.id.toString,
             cur.args.slice(5, cur.args.size).toList,

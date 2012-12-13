@@ -1,4 +1,4 @@
-package com.paulasmuth.dpump
+package com.paulasmuth.sqltap
 
 import java.util.Locale
 import java.util.Date
@@ -6,7 +6,7 @@ import java.text.DateFormat
 import java.io.File
 import scala.collection.mutable.HashMap;
 
-object DPump{
+object SQLTap{
 
   val VERSION = "v0.0.1"
   val CONFIG  = HashMap[Symbol,String]()
@@ -83,15 +83,15 @@ object DPump{
     val db_addr = CONFIG('db_addr)
     val db_threads = CONFIG('db_threads).toInt
 
-    DPump.log("dpumpd " + VERSION + " booting...")
+    SQLTap.log("sqltapd " + VERSION + " booting...")
 
     load_config
 
     db_pool.connect(db_addr, db_threads)
-    DPump.log("Connected to mysql...")
+    SQLTap.log("Connected to mysql...")
 
     val http = new HTTPServer(http_port, http_threads)
-    DPump.log("Listening on http://0.0.0.0:" + http_port)
+    SQLTap.log("Listening on http://0.0.0.0:" + http_port)
   } catch {
     case e: Exception => exception(e, true)
   }
@@ -111,9 +111,9 @@ object DPump{
 
   def usage(head: Boolean = true) = {
     if (head)
-      println("dpumpd " + VERSION + " (c) 2012 Paul Asmuth\n")
+      println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
-    println("usage: dpumpd [options]                                                    ")
+    println("usage: sqltapd [options]                                                    ")
     println("  -c, -config       <dir>     path to xml config files                     ")
     println("  --http            <port>    start http server on this port               ")
     println("  --http-threads    <num>     number of http worker-threads (default: 4)   ")
