@@ -76,7 +76,8 @@ Todo
 + stats aggregation
 + serialize qtime + query
 + timeouts (http + sql)
-+ cmdline opts
++ macros
++ better json escaping
 
 License
 -------
