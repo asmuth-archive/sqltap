@@ -11,10 +11,12 @@ object DPump{
   val VERSION = "v0.0.1"
   val CONFIG  = HashMap[Symbol,String]()
 
-  val manifest = HashMap[String,ResourceManifest]()
+  var DEFAULTS = HashMap[Symbol, String](
+    'db_threads   -> "16",
+    'http_threads -> "4"
+  )
 
-  var db_threads   = 30
-  var http_threads = 10
+  val manifest = HashMap[String,ResourceManifest]()
 
   var debug   = false
   var verbose = false
@@ -26,10 +28,25 @@ object DPump{
 
     while (n < args.length) {
 
-      if((args(n) == "-l") || (args(n) == "--listen"))
-        { CONFIG += (('listen, args(n+1))); n += 2 }
+      if(args(n) == "--http")
+        { CONFIG += (('http_port, args(n+1))); n += 2 }
 
-      if((args(n) == "-c") || (args(n) == "--config"))
+      else if(args(n) == "--http-threads")
+        { CONFIG += (('http_threads, args(n+1))); n += 2 }
+
+      else if(args(n) == "--http-timeout")
+        { CONFIG += (('http_timeout, args(n+1))); n += 2 }
+
+      else if(args(n) == "--db")
+        { CONFIG += (('db_addr, args(n+1))); n += 2 }
+
+      else if(args(n) == "--db-threads")
+        { CONFIG += (('db_threads, args(n+1))); n += 2 }
+
+      else if(args(n) == "--db-timeout")
+        { CONFIG += (('db_timeout, args(n+1))); n += 2 }
+
+      else if((args(n) == "-c") || (args(n) == "--config"))
         { CONFIG += (('config_dir, args(n+1))); n += 2 }
 
       else if((args(n) == "-d") || (args(n) == "--debug"))
@@ -48,12 +65,23 @@ object DPump{
     if (CONFIG contains 'config_dir unary_!)
       error("--config required", true)
 
+    if (CONFIG contains 'db_addr unary_!)
+      error("--db required", true)
+
+    if (CONFIG contains 'http_port unary_!)
+      error("--http required", true)
+
+    DEFAULTS.foreach(d =>
+      if (CONFIG contains d._1 unary_!) CONFIG += d )
+
     boot
   }
 
   def boot = try {
-    val http_port = 8080  // FIXPAUL
-    val db_addr = "mysql://localhost:3306/dawanda_development?user=root" // FIXPAUL
+    val http_port = CONFIG('http_port).toInt
+    val http_threads = CONFIG('http_threads).toInt
+    val db_addr = CONFIG('db_addr)
+    val db_threads = CONFIG('db_threads).toInt
 
     DPump.log("dpumpd " + VERSION + " booting...")
 
@@ -63,7 +91,7 @@ object DPump{
     DPump.log("Connected to mysql...")
 
     val http = new HTTPServer(http_port, http_threads)
-    DPump.log("Listening on http://0.0.0.0:8080")
+    DPump.log("Listening on http://0.0.0.0:" + http_port)
   } catch {
     case e: Exception => exception(e, true)
   }
@@ -86,8 +114,13 @@ object DPump{
       println("dpumpd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
     println("usage: dpumpd [options]                                                    ")
-    println("  -l, --listen      <port>    listen for clients on this tcp port          ")
-    println("  -t, --timeout     <msecs>   connection idle timeout (default: 5000ms)    ")
+    println("  -c, -config       <dir>     path to xml config files                     ")
+    println("  --http            <port>    start http server on this port               ")
+    println("  --http-threads    <num>     number of http worker-threads (default: 4)   ")
+    println("  --http-timeout    <msecs>   http request timeout (default: 5000ms)       ")
+    println("  --db              <addr>    connect to mysql on this jdbc address        ")
+    println("  --db-threads      <num>     number of db worker-threads (default: 16)    ")
+    println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
     println("  -d, --debug                 debug mode                                   ")
     println("  -v, --verbose               verbose mode                                 ")
   }
