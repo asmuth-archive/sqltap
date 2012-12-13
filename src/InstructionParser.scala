@@ -23,7 +23,7 @@ object InstructionParser {
 
       cur.args += null // condition
       cur.args += null // order
-      cur.args += "4" // limit
+      cur.args += null // limit
       cur.args += null // offset
     }
 
