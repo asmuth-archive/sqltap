@@ -1,7 +1,8 @@
 FnorDB
 ======
 
-here be dragons
+FnorDB is a HTTP+JSON <=> MySQL gateway. It fetches nested records from the
+database without using SQL JOIN.
 
 
 Usage
@@ -9,22 +10,22 @@ Usage
 
 ### Starting FnorDB
 
-here be dragons
+    ./fnordb --db "mysql://localhost:3306/?user=root" --http 8080 -c config/
+
 
 ### Sending queries
 
 retrieve user record id#2342 with all fields:
 
-    user.findOne(2342){*}
+    /query?user.findOne(2342){*}
 
 retrieve user record id#2342 with fields: username and email):
 
-
-    user.findOne(2342){username,email}
+    /query?user.findOne(2342){username,email}
 
 retrieve user record with id#2342 with all orders and all fields::
 
-    user.findOne(2342){*,orders.findAll{*}}
+    /query?user.findOne(2342){*,orders.findAll{*}}
 
 
 Instructions
@@ -38,12 +39,9 @@ Instructions
 
 
 
-### findAll
+### findSome / findAll
 
     relation.findAll
-
-
-### findSome
 
     findSome(limit, [, offset [, order]])
 
@@ -66,7 +64,9 @@ Instructions
 Installation
 ------------
 
-here be dragons
+You need java and sbt to build FnorDB:
+
+    ./build jar
 
 
 Todo
