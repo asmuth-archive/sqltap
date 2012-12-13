@@ -1,6 +1,7 @@
 package com.paulasmuth.dpump
 
-class Request(_req_str: String) {
+class Request[+P <: RequestVisitor, +E <: RequestVisitor, +W <: RequestVisitor]
+  (_req_str: String)(implicit parser: P, executor: E, writer: W) {
 
   val req_str = _req_str
 
@@ -38,13 +39,13 @@ class Request(_req_str: String) {
   private def run_unsafe : Unit = {
     etime = etime :+ System.nanoTime
 
-    (new RequestParser(this)).run
+    parser.run(this)
     etime = etime :+ System.nanoTime
 
-    (new RequestExecutor(stack)).run
+    executor.run(this)
     etime = etime :+ System.nanoTime
 
-    ResponseWriter.serialize(this)
+    writer.run(this)
     etime = etime :+ System.nanoTime
   }
 
@@ -52,7 +53,8 @@ class Request(_req_str: String) {
     resp_status = code
     error_str = msg
 
-    ResponseWriter.serialize(this)
+    resp_data = "{ \"status\": \"error\", \"error\": \"" +
+      error_str.replaceAll("\"", "'") + "\" }"
 
     ready = true
   }

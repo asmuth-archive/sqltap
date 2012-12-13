@@ -2,17 +2,18 @@ package com.paulasmuth.dpump
 
 import scala.collection.mutable.ListBuffer;
 
-class RequestExecutor(base: InstructionStack) {
+class RequestExecutor extends RequestVisitor {
 
   val SEARCH_DEPTH = 50 // max stack search depth
 
   var stack = ListBuffer[Instruction]()
-  var stime = System.nanoTime
+  var stime : Long = 0
 
-  stack += base.root
-
-  def run() : Unit =
+  def run() : Unit = {
+    stime = System.nanoTime
+    stack += req.stack.root
     next
+  }
 
   private def next() : Unit = {
     val search_depth =
@@ -82,7 +83,7 @@ class RequestExecutor(base: InstructionStack) {
 
   private def prepare(cur: Instruction) = {
 
-    if (cur.prev == base.root) {
+    if (cur.prev == req.stack.root) {
       cur.relation = DPump.manifest(cur.args(0)).to_relation
     } else {
       cur.relation = cur.prev.relation.resource.relation(cur.args(0))
@@ -158,7 +159,7 @@ class RequestExecutor(base: InstructionStack) {
       if (cur.args.size < 6)
         throw new ParseException("emtpy field list")
 
-      if (cur.prev == base.root) {
+      if (cur.prev == req.stack.root) {
         cur.running = true
         cur.job = DPump.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource, null, null,

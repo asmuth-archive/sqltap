@@ -1,6 +1,6 @@
 package com.paulasmuth.dpump
 
-class JSONWriter(req: Request) {
+class PrettyJSONWriter extends RequestVisitor {
 
   val INDENT = "  "
   var ind = 1

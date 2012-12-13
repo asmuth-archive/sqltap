@@ -1,6 +1,6 @@
 package com.paulasmuth.dpump
 
-class RequestParser(req: Request) {
+class PlainRequestParser extends RequestVisitor {
 
   var scope = 'root
   var depth = 0

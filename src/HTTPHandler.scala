@@ -3,6 +3,7 @@ package com.paulasmuth.dpump
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.handler.AbstractHandler
+import RequestVisitorImplicits._
 
 class HTTPHandler extends AbstractHandler {
 
@@ -26,7 +27,8 @@ class HTTPHandler extends AbstractHandler {
   }
 
   private def action_query(req: HttpServletRequest, res: HttpServletResponse) : Unit = {
-    val request = new Request(req.getQueryString())
+    val request = new Request[PlainRequestParser, RequestExecutor, PrettyJSONWriter](req.getQueryString())
+
     request.run
 
     res.setStatus(request.resp_status)
