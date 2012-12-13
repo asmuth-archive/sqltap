@@ -102,20 +102,27 @@ class RequestExecutor extends RequestVisitor {
 
   private def fetch(cur: Instruction) : Unit = {
 
-    if (cur.name == "findSingle" && cur.job.retrieve.data.size == 1)
-      cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
+    if (cur.name == "findSingle")
+      if (cur.job.retrieve.data.length == 0)
+        throw new NotFoundException(cur)
+      else
+        cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
 
-    else if (cur.name == "findMulti" && cur.job.retrieve.data.size > 0) {
-      val skip_execution = (cur.next.length == 0)
+    else if (cur.name == "findMulti")
+      if (cur.job.retrieve.data.length == 0)
+        cur.next = List[Instruction]()
 
-      InstructionFactory.expand(cur)
+      else {
+        val skip_execution = (cur.next.length == 0)
+        InstructionFactory.expand(cur)
 
-      if (skip_execution)
-        return
+        if (skip_execution)
+          return
 
-      for (ins <- cur.next)
-        stack += ins
-    }
+        for (ins <- cur.next)
+          stack += ins
+      }
+
   }
 
   private def peek(cur: Instruction) : Unit = cur.name match {
