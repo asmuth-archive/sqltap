@@ -7,6 +7,12 @@ class PrettyJSONWriter extends RequestVisitor {
 
   val buf = new StringBuffer
 
+  val sub_table = List(
+    (("\"", """\\"""")),
+    (("\r", "")),
+    (("\n", ""))
+  )
+
   def run : Unit = {
     buf.append("[\n")
 
@@ -64,7 +70,12 @@ class PrettyJSONWriter extends RequestVisitor {
 
   private def json(str: String) : String =
     if (str == null) "null" else
-      "\"" + str.replaceAll("\"", "'").replaceAll("\n", "") + "\"" // FIXPAUL
+      "\"" + escape(str) + "\""
+
+  private def escape(str: String) : String =
+    sub_table.foldLeft(str) ((s, cur) =>
+      s.replaceAll(cur._1, cur._2))
+
 
   private def write(str: String) : Unit =
     if (str != null) buf.append((INDENT * ind) + str)
