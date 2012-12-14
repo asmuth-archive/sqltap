@@ -2,7 +2,7 @@ SQLTap
 ======
 
 SQLTap is a HTTP+JSON <=> MySQL gateway. It fetches nested records from the
-database without using SQL JOIN and parallizes queries where possible.
+database without using SQL JOIN and parallelizes queries where possible.
 
 
 Usage
