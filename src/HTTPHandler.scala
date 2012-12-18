@@ -15,6 +15,7 @@ class HTTPHandler extends AbstractHandler {
       case "/query.json" => action_query(req, res)
       case "/config" => action_config(req, res)
       case "/config.xml" => action_config(req, res)
+      case "/ping" => res.getWriter().write("pong")
 
       case _ =>
         { res.setStatus(404); res.getWriter().write("not found") }
