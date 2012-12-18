@@ -55,6 +55,9 @@ object SQLTap{
       else if((args(n) == "-v") || (args(n) == "--verbose"))
         { verbose = true; n += 1 }
 
+      else if((args(n) == "-h") || (args(n) == "--help"))
+        return usage(true)
+
       else {
         println("error: invalid option: " + args(n) + "\n")
         return usage(false)
@@ -62,14 +65,19 @@ object SQLTap{
 
     }
 
+    var start = true
+
     if (CONFIG contains 'config_dir unary_!)
-      error("--config required", true)
+      { log("--config required"); start = false }
 
     if (CONFIG contains 'db_addr unary_!)
-      error("--db required", true)
+      { log("--db required"); start = false }
 
     if (CONFIG contains 'http_port unary_!)
-      error("--http required", true)
+      { log("--http required"); start = false }
+
+    if (start unary_!)
+      { println; return usage(true) }
 
     DEFAULTS.foreach(d =>
       if (CONFIG contains d._1 unary_!) CONFIG += d )
@@ -121,6 +129,7 @@ object SQLTap{
     println("  --db              <addr>    connect to mysql on this jdbc address        ")
     println("  --db-threads      <num>     number of db worker-threads (default: 16)    ")
     println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
+    println("  -h, --help                  you're reading it...                         ")
     println("  -d, --debug                 debug mode                                   ")
     println("  -v, --verbose               verbose mode                                 ")
   }
