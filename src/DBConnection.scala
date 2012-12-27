@@ -19,7 +19,7 @@ class DBConnection(db_addr: String) {
     rslt
   } catch {
     case e: Exception => error(
-      new Exception(e.toString + "(" + qry + ")"))
+      new Exception(e.toString + " => (" + qry + ")"))
   }
 
   private def execute_without_stopwatch(qry: String) : DBResult = {

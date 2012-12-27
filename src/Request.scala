@@ -54,7 +54,7 @@ class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor
     error_str = msg
 
     resp_data = "{ \"status\": \"error\", \"error\": \"" +
-      error_str.replaceAll("\"", "'") + "\" }"
+      JSONHelper.escape(error_str) + "\" }"
 
     ready = true
   }
