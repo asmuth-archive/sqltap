@@ -5,7 +5,10 @@ import scala.collection.mutable.LinkedList;
 
 class DBConnection(db_addr: String) {
 
-  SQLTap.log_debug("Connect: " + db_addr)
+  val prop = new java.util.Properties
+  prop.setProperty("autoReconnect", "true")
+  prop.setProperty("validationQuery", "select 1")
+  prop.setProperty("testOnBorrow", "true")
 
   var conn : java.sql.Connection = null
   var stmt : java.sql.Statement = null
@@ -18,6 +21,8 @@ class DBConnection(db_addr: String) {
     rslt.qtime = System.nanoTime() - strt
     rslt
   } catch {
+    case e: com.mysql.jdbc.exceptions.jdbc4.CommunicationsException =>
+      { reconnect; execute(qry) }
     case e: Exception => error(
       new Exception(e.toString + " => (" + qry + ")"))
   }
@@ -39,22 +44,27 @@ class DBConnection(db_addr: String) {
   }
 
   private def error(e: Exception) : DBResult = {
-    close; connect
+    reconnect
     val rslt = new DBResult(null, null)
     rslt.error = e.toString
     rslt
   }
 
   private def connect : Unit = {
+    SQLTap.log_debug("Connect: " + db_addr)
+
     conn = java.sql.DriverManager.getConnection("jdbc:" + db_addr)
     stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
   }
 
   private def close : Unit = try {
-    stmt.close
-    conn.close
+    stmt.close; stmt = null;
+    conn.close; conn = null
   } catch {
-    case e: Exception => ()
+    case e: Exception => SQLTap.exception(e, false)
   }
+
+  private def reconnect : Unit =
+    { close; connect }
 
 }

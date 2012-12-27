@@ -1,6 +1,6 @@
 import AssemblyKeys._
 
-name := "DPump"
+name := "SQLTap"
 
 organization := "com.paulasmuth"
 
