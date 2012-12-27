@@ -7,8 +7,10 @@ class DBConnection(db_addr: String) {
 
   SQLTap.log_debug("Connect: " + db_addr)
 
-  val conn = java.sql.DriverManager.getConnection("jdbc:" + db_addr)
-  val stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
+  var conn : java.sql.Connection = null
+  var stmt : java.sql.Statement = null
+
+  connect
 
   def execute(qry: String) : DBResult = try {
     val strt = System.nanoTime()
@@ -26,11 +28,6 @@ class DBConnection(db_addr: String) {
     val enum = 1 to meta.getColumnCount()
     var data = new LinkedList[List[String]]()
 
-    /*val head = (Map[String, String]() /: enum) (
-      (h: Map[String, String], i: Int) =>
-        h + ((meta.getColumnName(i), meta.getColumnTypeName(i))))
-    */
-
     val head = (List[String]() /: enum) (
       _ :+ meta.getColumnName(_))
 
@@ -42,9 +39,22 @@ class DBConnection(db_addr: String) {
   }
 
   private def error(e: Exception) : DBResult = {
+    close; connect
     val rslt = new DBResult(null, null)
     rslt.error = e.toString
     rslt
+  }
+
+  private def connect : Unit = {
+    conn = java.sql.DriverManager.getConnection("jdbc:" + db_addr)
+    stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
+  }
+
+  private def close : Unit = try {
+    stmt.close
+    conn.close
+  } catch {
+    case e: Exception => ()
   }
 
 }
