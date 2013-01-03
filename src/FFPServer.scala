@@ -8,7 +8,8 @@ import scala.collection.mutable.ListBuffer
 
 class FFPServer(port: Int){
 
-  val BUFFER_SIZE = 4096
+  val BUFFER_SIZE = 256
+  val REQUEST_SIZE = 20
 
   val selector = Selector.open
   val server_sock = ServerSocketChannel.open
@@ -19,7 +20,7 @@ class FFPServer(port: Int){
   class FFPConnection(sock: SocketChannel) {
     println("connection opened")
 
-    val buffer = ByteBuffer.allocate(BUFFER_SIZE * 2)
+    val buffer = new Array[Byte](BUFFER_SIZE * 2)
     var buffer_len = 0
 
     sock.configureBlocking(false)
@@ -32,15 +33,21 @@ class FFPServer(port: Int){
       if (len == -1)
         return connection_closed
 
-      // FIXPAUL: copy in one call?
-      val buf = new Array[Byte](len)
-      read_buffer.get(buf)
-      buffer.put(buf)
-
+      System.arraycopy(read_buffer.array, 0, buffer, buffer_len, len)
       buffer_len += len
+
+      while (buffer_len >= REQUEST_SIZE) {
+        val req = new Array[Byte](REQUEST_SIZE)
+        System.arraycopy(buffer, 0, req, 0, REQUEST_SIZE)
+        System.arraycopy(buffer, REQUEST_SIZE, buffer, 0, buffer_len-REQUEST_SIZE)
+        buffer_len -= REQUEST_SIZE
+        println("parsed request")
+        println(javax.xml.bind.DatatypeConverter.printHexBinary(req).replaceAll(".{2}", "$0 "))
+      }
 
       println("read " + len.toString + " bytes")
       println(buffer_len.toString + " bytes in buffer")
+      println(javax.xml.bind.DatatypeConverter.printHexBinary(buffer).replaceAll(".{2}", "$0 "))
    }
 
     private def connection_closed :  Unit = {
@@ -57,7 +64,8 @@ class FFPServer(port: Int){
     server_sock.register(selector, SelectionKey.OP_ACCEPT)
 
     new Thread(new Runnable {
-      def run = { while (true) next }
+      def run = try { while (true) next }
+        catch { case e: Exception => SQLTap.exception(e, true) }
     }).start
   }
 
