@@ -5,6 +5,7 @@ import java.net._
 import java.nio._
 import java.nio.channels._
 import scala.collection.mutable.ListBuffer
+import java.math.BigInteger
 
 class FFPServer(port: Int){
 
@@ -37,17 +38,30 @@ class FFPServer(port: Int){
       buffer_len += len
 
       while (buffer_len >= REQUEST_SIZE) {
-        val req = new Array[Byte](REQUEST_SIZE)
-        System.arraycopy(buffer, 0, req, 0, REQUEST_SIZE)
+        val _req_magic  = new Array[Byte](2)
+        val _req_id     = new Array[Byte](8)
+        val _req_flags  = new Array[Byte](2)
+        val _req_res_id = new Array[Byte](2)
+        val _req_rec_id = new Array[Byte](6)
+
+        System.arraycopy(buffer, 0,  _req_magic,  0, 2)
+        System.arraycopy(buffer, 2,  _req_id,     0, 8)
+        System.arraycopy(buffer, 10, _req_flags,  0, 2)
+        System.arraycopy(buffer, 12, _req_res_id, 0, 2)
+        System.arraycopy(buffer, 14, _req_rec_id, 0, 6)
+
         System.arraycopy(buffer, REQUEST_SIZE, buffer, 0, buffer_len-REQUEST_SIZE)
         buffer_len -= REQUEST_SIZE
-        println("parsed request")
-        println(javax.xml.bind.DatatypeConverter.printHexBinary(req).replaceAll(".{2}", "$0 "))
-      }
 
-      println("read " + len.toString + " bytes")
-      println(buffer_len.toString + " bytes in buffer")
-      println(javax.xml.bind.DatatypeConverter.printHexBinary(buffer).replaceAll(".{2}", "$0 "))
+        if ((_req_magic(0) == 0x17 && _req_magic(1) == 0x01) unary_!)
+          return println("invalid magic")
+
+        val req_id = new BigInteger(_req_id)
+        val res_id = new BigInteger(_req_res_id)
+        val rec_id = new BigInteger(_req_rec_id)
+
+        println("parsed request (" + req_id.toString + "): " + res_id.toString + "#" + rec_id.toString)
+      }
    }
 
     private def connection_closed :  Unit = {
