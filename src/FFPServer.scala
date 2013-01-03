@@ -8,33 +8,46 @@ import scala.collection.mutable.ListBuffer
 
 class FFPServer(port: Int){
 
+  val BUFFER_SIZE = 4096
+
   val selector = Selector.open
   val server_sock = ServerSocketChannel.open
   val connections = ListBuffer[FFPConnection]()
 
+  val read_buffer = ByteBuffer.allocate(BUFFER_SIZE)
+
   class FFPConnection(sock: SocketChannel) {
     println("connection opened")
 
-    val buf = ByteBuffer.allocate(8192)
+    val buffer = ByteBuffer.allocate(BUFFER_SIZE * 2)
+    var buffer_len = 0
+
     sock.configureBlocking(false)
     val key = sock.register(selector, SelectionKey.OP_READ)
     key.attach(this)
 
     def yield_read : Unit = {
-      val len = sock.read(buf)
+      val len = sock.read(read_buffer)
 
       if (len == -1)
         return connection_closed
 
+      // FIXPAUL: copy in one call?
+      val buf = new Array[Byte](len)
+      read_buffer.get(buf)
+      buffer.put(buf)
+
+      buffer_len += len
+
       println("read " + len.toString + " bytes")
-    }
+      println(buffer_len.toString + " bytes in buffer")
+   }
 
     private def connection_closed :  Unit = {
       println("connection closed")
       sock.close
       key.cancel
     }
-
 
   }
 
