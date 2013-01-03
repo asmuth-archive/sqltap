@@ -8,7 +8,7 @@ import scala.collection.mutable.HashMap;
 
 object SQLTap{
 
-  val VERSION = "v0.0.3"
+  val VERSION = "v0.0.4"
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
@@ -47,7 +47,7 @@ object SQLTap{
         { CONFIG += (('db_timeout, args(n+1))); n += 2 }
 
       else if((args(n) == "-c") || (args(n) == "--config"))
-        { CONFIG += (('config_dir, args(n+1))); n += 2 }
+        { CONFIG += (('config_base, args(n+1))); n += 2 }
 
       else if((args(n) == "-d") || (args(n) == "--debug"))
         { debug = true; n += 1 }
@@ -67,7 +67,7 @@ object SQLTap{
 
     var start = true
 
-    if (CONFIG contains 'config_dir unary_!)
+    if (CONFIG contains 'config_base unary_!)
       { log("--config required"); start = false }
 
     if (CONFIG contains 'db_addr unary_!)
@@ -106,14 +106,28 @@ object SQLTap{
 
 
   def load_config = {
-    for (file <- new File(CONFIG('config_dir)).list()){
-      log_debug("Loading: " + file)
+    val cfg_base = new File(CONFIG('config_base))
 
-      val raw = io.Source.fromFile(CONFIG('config_dir) + "/" + file).mkString
-      val xml = scala.xml.XML.loadString(raw).head
+    val sources : Array[String] =
+      if (cfg_base.isDirectory unary_!)
+        Array(io.Source.fromFile(CONFIG('config_base)).mkString)
+      else
+        cfg_base.list.map(f =>
+          io.Source.fromFile(CONFIG('config_base) + "/" + f).mkString)
 
-      val resource = new ResourceManifest(xml)
-      manifest += ((resource.name, resource))
+    for (source <- sources){
+      val xml = scala.xml.XML.loadString(source)
+
+      val elems = if (xml.head.label == "resource")
+        List(xml.head)
+      else
+        (xml \ "resource").toList
+
+      for (elem <- elems) {
+        val resource = new ResourceManifest(elem)
+        log_debug("Loaded resource: " + resource.name)
+        manifest += ((resource.name, resource))
+      }
     }
   }
 

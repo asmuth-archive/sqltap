@@ -4,7 +4,7 @@ name := "SQLTap"
 
 organization := "com.paulasmuth"
 
-version := "0.0.1"
+version := "0.0.4"
 
 scalaSource in Compile <<= baseDirectory(_ / "src")
 
