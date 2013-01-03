@@ -6,6 +6,7 @@ import java.nio._
 import java.nio.channels._
 import scala.collection.mutable.ListBuffer
 import java.math.BigInteger
+import java.util.concurrent._
 
 class FFPServer(port: Int){
 
@@ -17,6 +18,8 @@ class FFPServer(port: Int){
   val connections = ListBuffer[FFPConnection]()
 
   val read_buffer = ByteBuffer.allocate(BUFFER_SIZE)
+
+  val thread_pool = Executors.newFixedThreadPool(4)
 
   class FFPConnection(sock: SocketChannel) {
     println("connection opened")
@@ -38,36 +41,55 @@ class FFPServer(port: Int){
       buffer_len += len
 
       while (buffer_len >= REQUEST_SIZE) {
-        val _req_magic  = new Array[Byte](2)
-        val _req_id     = new Array[Byte](8)
-        val _req_flags  = new Array[Byte](2)
-        val _req_res_id = new Array[Byte](2)
-        val _req_rec_id = new Array[Byte](6)
+        val req_magic  = new Array[Byte](2)
+        val req_id     = new Array[Byte](8)
+        val req_res_id = new Array[Byte](2)
+        val req_rec_id = new Array[Byte](6)
 
-        System.arraycopy(buffer, 0,  _req_magic,  0, 2)
-        System.arraycopy(buffer, 2,  _req_id,     0, 8)
-        System.arraycopy(buffer, 10, _req_flags,  0, 2)
-        System.arraycopy(buffer, 12, _req_res_id, 0, 2)
-        System.arraycopy(buffer, 14, _req_rec_id, 0, 6)
+        System.arraycopy(buffer, 0,  req_magic,  0, 2)
+        System.arraycopy(buffer, 2,  req_id,     0, 8)
+        System.arraycopy(buffer, 12, req_res_id, 0, 2)
+        System.arraycopy(buffer, 14, req_rec_id, 0, 6)
 
         System.arraycopy(buffer, REQUEST_SIZE, buffer, 0, buffer_len-REQUEST_SIZE)
         buffer_len -= REQUEST_SIZE
 
-        if ((_req_magic(0) == 0x17 && _req_magic(1) == 0x01) unary_!)
-          return println("invalid magic")
+        if ((req_magic(0) == 0x17 && req_magic(1) == 0x01) unary_!) {
+          SQLTap.log_debug("[FFP] read invalid magic bytes")
+        } else {
+          val res_id = new BigInteger(req_res_id)
+          val rec_id = new BigInteger(req_rec_id)
+          val pquery = SQLTap.prepared_queries_ffp.getOrElse(res_id.intValue, null)
 
-        val req_id = new BigInteger(_req_id)
-        val res_id = new BigInteger(_req_res_id)
-        val rec_id = new BigInteger(_req_rec_id)
+          if (pquery == null)
+            SQLTap.log_debug("[FFP] query for invalid resource_id: " + res_id.toString)
 
-        println("parsed request (" + req_id.toString + "): " + res_id.toString + "#" + rec_id.toString)
+          else
+            execute_query(req_id, pquery.build(rec_id.intValue))
+
+        }
       }
-   }
+    }
 
     private def connection_closed :  Unit = {
       println("connection closed")
       sock.close
       key.cancel
+    }
+
+    private def execute_query(req_id: Array[Byte], query: String) : Unit = {
+      SQLTap.log_debug("[FFP] Execute: " + query)
+
+      thread_pool.execute(new Runnable {
+        def run = try {
+          val request = new Request(query,
+            new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
+
+          request.run
+        } catch {
+          case e: Exception => SQLTap.exception(e, true)
+        }
+      })
     }
 
   }

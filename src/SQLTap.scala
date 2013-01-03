@@ -18,6 +18,7 @@ object SQLTap{
 
   val manifest = HashMap[String,ResourceManifest]()
   val prepared_queries = HashMap[String,PreparedQuery]()
+  val prepared_queries_ffp = HashMap[Int,PreparedQuery]()
 
   var debug   = false
   var verbose = false
@@ -149,6 +150,9 @@ object SQLTap{
         val pquery = new PreparedQuery(elem)
         log_debug("Loaded prepared_query: " + pquery.name)
         prepared_queries += ((pquery.name, pquery))
+
+        if (pquery.ffp_id != null)
+          prepared_queries_ffp += ((pquery.ffp_id.toInt, pquery))
       }
 
     }
