@@ -47,6 +47,9 @@ object SQLTap{
       else if(args(n) == "--db-timeout")
         { CONFIG += (('db_timeout, args(n+1))); n += 2 }
 
+      else if(args(n) == "--ffp")
+        { CONFIG += (('ffp_port, args(n+1))); n += 2 }
+
       else if((args(n) == "-c") || (args(n) == "--config"))
         { CONFIG += (('config_base, args(n+1))); n += 2 }
 
@@ -98,6 +101,9 @@ object SQLTap{
 
     db_pool.connect(db_addr, db_threads)
     SQLTap.log("Connected to mysql...")
+
+    val ffp = if (CONFIG contains 'ffp_port)
+      new FFPServer(CONFIG('ffp_port).toInt).start
 
     val http = new HTTPServer(http_port, http_threads)
     SQLTap.log("Listening on http://0.0.0.0:" + http_port)
@@ -160,6 +166,7 @@ object SQLTap{
     println("  --db              <addr>    connect to mysql on this jdbc address        ")
     println("  --db-threads      <num>     number of db worker-threads (default: 16)    ")
     println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
+    println("  --ffp             <port>    start fast fetch protocol server on this port")
     println("  -h, --help                  you're reading it...                         ")
     println("  -d, --debug                 debug mode                                   ")
     println("  -v, --verbose               verbose mode                                 ")
