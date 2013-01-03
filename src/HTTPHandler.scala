@@ -13,6 +13,8 @@ class HTTPHandler extends AbstractHandler {
     req.getRequestURI match {
       case "/query" => action_query(req, res)
       case "/query.json" => action_query(req, res)
+      case "/prepared_query" => action_prepared_query(req, res)
+      case "/prepared_query.json" => action_prepared_query(req, res)
       case "/config" => action_config(req, res)
       case "/config.xml" => action_config(req, res)
       case "/ping" => res.getWriter().write("pong")
@@ -38,6 +40,42 @@ class HTTPHandler extends AbstractHandler {
 
     if (request.resp_data != null)
       res.getOutputStream().write(request.resp_data.getBytes("UTF-8"))
+  }
+
+  private def action_prepared_query(req: HttpServletRequest, res: HttpServletResponse) : Unit = {
+    var qry_name : String = null
+    var qry_id : Int = 0
+    var qry: PreparedQuery = null
+
+    try {
+      qry_name = req.getParameter("name").toString
+      qry_id = req.getParameter("id").toInt
+      qry = SQLTap.prepared_queries(qry_name)
+    } catch {
+      case e: Exception => ()
+    }
+
+    if (qry_name == null || qry_id == 0)
+      res.setStatus(400)
+
+    else if (qry == null)
+      res.setStatus(404)
+
+    else {
+
+      val request = new Request(qry.build(qry_id),
+        new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
+
+      request.run
+
+      res.setStatus(request.resp_status)
+      res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))
+      res.addHeader("Content-Type", "application/json; charset=utf-8")
+
+      if (request.resp_data != null)
+        res.getOutputStream().write(request.resp_data.getBytes("UTF-8"))
+    }
+
   }
 
   private def action_config(req: HttpServletRequest, res: HttpServletResponse) : Unit = {

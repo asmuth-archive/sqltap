@@ -8,7 +8,7 @@ import scala.collection.mutable.HashMap;
 
 object SQLTap{
 
-  val VERSION = "v0.0.4"
+  val VERSION = "v0.0.5"
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
@@ -17,6 +17,7 @@ object SQLTap{
   )
 
   val manifest = HashMap[String,ResourceManifest]()
+  val prepared_queries = HashMap[String,PreparedQuery]()
 
   var debug   = false
   var verbose = false
@@ -118,16 +119,32 @@ object SQLTap{
     for (source <- sources){
       val xml = scala.xml.XML.loadString(source)
 
-      val elems = if (xml.head.label == "resource")
-        List(xml.head)
-      else
-        (xml \ "resource").toList
+      var resources = List[scala.xml.Node]()
+      var prepared  = List[scala.xml.Node]()
 
-      for (elem <- elems) {
+      if (xml.head.label == "resource")
+        resources = List(xml.head)
+
+      else if (xml.head.label == "prepared_query")
+        prepared = List(xml.head)
+
+      else {
+        resources = (xml \ "resource").toList
+        prepared = (xml \ "prepared_query").toList
+      }
+
+      for (elem <- resources) {
         val resource = new ResourceManifest(elem)
         log_debug("Loaded resource: " + resource.name)
         manifest += ((resource.name, resource))
       }
+
+      for (elem <- prepared) {
+        val pquery = new PreparedQuery(elem)
+        log_debug("Loaded prepared_query: " + pquery.name)
+        prepared_queries += ((pquery.name, pquery))
+      }
+
     }
   }
 
