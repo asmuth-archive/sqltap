@@ -10,49 +10,51 @@ import java.util.concurrent._
 
 class FFPServer(port: Int){
 
-  val BUFFER_SIZE = 256
+  val BUFFER_SIZE = 4096 * 4
   val REQUEST_SIZE = 20
 
   val selector = Selector.open
   val server_sock = ServerSocketChannel.open
   val connections = ListBuffer[FFPConnection]()
 
-  val read_buffer = ByteBuffer.allocate(BUFFER_SIZE)
+  val tmp_buffer = ByteBuffer.allocate(BUFFER_SIZE)
 
   val thread_pool = Executors.newFixedThreadPool(4)
 
   class FFPConnection(sock: SocketChannel) {
-    println("connection opened")
+    SQLTap.log_debug("[FFP] connection opened")
 
-    val buffer = new Array[Byte](BUFFER_SIZE * 2)
-    var buffer_len = 0
+    val rbuf = new Array[Byte](BUFFER_SIZE * 2)
+    var rbuf_len = 0
+    val wbuf = new Array[Byte](BUFFER_SIZE * 2)
+    var wbuf_len = 0
 
     sock.configureBlocking(false)
     val key = sock.register(selector, SelectionKey.OP_READ)
     key.attach(this)
 
     def yield_read : Unit = {
-      val len = sock.read(read_buffer)
+      val len = sock.read(tmp_buffer)
 
       if (len == -1)
         return connection_closed
 
-      System.arraycopy(read_buffer.array, 0, buffer, buffer_len, len)
-      buffer_len += len
+      System.arraycopy(tmp_buffer.array, 0, rbuf, rbuf_len, len)
+      rbuf_len += len
 
-      while (buffer_len >= REQUEST_SIZE) {
+      while (rbuf_len >= REQUEST_SIZE) {
         val req_magic  = new Array[Byte](2)
         val req_id     = new Array[Byte](8)
         val req_res_id = new Array[Byte](2)
         val req_rec_id = new Array[Byte](6)
 
-        System.arraycopy(buffer, 0,  req_magic,  0, 2)
-        System.arraycopy(buffer, 2,  req_id,     0, 8)
-        System.arraycopy(buffer, 12, req_res_id, 0, 2)
-        System.arraycopy(buffer, 14, req_rec_id, 0, 6)
+        System.arraycopy(rbuf, 0,  req_magic,  0, 2)
+        System.arraycopy(rbuf, 2,  req_id,     0, 8)
+        System.arraycopy(rbuf, 12, req_res_id, 0, 2)
+        System.arraycopy(rbuf, 14, req_rec_id, 0, 6)
 
-        System.arraycopy(buffer, REQUEST_SIZE, buffer, 0, buffer_len-REQUEST_SIZE)
-        buffer_len -= REQUEST_SIZE
+        System.arraycopy(rbuf, REQUEST_SIZE, rbuf, 0, rbuf_len-REQUEST_SIZE)
+        rbuf_len -= REQUEST_SIZE
 
         if ((req_magic(0) == 0x17 && req_magic(1) == 0x01) unary_!) {
           SQLTap.log_debug("[FFP] read invalid magic bytes")
@@ -72,7 +74,7 @@ class FFPServer(port: Int){
     }
 
     private def connection_closed :  Unit = {
-      println("connection closed")
+      SQLTap.log_debug("[FFP] connection closed")
       sock.close
       key.cancel
     }
@@ -86,10 +88,25 @@ class FFPServer(port: Int){
             new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
 
           request.run
+
+          finish_query(req_id, request)
         } catch {
           case e: Exception => SQLTap.exception(e, true)
         }
       })
+    }
+
+    private def finish_query(req_id: Array[Byte], req: Request) : Unit = {
+      // FIXPAUL: wrap in FFP response packet
+      val res = req.resp_data.getBytes("UTF-8")
+
+      if ((res.size + wbuf_len) > (BUFFER_SIZE * 2))
+        return SQLTap.log("[FFP] write buffer overflow, discarding request")
+
+      wbuf.synchronized {
+        System.arraycopy(res, 0, wbuf, wbuf_len, res.size)
+        wbuf_len += res.size
+      }
     }
 
   }
