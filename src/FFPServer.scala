@@ -41,6 +41,7 @@ class FFPServer(port: Int, num_threads: Int){
     key.attach(this)
 
     def yield_read : Unit = {
+      tmp_buffer.rewind
       val len = sock.read(tmp_buffer)
 
       if (len == -1)
@@ -60,11 +61,12 @@ class FFPServer(port: Int, num_threads: Int){
         System.arraycopy(rbuf, 12, req_res_id, 0, 2)
         System.arraycopy(rbuf, 14, req_rec_id, 0, 6)
 
-        System.arraycopy(rbuf, REQUEST_SIZE, rbuf, 0, rbuf_len-REQUEST_SIZE)
         rbuf_len -= REQUEST_SIZE
+        System.arraycopy(rbuf, REQUEST_SIZE, rbuf, 0, rbuf_len)
 
         if (Arrays.equals(REQUEST_MAGIC, req_magic) unary_!) {
           SQLTap.log("[FFP] read invalid magic bytes")
+
         } else {
           val res_id = new BigInteger(req_res_id)
           val rec_id = new BigInteger(req_rec_id)
@@ -78,6 +80,25 @@ class FFPServer(port: Int, num_threads: Int){
 
         }
       }
+    }
+
+    def yield_write : Unit = {
+      wbuf.synchronized {
+        val bbuf = ByteBuffer.wrap(wbuf)
+        bbuf.limit(wbuf_len)
+
+        val wlen = sock.write(bbuf)
+
+        wbuf_len -= wlen
+        System.arraycopy(wbuf, wlen, wbuf, 0, wbuf_len)
+      }
+    }
+
+    def yield_prepare : Unit = {
+      if (wbuf_len > 0)
+        key.interestOps(key.interestOps | 4)
+      else
+        key.interestOps(key.interestOps ^ 4)
     }
 
     private def connection_closed :  Unit = {
@@ -114,16 +135,16 @@ class FFPServer(port: Int, num_threads: Int){
       head.putShort(flags)
       head.putInt(resp.size)
 
-      if ((resp.size + wbuf_len + RESPONSE_SIZE) > (BUFFER_SIZE * 2))
-        return SQLTap.log("[FFP] write buffer overflow, discarding request")
-
       wbuf.synchronized {
+        if ((resp.size + wbuf_len + RESPONSE_SIZE) > (BUFFER_SIZE * 2))
+          return SQLTap.log("[FFP] write buffer overflow, discarding request")
+
         System.arraycopy(head.array, 0, wbuf, wbuf_len, RESPONSE_SIZE)
         System.arraycopy(resp, 0, wbuf, wbuf_len + RESPONSE_SIZE, resp.size)
         wbuf_len += resp.size + RESPONSE_SIZE
       }
 
-      println(hexdump(wbuf, RESPONSE_SIZE))
+      selector.wakeup
     }
 
   }
@@ -142,6 +163,9 @@ class FFPServer(port: Int, num_threads: Int){
   }
 
   private def next : Unit = {
+    connections.foreach(c =>
+      if (c.key.isValid) c.yield_prepare)
+
     selector.select
     val keys = selector.selectedKeys.iterator
 
@@ -155,13 +179,10 @@ class FFPServer(port: Int, num_threads: Int){
       if (key.isReadable)
         key.attachment.asInstanceOf[FFPConnection].yield_read
 
-    }
-  }
+      if (key.isValid && key.isWritable)
+        key.attachment.asInstanceOf[FFPConnection].yield_write
 
-  private def hexdump(a: Array[Byte], max: Int = 0) : String = {
-    var str = javax.xml.bind.DatatypeConverter.printHexBinary(a)
-    if (max > 0) str = str.substring(0, max*2)
-    str.replaceAll("(.{2})", "$1 ")
+    }
   }
 
 }
