@@ -7,11 +7,19 @@ import java.nio.channels._
 import scala.collection.mutable.ListBuffer
 import java.math.BigInteger
 import java.util.concurrent._
+import java.util.Arrays
 
 class FFPServer(port: Int, num_threads: Int){
 
   val BUFFER_SIZE = 4096 * 8
-  val REQUEST_SIZE = 20
+
+  // request header length in bytes, magic bytes
+  val REQUEST_SIZE   = 20
+  val REQUEST_MAGIC  = Array[Byte](0x17, 0x01)
+
+  // response header length in bytes, magic bytes
+  val RESPONSE_SIZE  = 16
+  val RESPONSE_MAGIC = Array[Byte](0x17, 0x02)
 
   val selector = Selector.open
   val server_sock = ServerSocketChannel.open
@@ -55,7 +63,7 @@ class FFPServer(port: Int, num_threads: Int){
         System.arraycopy(rbuf, REQUEST_SIZE, rbuf, 0, rbuf_len-REQUEST_SIZE)
         rbuf_len -= REQUEST_SIZE
 
-        if ((req_magic(0) == 0x17 && req_magic(1) == 0x01) unary_!) {
+        if (Arrays.equals(REQUEST_MAGIC, req_magic) unary_!) {
           SQLTap.log("[FFP] read invalid magic bytes")
         } else {
           val res_id = new BigInteger(req_res_id)
@@ -96,16 +104,26 @@ class FFPServer(port: Int, num_threads: Int){
     }
 
     private def finish_query(req_id: Array[Byte], req: Request) : Unit = {
-      // FIXPAUL: wrap in FFP response packet
-      val res = req.resp_data.getBytes("UTF-8")
+      val resp = req.resp_data.getBytes("UTF-8")
+      val flags : Short = 0
 
-      if ((res.size + wbuf_len) > (BUFFER_SIZE * 2))
+      val head = ByteBuffer.allocate(RESPONSE_SIZE)
+      head.order(ByteOrder.BIG_ENDIAN)
+      head.put(RESPONSE_MAGIC)
+      head.put(req_id)
+      head.putShort(flags)
+      head.putInt(resp.size)
+
+      if ((resp.size + wbuf_len + RESPONSE_SIZE) > (BUFFER_SIZE * 2))
         return SQLTap.log("[FFP] write buffer overflow, discarding request")
 
       wbuf.synchronized {
-        System.arraycopy(res, 0, wbuf, wbuf_len, res.size)
-        wbuf_len += res.size
+        System.arraycopy(head.array, 0, wbuf, wbuf_len, RESPONSE_SIZE)
+        System.arraycopy(resp, 0, wbuf, wbuf_len + RESPONSE_SIZE, resp.size)
+        wbuf_len += resp.size + RESPONSE_SIZE
       }
+
+      println(hexdump(wbuf, RESPONSE_SIZE))
     }
 
   }
@@ -140,7 +158,10 @@ class FFPServer(port: Int, num_threads: Int){
     }
   }
 
-  private def hexdump(a: Array[Byte]) : String =
-    javax.xml.bind.DatatypeConverter.printHexBinary(a).replaceAll("(.{2})", "$1 ")
+  private def hexdump(a: Array[Byte], max: Int = 0) : String = {
+    var str = javax.xml.bind.DatatypeConverter.printHexBinary(a)
+    if (max > 0) str = str.substring(0, max*2)
+    str.replaceAll("(.{2})", "$1 ")
+  }
 
 }
