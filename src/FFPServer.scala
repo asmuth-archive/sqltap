@@ -11,7 +11,7 @@ import java.util.Arrays
 
 class FFPServer(port: Int, num_threads: Int){
 
-  val BUFFER_SIZE = 4096 * 8
+  val BUFFER_SIZE = 4096 * 32
 
   // request header length in bytes, magic bytes
   val REQUEST_SIZE   = 20
@@ -40,7 +40,7 @@ class FFPServer(port: Int, num_threads: Int){
     val key = sock.register(selector, SelectionKey.OP_READ)
     key.attach(this)
 
-    def yield_read : Unit = {
+    def yield_read : Unit = try {
       tmp_buffer.rewind
       val len = sock.read(tmp_buffer)
 
@@ -80,9 +80,11 @@ class FFPServer(port: Int, num_threads: Int){
 
         }
       }
+    } catch {
+      case e: IOException => connection_closed
     }
 
-    def yield_write : Unit = {
+    def yield_write : Unit = try {
       wbuf.synchronized {
         val bbuf = ByteBuffer.wrap(wbuf)
         bbuf.limit(wbuf_len)
@@ -92,6 +94,8 @@ class FFPServer(port: Int, num_threads: Int){
         wbuf_len -= wlen
         System.arraycopy(wbuf, wlen, wbuf, 0, wbuf_len)
       }
+    } catch {
+      case e: IOException => connection_closed
     }
 
     def yield_prepare : Unit = {
