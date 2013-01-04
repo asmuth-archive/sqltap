@@ -46,6 +46,8 @@ class DBConnectionPool {
       worker.start()
       workers += worker
     }
+
+    SQLTap.log("Connected to mysql...")
   }
 
   def execute(qry: String) : Job = {

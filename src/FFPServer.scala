@@ -8,9 +8,9 @@ import scala.collection.mutable.ListBuffer
 import java.math.BigInteger
 import java.util.concurrent._
 
-class FFPServer(port: Int){
+class FFPServer(port: Int, num_threads: Int){
 
-  val BUFFER_SIZE = 4096 * 4
+  val BUFFER_SIZE = 4096 * 8
   val REQUEST_SIZE = 20
 
   val selector = Selector.open
@@ -18,8 +18,7 @@ class FFPServer(port: Int){
   val connections = ListBuffer[FFPConnection]()
 
   val tmp_buffer = ByteBuffer.allocate(BUFFER_SIZE)
-
-  val thread_pool = Executors.newFixedThreadPool(4)
+  val thread_pool = Executors.newFixedThreadPool(num_threads)
 
   class FFPConnection(sock: SocketChannel) {
     SQLTap.log_debug("[FFP] connection opened")
@@ -57,14 +56,14 @@ class FFPServer(port: Int){
         rbuf_len -= REQUEST_SIZE
 
         if ((req_magic(0) == 0x17 && req_magic(1) == 0x01) unary_!) {
-          SQLTap.log_debug("[FFP] read invalid magic bytes")
+          SQLTap.log("[FFP] read invalid magic bytes")
         } else {
           val res_id = new BigInteger(req_res_id)
           val rec_id = new BigInteger(req_rec_id)
           val pquery = SQLTap.prepared_queries_ffp.getOrElse(res_id.intValue, null)
 
           if (pquery == null)
-            SQLTap.log_debug("[FFP] query for invalid resource_id: " + res_id.toString)
+            SQLTap.log("[FFP] query for invalid resource_id: " + res_id.toString)
 
           else
             execute_query(req_id, pquery.build(rec_id.intValue))
@@ -120,6 +119,8 @@ class FFPServer(port: Int){
       def run = try { while (true) next }
         catch { case e: Exception => SQLTap.exception(e, true) }
     }).start
+
+    SQLTap.log("Listening on ffp://0.0.0.0:" + port)
   }
 
   private def next : Unit = {
@@ -138,5 +139,8 @@ class FFPServer(port: Int){
 
     }
   }
+
+  private def hexdump(a: Array[Byte]) : String =
+    javax.xml.bind.DatatypeConverter.printHexBinary(a).replaceAll("(.{2})", "$1 ")
 
 }

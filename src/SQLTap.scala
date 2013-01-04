@@ -13,7 +13,8 @@ object SQLTap{
 
   var DEFAULTS = HashMap[Symbol, String](
     'db_threads   -> "16",
-    'http_threads -> "4"
+    'http_threads -> "4",
+    'ffp_threads -> "4"
   )
 
   val manifest = HashMap[String,ResourceManifest]()
@@ -51,6 +52,9 @@ object SQLTap{
       else if(args(n) == "--ffp")
         { CONFIG += (('ffp_port, args(n+1))); n += 2 }
 
+      else if(args(n) == "--ffp-threads")
+        { CONFIG += (('ffp_threads, args(n+1))); n += 2 }
+
       else if((args(n) == "-c") || (args(n) == "--config"))
         { CONFIG += (('config_base, args(n+1))); n += 2 }
 
@@ -78,9 +82,6 @@ object SQLTap{
     if (CONFIG contains 'db_addr unary_!)
       { log("--db required"); start = false }
 
-    if (CONFIG contains 'http_port unary_!)
-      { log("--http required"); start = false }
-
     if (start unary_!)
       { println; return usage(true) }
 
@@ -91,23 +92,28 @@ object SQLTap{
   }
 
   def boot = try {
-    val http_port = CONFIG('http_port).toInt
-    val http_threads = CONFIG('http_threads).toInt
-    val db_addr = CONFIG('db_addr)
-    val db_threads = CONFIG('db_threads).toInt
-
     SQLTap.log("sqltapd " + VERSION + " booting...")
-
     load_config
 
-    db_pool.connect(db_addr, db_threads)
-    SQLTap.log("Connected to mysql...")
+    val db_threads = CONFIG('db_threads).toInt
+    db_pool.connect(CONFIG('db_addr), db_threads)
 
-    val ffp = if (CONFIG contains 'ffp_port)
-      new FFPServer(CONFIG('ffp_port).toInt).start
 
-    val http = new HTTPServer(http_port, http_threads)
-    SQLTap.log("Listening on http://0.0.0.0:" + http_port)
+    val http_threads = CONFIG('http_threads).toInt
+    val http_port = CONFIG.getOrElse('http_port, "0")
+      .asInstanceOf[String].toInt
+
+    val http = if (http_port > 0)
+      new HTTPServer(http_port, http_threads)
+
+
+    val ffp_threads = CONFIG('ffp_threads).toInt
+    val ffp_port = CONFIG.getOrElse('ffp_port, "0")
+      .asInstanceOf[String].toInt
+
+    val ffp = if (ffp_port > 0)
+      new FFPServer(ffp_port, ffp_threads).start
+
   } catch {
     case e: Exception => exception(e, true)
   }
@@ -171,6 +177,7 @@ object SQLTap{
     println("  --db-threads      <num>     number of db worker-threads (default: 16)    ")
     println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
     println("  --ffp             <port>    start fast fetch protocol server on this port")
+    println("  --ffp-threads     <num>     number of ffp worker-threads (default: 4)    ")
     println("  -h, --help                  you're reading it...                         ")
     println("  -d, --debug                 debug mode                                   ")
     println("  -v, --verbose               verbose mode                                 ")

@@ -7,7 +7,6 @@ import java.io.PrintStream
 import java.io.OutputStream
 
 class HTTPServer(port: Int, num_threads: Int) {
-
   org.eclipse.jetty.util.log.Log.setLog(null);
 
   val pool = new QueuedThreadPool
@@ -23,6 +22,8 @@ class HTTPServer(port: Int, num_threads: Int) {
   connector.setPort(port)
   server.addConnector(connector)
   without_stderr(_ => connector.start())
+
+  SQLTap.log("Listening on http://0.0.0.0:" + port)
 
   def without_stderr(lambda: Unit => Unit) = {
     val stderr = System.err
