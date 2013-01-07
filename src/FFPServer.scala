@@ -116,6 +116,7 @@ class FFPServer(port: Int, num_threads: Int){
       SQLTap.log_debug("[FFP] connection closed")
       sock.close
       key.cancel
+      connections += this
     }
 
     private def execute_query(req_id: Array[Byte], query: String) : Unit = {
