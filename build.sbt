@@ -19,3 +19,5 @@ libraryDependencies += "org.eclipse.jetty" % "jetty-server" % "7.2.2.v20101205"
 assemblySettings
 
 jarName in assembly <<= (version) { v => "sqltap_" + v + ".jar" }
+
+fork in run := true

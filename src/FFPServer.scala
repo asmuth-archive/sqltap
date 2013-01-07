@@ -11,7 +11,7 @@ import java.util.Arrays
 
 class FFPServer(port: Int, num_threads: Int){
 
-  val BUFFER_SIZE = 4096 * 32
+  val BUFFER_SIZE = 1024 * 1024 * 16
 
   // request header length in bytes, magic bytes
   val REQUEST_SIZE   = 20
@@ -64,12 +64,19 @@ class FFPServer(port: Int, num_threads: Int){
         rbuf_len -= REQUEST_SIZE
         System.arraycopy(rbuf, REQUEST_SIZE, rbuf, 0, rbuf_len)
 
-        if (Arrays.equals(REQUEST_MAGIC, req_magic) unary_!) {
+        val res_id = new BigInteger(1, req_res_id)
+        val rec_id = new BigInteger(1, req_rec_id)
+
+        if (Arrays.equals(REQUEST_MAGIC, req_magic) unary_!)
           SQLTap.log("[FFP] read invalid magic bytes")
 
-        } else {
-          val res_id = new BigInteger(req_res_id)
-          val rec_id = new BigInteger(req_rec_id)
+        else if (res_id.intValue == 65535 && rec_id.intValue == 0) {
+          val res = new Request("pong", null, null, null)
+          res.resp_data = "pong"
+          finish_query(req_id, res)
+        }
+
+        else {
           val pquery = SQLTap.prepared_queries_ffp.getOrElse(res_id.intValue, null)
 
           if (pquery == null)
