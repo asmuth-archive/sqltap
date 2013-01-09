@@ -11,7 +11,7 @@ import java.util.Arrays
 
 class FFPServer(port: Int, num_threads: Int){
 
-  val BUFFER_SIZE = 1024 * 1024 * 16
+  val BUFFER_SIZE = 1024 * 256
 
   // request header length in bytes, magic bytes
   val REQUEST_SIZE   = 20
@@ -116,7 +116,7 @@ class FFPServer(port: Int, num_threads: Int){
       SQLTap.log_debug("[FFP] connection closed")
       sock.close
       key.cancel
-      connections += this
+      connections -= this
     }
 
     private def execute_query(req_id: Array[Byte], query: String) : Unit = {
