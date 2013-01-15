@@ -55,6 +55,9 @@ object SQLTap{
       else if(args(n) == "--ffp-threads")
         { CONFIG += (('ffp_threads, args(n+1))); n += 2 }
 
+      else if(args(n) == "--memcached")
+        { CONFIG += (('memcached, args(n+1))); n += 2 }
+
       else if((args(n) == "-c") || (args(n) == "--config"))
         { CONFIG += (('config_base, args(n+1))); n += 2 }
 
@@ -105,7 +108,6 @@ object SQLTap{
 
     val http = if (http_port > 0)
       new HTTPServer(http_port, http_threads)
-
 
     val ffp_threads = CONFIG('ffp_threads).toInt
     val ffp_port = CONFIG.getOrElse('ffp_port, "0")
