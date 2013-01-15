@@ -112,11 +112,8 @@ class FFPServer(port: Int, num_threads: Int){
       thread_pool.execute(new Runnable {
         def run : Unit = try {
 
-          if (res_id.intValue == 65535 && rec_id.intValue == 0) {
-            val res = new Request("pong", null, null, null)
-            res.resp_data = "pong"
-            finish_query(req_id, res)
-          }
+          if (res_id.intValue == 65535 && rec_id.intValue == 0)
+            finish_query(req_id, build_pong_response)
 
           else {
             val pquery = SQLTap.prepared_queries_ffp.getOrElse(res_id.intValue, null)
@@ -193,6 +190,12 @@ class FFPServer(port: Int, num_threads: Int){
         key.attachment.asInstanceOf[FFPConnection].yield_write
 
     }
+  }
+
+  private def build_pong_response : Request = {
+    val res = new Request("pong", null, null, null)
+    res.resp_data = "pong"
+    res
   }
 
 }
