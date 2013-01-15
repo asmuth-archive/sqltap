@@ -14,7 +14,10 @@ class PreparedQuery(doc: xml.Node) {
     elem.attr("ffp_id", false)
 
 
-  def build(id: Int) =
+  def build(id: Int) : String =
     query.replace("$$", id.toString)
+
+  def cache_key(id: Int) : String =
+    "sqltap-cache-" + name + "-" + id.toString
 
 }

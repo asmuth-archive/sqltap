@@ -42,25 +42,26 @@ class HTTPHandler extends AbstractHandler {
 
   private def action_prepared_query(req: HttpServletRequest, res: HttpServletResponse) : Unit = {
     var qry_name : String = null
-    var qry_id : Int = 0
+    var qry_ids : String = null
     var qry: PreparedQuery = null
 
     try {
       qry_name = req.getParameter("name").toString
-      qry_id = req.getParameter("id").toInt
+      qry_ids = req.getParameter("id").toString
       qry = SQLTap.prepared_queries(qry_name)
     } catch {
       case e: Exception => ()
     }
 
-    if (qry_name == null || qry_id == 0)
+    if (qry_name == null || qry_ids == null)
       res.setStatus(400)
 
     else if (qry == null)
       res.setStatus(404)
 
     else {
-      val request = PreparedQueryCache.execute(qry, qry_id)
+      val request = PreparedQueryCache.execute(qry,
+        qry_ids.split(",").map{ x => x.toInt}.toList)
 
       res.setStatus(request.resp_status)
       res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))

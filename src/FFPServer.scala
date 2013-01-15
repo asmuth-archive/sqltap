@@ -107,8 +107,6 @@ class FFPServer(port: Int, num_threads: Int){
     }
 
     private def execute_query(req_id: Array[Byte], res_id: BigInteger, rec_id: BigInteger) : Unit = {
-      SQLTap.log_debug("[FFP] Execute...")
-
       thread_pool.execute(new Runnable {
         def run : Unit = try {
 
@@ -121,7 +119,7 @@ class FFPServer(port: Int, num_threads: Int){
             if (pquery == null)
               return SQLTap.log("[FFP] query for invalid resource_id: " + res_id.toString)
 
-            val request = PreparedQueryCache.execute(pquery, rec_id.intValue)
+            val request = PreparedQueryCache.execute(pquery, List(rec_id.intValue))
             finish_query(req_id, request)
           }
 

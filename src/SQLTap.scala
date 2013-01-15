@@ -8,13 +8,14 @@ import scala.collection.mutable.HashMap;
 
 object SQLTap{
 
-  val VERSION = "v0.0.8"
+  val VERSION = "v0.1.0"
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
     'db_threads   -> "16",
     'http_threads -> "4",
-    'ffp_threads -> "4"
+    'ffp_threads -> "4",
+    'memcached_ttl -> "3600"
   )
 
   val manifest = HashMap[String,ResourceManifest]()
@@ -54,6 +55,9 @@ object SQLTap{
 
       else if(args(n) == "--ffp-threads")
         { CONFIG += (('ffp_threads, args(n+1))); n += 2 }
+
+      else if(args(n) == "--memcached-ttl")
+        { CONFIG += (('memcached_ttl, args(n+1))); n += 2 }
 
       else if(args(n) == "--memcached")
         { CONFIG += (('memcached, args(n+1))); n += 2 }
@@ -180,6 +184,8 @@ object SQLTap{
     println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
     println("  --ffp             <port>    start fast fetch protocol server on this port")
     println("  --ffp-threads     <num>     number of ffp worker-threads (default: 4)    ")
+    println("  --memcached       <addrs>   comma-seperated memcache servers (host:port) ")
+    println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
     println("  -h, --help                  you're reading it...                         ")
     println("  -d, --debug                 debug mode                                   ")
     println("  -v, --verbose               verbose mode                                 ")
