@@ -30,9 +30,7 @@ class HTTPHandler extends AbstractHandler {
 
   private def action_query(req: HttpServletRequest, res: HttpServletResponse) : Unit = {
     val request = new Request(req.getQueryString(),
-      new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
-
-    request.run
+      new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter).run
 
     res.setStatus(request.resp_status)
     res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))
@@ -62,11 +60,7 @@ class HTTPHandler extends AbstractHandler {
       res.setStatus(404)
 
     else {
-
-      val request = new Request(qry.build(qry_id),
-        new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
-
-      request.run
+      val request = PreparedQueryCache.execute(qry, qry_id)
 
       res.setStatus(request.resp_status)
       res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))

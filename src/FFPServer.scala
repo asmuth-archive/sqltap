@@ -70,22 +70,9 @@ class FFPServer(port: Int, num_threads: Int){
         if (Arrays.equals(REQUEST_MAGIC, req_magic) unary_!)
           SQLTap.log("[FFP] read invalid magic bytes")
 
-        else if (res_id.intValue == 65535 && rec_id.intValue == 0) {
-          val res = new Request("pong", null, null, null)
-          res.resp_data = "pong"
-          finish_query(req_id, res)
-        }
+        else
+          execute_query(req_id, res_id, rec_id)
 
-        else {
-          val pquery = SQLTap.prepared_queries_ffp.getOrElse(res_id.intValue, null)
-
-          if (pquery == null)
-            SQLTap.log("[FFP] query for invalid resource_id: " + res_id.toString)
-
-          else
-            execute_query(req_id, pquery.build(rec_id.intValue))
-
-        }
       }
     } catch {
       case e: IOException => connection_closed
@@ -119,17 +106,28 @@ class FFPServer(port: Int, num_threads: Int){
       connections -= this
     }
 
-    private def execute_query(req_id: Array[Byte], query: String) : Unit = {
-      SQLTap.log_debug("[FFP] Execute: " + query)
+    private def execute_query(req_id: Array[Byte], res_id: BigInteger, rec_id: BigInteger) : Unit = {
+      SQLTap.log_debug("[FFP] Execute...")
 
       thread_pool.execute(new Runnable {
-        def run = try {
-          val request = new Request(query,
-            new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
+        def run : Unit = try {
 
-          request.run
+          if (res_id.intValue == 65535 && rec_id.intValue == 0) {
+            val res = new Request("pong", null, null, null)
+            res.resp_data = "pong"
+            finish_query(req_id, res)
+          }
 
-          finish_query(req_id, request)
+          else {
+            val pquery = SQLTap.prepared_queries_ffp.getOrElse(res_id.intValue, null)
+
+            if (pquery == null)
+              return SQLTap.log("[FFP] query for invalid resource_id: " + res_id.toString)
+
+            val request = PreparedQueryCache.execute(pquery, rec_id.intValue)
+            finish_query(req_id, request)
+          }
+
         } catch {
           case e: Exception => SQLTap.exception(e, true)
         }

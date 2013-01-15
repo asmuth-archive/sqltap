@@ -18,7 +18,7 @@ class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor
     if (etime.size < 2) List[Double]() else
       etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
 
-  def run : Unit = try {
+  def run : Request = try {
     SQLTap.log_debug("-"*80)
     run_unsafe
 
@@ -26,13 +26,14 @@ class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor
       qtime.mkString(", "))
 
     SQLTap.log_debug("-"*80)
+    this
   } catch {
-    case e: ParseException => error(400, e.toString)
-    case e: ExecutionException => error(500, e.toString)
-    case e: NotFoundException => error(404, e.toString)
+    case e: ParseException => { error(400, e.toString); this }
+    case e: ExecutionException => { error(500, e.toString); this }
+    case e: NotFoundException => { error(404, e.toString); this }
     case e => {
       SQLTap.exception(e, false)
-      error(500, "internal error: " + e.toString)
+      error(500, "internal error: " + e.toString); this
     }
   }
 
