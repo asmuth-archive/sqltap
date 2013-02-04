@@ -4,8 +4,9 @@ object JSONHelper {
 
   val sub_table = List(
     (("\"", """\\"""")),
+    (("\n\t", "\\\\n")),
     (("\r", "")),
-    (("\n", ""))
+    (("\n", "\\\\n"))
   )
 
   def escape(str: String) : String =
