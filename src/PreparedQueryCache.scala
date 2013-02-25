@@ -8,6 +8,11 @@ import net.spy.memcached.CachedData;
 import java.util.concurrent._;
 
 object PreparedQueryCache {
+  System.setProperty("net.spy.log.LoggerImpl",
+    "net.spy.memcached.compat.log.SunLogger");
+
+  Logger.getLogger("net.spy.memcached")
+    .setLevel(Level.SEVERE);
 
   class PlainMemcachedTranscoder extends Transcoder[String] {
     def getMaxSize : Int = Integer.MAX_VALUE
@@ -22,23 +27,20 @@ object PreparedQueryCache {
 
   }
 
-  System.setProperty("net.spy.log.LoggerImpl",
-    "net.spy.memcached.compat.log.SunLogger");
-
-  Logger.getLogger("net.spy.memcached")
-    .setLevel(Level.SEVERE);
-
-  var memcached : MemcachedClient = null
-  val memcached_ttl = SQLTap.CONFIG('memcached_ttl).toInt
-
-  if(SQLTap.CONFIG contains 'memcached) {
-    memcached = new MemcachedClient(
-      AddrUtil.getAddresses(SQLTap.CONFIG('memcached)))
-
-    SQLTap.log("Connected to memcached...")
+  class LocalMemcachedClient extends ThreadLocal[MemcachedClient] {
+    override protected def initialValue : MemcachedClient =
+      if (SQLTap.CONFIG contains 'memcached) {
+        SQLTap.log("Connecting to memcached...")
+        new MemcachedClient(AddrUtil.getAddresses(SQLTap.CONFIG('memcached)))
+      } else null
   }
 
+  val memcached_ttl = SQLTap.CONFIG('memcached_ttl).toInt
+  val memcached_local = new LocalMemcachedClient
+
   def execute(query: PreparedQuery, ids: List[Int]) : Request = {
+    var memcached = memcached_local.get
+
     val buf = new StringBuffer
     val keys : List[String] = ids.map{ id => query.cache_key(id) }
     var cached : java.util.Map[String, String] = null
