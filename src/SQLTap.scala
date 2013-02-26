@@ -14,13 +14,11 @@ object SQLTap{
   var DEFAULTS = HashMap[Symbol, String](
     'db_threads   -> "16",
     'http_threads -> "4",
-    'ffp_threads -> "4",
     'memcached_ttl -> "3600"
   )
 
   val manifest = HashMap[String,ResourceManifest]()
   val prepared_queries = HashMap[String,PreparedQuery]()
-  val prepared_queries_ffp = HashMap[Int,PreparedQuery]()
 
   var debug   = false
   var verbose = false
@@ -49,12 +47,6 @@ object SQLTap{
 
       else if(args(n) == "--db-timeout")
         { CONFIG += (('db_timeout, args(n+1))); n += 2 }
-
-      else if(args(n) == "--ffp")
-        { CONFIG += (('ffp_port, args(n+1))); n += 2 }
-
-      else if(args(n) == "--ffp-threads")
-        { CONFIG += (('ffp_threads, args(n+1))); n += 2 }
 
       else if(args(n) == "--memcached-ttl")
         { CONFIG += (('memcached_ttl, args(n+1))); n += 2 }
@@ -113,13 +105,6 @@ object SQLTap{
     val http = if (http_port > 0)
       new HTTPServer(http_port, http_threads)
 
-    val ffp_threads = CONFIG('ffp_threads).toInt
-    val ffp_port = CONFIG.getOrElse('ffp_port, "0")
-      .asInstanceOf[String].toInt
-
-    val ffp = if (ffp_port > 0)
-      new FFPServer(ffp_port, ffp_threads).start
-
   } catch {
     case e: Exception => exception(e, true)
   }
@@ -162,9 +147,6 @@ object SQLTap{
         val pquery = new PreparedQuery(elem)
         log_debug("Loaded prepared_query: " + pquery.name)
         prepared_queries += ((pquery.name, pquery))
-
-        if (pquery.ffp_id != null)
-          prepared_queries_ffp += ((pquery.ffp_id.toInt, pquery))
       }
 
     }
@@ -182,8 +164,6 @@ object SQLTap{
     println("  --db              <addr>    connect to mysql on this jdbc address        ")
     println("  --db-threads      <num>     number of db worker-threads (default: 16)    ")
     println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
-    println("  --ffp             <port>    start fast fetch protocol server on this port")
-    println("  --ffp-threads     <num>     number of ffp worker-threads (default: 4)    ")
     println("  --memcached       <addrs>   comma-seperated memcache servers (host:port) ")
     println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
     println("  -h, --help                  you're reading it...                         ")

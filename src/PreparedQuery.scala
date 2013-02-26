@@ -10,10 +10,6 @@ class PreparedQuery(doc: xml.Node) {
   val query : String =
     elem.attr("query", true)
 
-  val ffp_id : String =
-    elem.attr("ffp_id", false)
-
-
   def build(id: Int) : String =
     query.replace("$$", id.toString)
 
