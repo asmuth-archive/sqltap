@@ -16,15 +16,16 @@ import java.util.zip.GZIPOutputStream
 
 class MemcachedTranscoder extends Transcoder[String] {
 
-  def getMaxSize : Int = 4096 * 8
+  def getMaxSize : Int = 4096 * 32
   def asyncDecode(d: CachedData) : Boolean = true
-
-  val buffer = new Array[Byte](getMaxSize)
 
   def encode(s: String) : CachedData = {
     val target = new ByteArrayOutputStream()
     val gzip   = new GZIPOutputStream(target)
     val data   = s.getBytes("UTF-8")
+
+    if (data.size > getMaxSize)
+      throw new Exception("CachedData too large")
 
     gzip.write(data, 0, data.size)
     gzip.finish
@@ -36,6 +37,7 @@ class MemcachedTranscoder extends Transcoder[String] {
   }
 
   def decode(d: CachedData) : String = try {
+    val buffer = new Array[Byte](getMaxSize)
     val source = new ByteArrayInputStream(d.getData);
     val gzip   = new GZIPInputStream(source);
 
