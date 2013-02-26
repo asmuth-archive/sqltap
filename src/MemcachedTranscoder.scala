@@ -56,6 +56,7 @@ class MemcachedTranscoder extends Transcoder[String] {
   } catch {
     case e: Exception => {
       SQLTap.error("[MEMCACHE] " + e, false)
+      throw e
       return "error"
     }
   }
