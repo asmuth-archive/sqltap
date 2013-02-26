@@ -5,6 +5,7 @@ import net.spy.memcached.MemcachedClient
 import net.spy.memcached.AddrUtil
 import net.spy.memcached.transcoders.Transcoder
 import net.spy.memcached.CachedData
+import javax.servlet.ServletOutputStream
 import java.util.concurrent._
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -75,10 +76,9 @@ object PreparedQueryCache {
   val memcached_ttl = SQLTap.CONFIG('memcached_ttl).toInt
   val memcached_local = new LocalMemcachedClient
 
-  def execute(query: PreparedQuery, ids: List[Int]) : Request = {
+  def execute(query: PreparedQuery, ids: List[Int], output: ServletOutputStream) : Unit = {
     var memcached = memcached_local.get
 
-    val buf = new StringBuffer
     val keys : List[String] = ids.map{ id => query.cache_key(id) }
     var cached : java.util.Map[String, String] = null
 
@@ -87,34 +87,32 @@ object PreparedQueryCache {
     }
 
     (0 until ids.length).foreach { ind =>
-      val request = new Request(query.build(ids(ind)),
-        new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter)
+      var cached_resp : String = cached.get(keys(ind))
 
-      request.resp_data = cached.get(keys(ind))
+      if (cached_resp == null) {
+        val request = new Request(query.build(ids(ind)),
+          new PlainRequestParser,
+          new RequestExecutor,
+          new PrettyJSONWriter)
 
-      if (request.resp_data != null)
         request.ready = true
-
-      if (request.ready unary_!) {
         request.run
 
+        cached_resp = request.resp_data
+          .substring(1, request.resp_data.length - 1)
+
         memcached.set(keys(ind), memcached_ttl,
-          request.resp_data, new PlainMemcachedTranscoder)
+          cached_resp, new PlainMemcachedTranscoder)
       }
 
+      output.write(
+        if (ind == 0) '[' else ',')
 
-      buf.append(
-        if (ind == 0) "[" else ",")
-
-      buf.append(request.resp_data
-        .substring(1, request.resp_data.length - 1))
+      output.write(
+        cached_resp.getBytes("UTF-8"))
     }
 
-    buf.append("]")
-
-    val response = new Request("PreparedQueryCache", null, null, null)
-    response.resp_data = buf.toString
-    response
+    output.write(']')
   }
 
 }

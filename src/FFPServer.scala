@@ -119,8 +119,8 @@ class FFPServer(port: Int, num_threads: Int){
             if (pquery == null)
               return SQLTap.log("[FFP] query for invalid resource_id: " + res_id.toString)
 
-            val request = PreparedQueryCache.execute(pquery, List(rec_id.intValue))
-            finish_query(req_id, request)
+            //val request = PreparedQueryCache.execute(pquery, List(rec_id.intValue))
+            //finish_query(req_id, request)
           }
 
         } catch {

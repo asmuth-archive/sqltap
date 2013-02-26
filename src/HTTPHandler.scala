@@ -60,15 +60,12 @@ class HTTPHandler extends AbstractHandler {
       res.setStatus(404)
 
     else {
-      val request = PreparedQueryCache.execute(qry,
-        qry_ids.split(",").map{ x => x.toInt}.toList)
+      PreparedQueryCache.execute(qry,
+        qry_ids.split(",").map{ x => x.toInt}.toList,
+        res.getOutputStream)
 
-      res.setStatus(request.resp_status)
-      res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))
+      res.setStatus(200)
       res.addHeader("Content-Type", "application/json; charset=utf-8")
-
-      if (request.resp_data != null)
-        res.getOutputStream().write(request.resp_data.getBytes("UTF-8"))
     }
 
   }
