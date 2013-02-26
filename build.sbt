@@ -4,7 +4,7 @@ name := "SQLTap"
 
 organization := "com.paulasmuth"
 
-version := "0.1.0"
+version := "0.2.0"
 
 mainClass in (Compile, run) := Some("com.paulasmuth.sqltap.SQLTap")
 
