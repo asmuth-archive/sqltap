@@ -69,7 +69,8 @@ class HTTPHandler extends AbstractHandler {
     else {
       PreparedQueryCache.execute(qry,
         qry_ids.split(",").map{ x => x.toInt}.toList,
-        res.getOutputStream)
+        res.getOutputStream,
+        (req.getParameter("expire") != null))
 
       res.setStatus(200)
       res.addHeader("Content-Type", "application/json; charset=utf-8")

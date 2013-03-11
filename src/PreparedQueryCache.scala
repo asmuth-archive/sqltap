@@ -15,18 +15,21 @@ object PreparedQueryCache {
   val memcached_ttl = SQLTap.CONFIG('memcached_ttl).toInt
   val memcached_pool = new MemcachedPool
 
-  def execute(query: PreparedQuery, ids: List[Int], output: ServletOutputStream) : Unit = {
+  def execute(query: PreparedQuery, ids: List[Int], output: ServletOutputStream, expire: Boolean = false) : Unit = {
     var memcached = memcached_pool.get
 
     val keys : List[String] = ids.map{ id => query.cache_key(id) }
     var cached : java.util.Map[String, String] = null
 
-    if (memcached != null) {
+    if (expire == false && memcached != null) {
       cached = memcached.getBulk(new MemcachedTranscoder, keys:_*)
     }
 
     (0 until ids.length).foreach { ind =>
-      var cached_resp : String = cached.get(keys(ind))
+      var cached_resp : String = if (cached != null)
+        cached.get(keys(ind))
+      else
+        null
 
       if (cached_resp == null) {
         val request = new Request(query.build(ids(ind)),
