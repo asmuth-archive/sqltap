@@ -7,15 +7,16 @@
 
 package com.paulasmuth.sqltap
 
+import java.util.concurrent.TimeUnit
 import net.spy.memcached.MemcachedClient
-import javax.servlet.ServletOutputStream
+import java.io.OutputStream
 
 object PreparedQueryCache {
 
   val memcached_ttl = SQLTap.CONFIG('memcached_ttl).toInt
   val memcached_pool = new MemcachedPool
 
-  def execute(query: PreparedQuery, ids: List[Int], output: ServletOutputStream, expire: Boolean = false) : Unit = {
+  def execute(query: PreparedQuery, ids: List[Int], output: OutputStream, expire: Boolean = false) : Unit = {
     var memcached = memcached_pool.get
 
     val keys : List[String] = ids.map{ id => query.cache_key(id) }
@@ -55,6 +56,10 @@ object PreparedQueryCache {
     }
 
     output.write(']')
+  }
+
+  def shutdown : Unit = {
+    memcached_pool.get.shutdown(100, TimeUnit.MILLISECONDS)
   }
 
 }
