@@ -11,7 +11,6 @@ import java.util.Locale
 import java.util.Date
 import java.text.DateFormat
 import java.io.File
-import java.io.ByteArrayOutputStream
 import scala.collection.mutable.HashMap;
 
 object SQLTap{
@@ -137,7 +136,7 @@ object SQLTap{
 
         println("prepared query: " + query_name + "\nnumber of ids: " + ids.length)
 
-        PreparedQueryCache.execute(query, ids, new ByteArrayOutputStream, true)
+        PreparedQueryCache.execute(query, ids, NullOutputStream, true)
       }
 
       PreparedQueryCache.shutdown
@@ -245,4 +244,8 @@ object SQLTap{
       System.exit(1)
   }
 
+}
+
+object NullOutputStream extends java.io.OutputStream {
+  def write(any : Int): Unit = {}
 }
