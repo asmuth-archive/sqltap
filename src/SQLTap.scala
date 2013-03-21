@@ -135,7 +135,7 @@ object SQLTap{
         val ids = (node \ "id").map(_.text.toInt).toList
         val query = prepared_queries(query_name)
 
-        println("prepared query: " + query_name + "\nids: " + ids.mkString(", "))
+        println("prepared query: " + query_name + "\nnumber of ids: " + ids.length)
 
         PreparedQueryCache.execute(query, ids, new ByteArrayOutputStream, true)
       }
