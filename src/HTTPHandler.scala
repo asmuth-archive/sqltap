@@ -13,33 +13,53 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 
 class HTTPHandler extends AbstractHandler {
 
-  def handle(target: String, base_req: org.eclipse.jetty.server.Request, req: HttpServletRequest, res: HttpServletResponse) = try {
+  def handle(target: String, base_req: org.eclipse.jetty.server.Request, req: HttpServletRequest, res: HttpServletResponse) = {
     res.addHeader("Server", "sqltapd " + SQLTap.VERSION)
     res.addHeader("X-SQLTap-Version", SQLTap.VERSION)
 
-    req.getRequestURI match {
-      case "/query" => action_query(req, res)
-      case "/query.json" => action_query(req, res)
-      case "/prepared_query" => action_prepared_query(req, res)
-      case "/prepared_query.json" => action_prepared_query(req, res)
-      case "/config" => action_config(req, res)
-      case "/config.xml" => action_config(req, res)
-      case "/ping" => res.getWriter().write("pong")
-
-      case _ =>
-        { res.setStatus(404); res.getWriter().write("not found") }
-   }
+    try {
+      req.getRequestURI match {
+        case "/query" => action_query(req, res)
+        case "/query.json" => action_query(req, res)
+        case "/prepared_query" => action_prepared_query(req, res)
+        case "/prepared_query.json" => action_prepared_query(req, res)
+        case "/config" => action_config(req, res)
+        case "/config.xml" => action_config(req, res)
+        case "/ping" => res.getWriter().write("pong")
+        case _ => throw new NotFoundException()
+      }
+    } catch {
+      case e => handle_error(res, e)
+    }
 
     base_req.setHandled(true)
-  } catch {
-    case e: Exception => SQLTap.exception(e, false)
+  }
+
+  private def handle_error(res: HttpServletResponse, exception: Throwable) = {
+    exception match {
+      case e: ParseException =>
+        res.setStatus(400)
+
+      case e: NotFoundException =>
+        res.setStatus(404)
+
+      case _ => {
+        SQLTap.exception(exception, false)
+        res.setStatus(500)
+      }
+    }
+
+    val stream = res.getOutputStream()
+    stream.write("{ \"status\": \"error\", \"error\": \"".getBytes("UTF-8"))
+    stream.write(JSONHelper.escape(exception.toString).getBytes("UTF-8"))
+    stream.write("\" }".getBytes("UTF-8"))
   }
 
   private def action_query(req: HttpServletRequest, res: HttpServletResponse) : Unit = {
     val request = new Request(req.getQueryString(),
       new PlainRequestParser, new RequestExecutor, new PrettyJSONWriter).run
 
-    res.setStatus(request.resp_status)
+    res.setStatus(200)
     res.addHeader("X-SQLTap-QTime", request.qtime.mkString(", "))
     res.addHeader("Content-Type", "application/json; charset=utf-8")
 
@@ -88,6 +108,7 @@ class HTTPHandler extends AbstractHandler {
 
     config.append("</resources>")
 
+    res.setStatus(200)
     res.addHeader("Content-Type", "application/xml; charset=utf-8")
     res.getOutputStream().write(config.toString.getBytes("UTF-8"))
  }

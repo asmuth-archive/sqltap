@@ -15,9 +15,12 @@ class ExecutionException(msg: String) extends Exception{
   override def toString = msg
 }
 
-class NotFoundException(cur: Instruction) extends Exception{
+class NotFoundException(cur: Instruction = null) extends Exception{
   override def toString =
-    "could not find record '" +
-    (if (cur.relation == null) "null" else cur.relation.name) +
-    "' with id #" + cur.record.id.toString
+    if (cur == null)
+      "not found"
+    else
+      "could not find record '" +
+      (if (cur.relation == null) "null" else cur.relation.name) +
+      "' with id #" + cur.record.id.toString
 }

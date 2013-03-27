@@ -16,6 +16,7 @@ object PreparedQueryCache {
   val memcached_pool = new MemcachedPool
 
   def execute(query: PreparedQuery, ids: List[Int], output: ServletOutputStream, expire: Boolean = false) : Unit = {
+    val buffer = new StringBuffer(ids.size * 8096)
     var memcached = memcached_pool.get
 
     val keys : List[String] = ids.map{ id => query.cache_key(id) }
@@ -47,14 +48,14 @@ object PreparedQueryCache {
           cached_resp, new MemcachedTranscoder)
       }
 
-      output.write(
+      buffer.append(
         if (ind == 0) '[' else ',')
 
-      output.write(
-        cached_resp.getBytes("UTF-8"))
+      buffer.append(cached_resp)
     }
 
-    output.write(']')
+    buffer.append(']')
+    output.write(buffer.toString.getBytes("UTF-8"))
   }
 
 }
