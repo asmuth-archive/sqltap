@@ -39,7 +39,7 @@ class DBConnectionPool {
 
     override def run() =
       while (running)
-        perform(queue.take)
+        Option(queue.poll(1, TimeUnit.MILLISECONDS)) map perform
 
     def perform(job: Job) =
       job.finish(conn.execute(job.query))
@@ -67,5 +67,6 @@ class DBConnectionPool {
   }
 
   def shutdown() : Unit = {
+    running = false
   }
 }

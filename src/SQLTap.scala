@@ -70,8 +70,7 @@ object SQLTap{
         return usage(true)
 
       else if ((args(n) == "--preheat") && args.size > n + 1)
-        { preheat(args(n+1)) }
-
+        { CONFIG += (('preheat_src, args(n+1))); n += 2 }
 
       else {
         println("error: invalid option: " + args(n) + "\n")
@@ -94,7 +93,10 @@ object SQLTap{
     DEFAULTS.foreach(d =>
       if (CONFIG contains d._1 unary_!) CONFIG += d )
 
-    boot
+    CONFIG.get('preheat_src) match {
+      case Some(_) => preheat
+      case None => boot
+    }
   }
 
   def boot = try {
@@ -114,13 +116,38 @@ object SQLTap{
     case e: Exception => exception(e, true)
   }
 
-  def preheat(pquery_name: String) = try {
+  def preheat = try {
     load_config
 
-    val db_threads = CONFIG('db_threads).toInt
-    db_pool.connect(CONFIG('db_addr), db_threads)
+    val xml = scala.xml.XML.loadFile(CONFIG('preheat_src))
 
-    println("preheat: " + pquery_name)
+    val (existing, non_existing) = (xml \ "prepared_query").partition { node =>
+      prepared_queries.get((node \ "@name").text).isDefined
+    }
+
+    if (existing.nonEmpty) {
+      val db_threads = CONFIG('db_threads).toInt
+      db_pool.connect(CONFIG('db_addr), db_threads)
+
+      existing.foreach { node =>
+        val query_name = (node \ "@name").text
+        val ids = (node \ "id").map(_.text.toInt).toList
+        val query = prepared_queries(query_name)
+
+        println("prepared query: " + query_name + "\nnumber of ids: " + ids.length)
+
+        PreparedQueryCache.execute(query, ids, NullOutputStream, true)
+      }
+
+      PreparedQueryCache.shutdown
+      db_pool.shutdown
+    }
+
+    if (non_existing.nonEmpty) {
+      println("missing prepared queries")
+      non_existing.map( node => ( node \ "@name" ).text).foreach(println)
+    }
+
   } catch {
     case e: Exception => exception(e, true)
   }
@@ -217,4 +244,8 @@ object SQLTap{
       System.exit(1)
   }
 
+}
+
+object NullOutputStream extends java.io.OutputStream {
+  def write(any : Int): Unit = {}
 }
