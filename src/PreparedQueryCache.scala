@@ -23,9 +23,8 @@ object PreparedQueryCache {
     val keys : List[String] = ids.map{ id => query.cache_key(id) }
     var cached : java.util.Map[String, String] = null
 
-    if (expire == false && memcached != null) {
+    if (expire == false && memcached != null)
       cached = memcached.getBulk(new MemcachedTranscoder, keys:_*)
-    }
 
     (0 until ids.length).foreach { ind =>
       var cached_resp : String = if (cached != null)
@@ -45,7 +44,7 @@ object PreparedQueryCache {
         cached_resp = request.resp_data
           .substring(1, request.resp_data.length - 1)
 
-        memcached.set(keys(ind), memcached_ttl,
+        memcached.set(keys(ind), 0,
           cached_resp, new MemcachedTranscoder)
       }
 
