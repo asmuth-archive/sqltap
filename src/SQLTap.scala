@@ -15,7 +15,7 @@ import scala.collection.mutable.HashMap;
 
 object SQLTap{
 
-  val VERSION = "v0.2.2"
+  val VERSION = "v0.2.3"
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
@@ -28,7 +28,6 @@ object SQLTap{
   val prepared_queries = HashMap[String,PreparedQuery]()
 
   var debug   = false
-  var verbose = false
 
   val db_pool = new DBConnectionPool
 
@@ -37,41 +36,41 @@ object SQLTap{
 
     while (n < args.length) {
 
-      if(args(n) == "--http")
+      if (args(n) == "--http")
         { CONFIG += (('http_port, args(n+1))); n += 2 }
 
-      else if(args(n) == "--http-threads")
+      else if (args(n) == "--http-threads")
         { CONFIG += (('http_threads, args(n+1))); n += 2 }
 
-      else if(args(n) == "--http-timeout")
+      else if (args(n) == "--http-timeout")
         { CONFIG += (('http_timeout, args(n+1))); n += 2 }
 
-      else if(args(n) == "--db")
+      else if (args(n) == "--db")
         { CONFIG += (('db_addr, args(n+1))); n += 2 }
 
-      else if(args(n) == "--db-threads")
+      else if (args(n) == "--db-threads")
         { CONFIG += (('db_threads, args(n+1))); n += 2 }
 
-      else if(args(n) == "--db-timeout")
+      else if (args(n) == "--db-timeout")
         { CONFIG += (('db_timeout, args(n+1))); n += 2 }
 
-      else if(args(n) == "--memcached-ttl")
+      else if (args(n) == "--memcached-ttl")
         { CONFIG += (('memcached_ttl, args(n+1))); n += 2 }
 
-      else if(args(n) == "--memcached")
+      else if (args(n) == "--memcached")
         { CONFIG += (('memcached, args(n+1))); n += 2 }
 
-      else if((args(n) == "-c") || (args(n) == "--config"))
+      else if ((args(n) == "-c") || (args(n) == "--config"))
         { CONFIG += (('config_base, args(n+1))); n += 2 }
 
-      else if((args(n) == "-d") || (args(n) == "--debug"))
+      else if ((args(n) == "-d") || (args(n) == "--debug"))
         { debug = true; n += 1 }
 
-      else if((args(n) == "-v") || (args(n) == "--verbose"))
-        { verbose = true; n += 1 }
-
-      else if((args(n) == "-h") || (args(n) == "--help"))
+      else if ((args(n) == "-h") || (args(n) == "--help"))
         return usage(true)
+
+      else if ((args(n) == "--preheat") && args.size > n + 1)
+        { CONFIG += (('preheat_src, args(n+1))); n += 2 }
 
       else {
         println("error: invalid option: " + args(n) + "\n")
@@ -94,16 +93,17 @@ object SQLTap{
     DEFAULTS.foreach(d =>
       if (CONFIG contains d._1 unary_!) CONFIG += d )
 
-    boot
+    CONFIG.get('preheat_src) match {
+      case Some(_) => preheat
+      case None => boot
+    }
   }
 
   def boot = try {
-    SQLTap.log("sqltapd " + VERSION + " booting...")
     load_config
 
     val db_threads = CONFIG('db_threads).toInt
     db_pool.connect(CONFIG('db_addr), db_threads)
-
 
     val http_threads = CONFIG('http_threads).toInt
     val http_port = CONFIG.getOrElse('http_port, "0")
@@ -116,8 +116,46 @@ object SQLTap{
     case e: Exception => exception(e, true)
   }
 
+  def preheat = try {
+    load_config
+
+    val xml = scala.xml.XML.loadFile(CONFIG('preheat_src))
+
+    val (existing, non_existing) = (xml \ "prepared_query").partition { node =>
+      prepared_queries.get((node \ "@name").text).isDefined
+    }
+
+    if (existing.nonEmpty) {
+      val db_threads = CONFIG('db_threads).toInt
+      db_pool.connect(CONFIG('db_addr), db_threads)
+
+      existing.foreach { node =>
+        val query_name = (node \ "@name").text
+        val ids = (node \ "id").map(_.text.toInt).toList
+        val query = prepared_queries(query_name)
+
+        println("prepared query: " + query_name + "\nnumber of ids: " + ids.length)
+
+        PreparedQueryCache.execute(query, ids, NullOutputStream, true)
+      }
+
+      PreparedQueryCache.shutdown
+      db_pool.shutdown
+    }
+
+    if (non_existing.nonEmpty) {
+      println("missing prepared queries")
+      non_existing.map( node => ( node \ "@name" ).text).foreach(println)
+    }
+
+  } catch {
+    case e: Exception => exception(e, true)
+  }
+
 
   def load_config = {
+    SQLTap.log("sqltapd " + VERSION + " booting...")
+
     val cfg_base = new File(CONFIG('config_base))
 
     val sources : Array[String] =
@@ -175,7 +213,6 @@ object SQLTap{
     println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
     println("  -h, --help                  you're reading it...                         ")
     println("  -d, --debug                 debug mode                                   ")
-    println("  -v, --verbose               verbose mode                                 ")
   }
 
 
@@ -207,4 +244,8 @@ object SQLTap{
       System.exit(1)
   }
 
+}
+
+object NullOutputStream extends java.io.OutputStream {
+  def write(any : Int): Unit = {}
 }

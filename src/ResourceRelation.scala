@@ -9,6 +9,7 @@ package com.paulasmuth.sqltap
 
 trait ResourceRelation {
   val name : String
+  val output_name : String
   def resource : ResourceManifest
 
   val join_foreign : Boolean
@@ -19,6 +20,7 @@ trait ResourceRelation {
 
 class DummyResourceRelation(_res: ResourceManifest) extends ResourceRelation {
   val name = _res.name
+  val output_name = name
 
   val join_field : String = null
   val join_cond : String = null
@@ -36,6 +38,9 @@ class RealResourceRelation(doc: xml.Node) extends ResourceRelation {
 
   val name : String = 
     elem.attr("name", true)
+
+  val output_name : String =
+    elem.attr("output_name", false, name)
 
   val join_field : String =
     elem.attr("join_field", true)

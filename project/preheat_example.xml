@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<preheat>
+  <prepared_query name="prepared_query_1">
+    <id>123</id>
+    <id>456</id>
+  </prepared_query>
+  <prepared_query name="prepared_query_2">
+    <id>123</id>
+    <id>456</id>
+  </prepared_query>
+  <prepared_query name="missing_prepared_query">
+    <id>123</id>
+    <id>456</id>
+  </prepared_query>
+</preheat>

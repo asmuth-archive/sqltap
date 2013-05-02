@@ -35,9 +35,9 @@ class PrettyJSONWriter extends RequestVisitor {
 
     if (cur.name == "findMulti") {
       if (cur.next.length == 0)
-        write(json(cur.relation.name) + ": []")
+        write(json(cur.relation.output_name) + ": []")
       else {
-        write(json(cur.relation.name) + ": [\n")
+        write(json(cur.relation.output_name) + ": [\n")
         scope = "]"; ind += 1
       }
     } else {
