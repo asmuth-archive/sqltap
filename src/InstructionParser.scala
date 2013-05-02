@@ -27,10 +27,18 @@ object InstructionParser {
 
     case "findAll" => {
       cur.name = "findMulti"
+      println("FINDALLARGS", cur.args)
 
+      val resource = cur.args(0)
+
+      val limit = if (cur.args.size == 2)
+        cur.args(1) else null
+
+      cur.args.clear
+      cur.args += resource
       cur.args += null // condition
       cur.args += null // order
-      cur.args += null // limit
+      cur.args += limit
       cur.args += null // offset
     }
 

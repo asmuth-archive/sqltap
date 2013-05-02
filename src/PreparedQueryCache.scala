@@ -26,7 +26,8 @@ object PreparedQueryCache {
     }
 
     (0 until ids.length).foreach { ind =>
-      var cached_resp : String = cached.get(keys(ind))
+      var cached_resp : String = if (cached != null)
+        cached.get(keys(ind)) else null
 
       if (cached_resp == null) {
         val request = new Request(query.build(ids(ind)),
@@ -40,8 +41,9 @@ object PreparedQueryCache {
         cached_resp = request.resp_data
           .substring(1, request.resp_data.length - 1)
 
-        memcached.set(keys(ind), memcached_ttl,
-          cached_resp, new MemcachedTranscoder)
+        if (memcached != null)
+          memcached.set(keys(ind), memcached_ttl,
+            cached_resp, new MemcachedTranscoder)
       }
 
       output.write(
