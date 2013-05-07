@@ -12,7 +12,7 @@ object SQLBuilder {
   def sql(
     res: ResourceManifest,
     id_field: String,
-    id: String,
+    id: Int,
     fields: List[String],
     cond: String,
     order: String,
@@ -29,7 +29,7 @@ object SQLBuilder {
     " FROM " + res.table_name +
 
     (if (id_field != null || cond != null) " WHERE " else " ") +
-    (if (id_field != null) "`" + id_field + "` = " + id else "") +
+    (if (id_field != null) "`" + id_field + "` = " + id.toString else "") +
     (if (cond != null && id_field != null) " AND " else "") +
     (if (cond != null) cond else "") +
 

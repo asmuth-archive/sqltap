@@ -1,5 +1,5 @@
 // This file is part of the "SQLTap" project
-//   (c) 2011-2013 Paul Asmuth <paul@paulasmuth.com>
+//   (c) 2013-2013 Paul Asmuth <paul@paulasmuth.com>
 //
 // Licensed under the MIT License (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of
@@ -136,22 +136,25 @@ class RequestExecutor extends RequestVisitor {
 
     case "findSingle" => {
       var join_field : String = null
+      var join_id    : Int    = 0
 
       if (cur.args.size < 5)
         throw new ParseException("empty field list")
 
       if (cur.record.has_id) {
         join_field = cur.relation.resource.id_field
+        join_id = cur.record.id
       }
 
       else if (cur.relation.join_foreign == false && cur.prev.ready) {
-        cur.record.set_id(cur.prev.record.get(cur.relation.join_field).toInt)
         join_field = cur.relation.resource.id_field
+        join_id = cur.prev.record.get(cur.relation.join_field).toInt
+        cur.record.set_id(join_id)
       }
 
       else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
-        cur.record.set_id(cur.prev.record.id)
         join_field = cur.relation.join_field
+        join_id = cur.prev.record.id
       }
 
       if (join_field != null) {
@@ -159,8 +162,8 @@ class RequestExecutor extends RequestVisitor {
         cur.job = SQLTap.db_pool.execute(
           SQLBuilder.sql(
             cur.relation.resource,
-            join_field, 
-            cur.record.id.toString,
+            join_field,
+            join_id,
             cur.args.slice(4, cur.args.size).toList, // fields
             cur.args(2), // cond
             cur.args(3), // order
@@ -178,7 +181,7 @@ class RequestExecutor extends RequestVisitor {
       if (cur.prev == req.stack.root) {
         cur.running = true
         cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.sql(cur.relation.resource, null, null,
+          SQLBuilder.sql(cur.relation.resource, null, 0,
             cur.args.slice(5, cur.args.size).toList,
             cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
       }
@@ -192,7 +195,7 @@ class RequestExecutor extends RequestVisitor {
 
         cur.job = SQLTap.db_pool.execute(
           SQLBuilder.sql(cur.relation.resource,
-            cur.relation.join_field, cur.record.id.toString,
+            cur.relation.join_field, cur.record.id,
             cur.args.slice(5, cur.args.size).toList,
             cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
       }
