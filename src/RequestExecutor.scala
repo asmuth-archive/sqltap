@@ -107,15 +107,24 @@ class RequestExecutor extends RequestVisitor {
   }
 
 
-  private def fetch(cur: Instruction) : Unit = {
+  private def fetch(cur: Instruction) : Unit =  cur.name match {
 
-    if (cur.name == "findSingle")
+    case "findSingle" => {
       if (cur.job.retrieve.data.length == 0)
         throw new NotFoundException(cur)
       else
         cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
+    }
 
-    else if (cur.name == "findMulti")
+    case "countMulti" => {
+      if (cur.job.retrieve.data.length == 0)
+        throw new NotFoundException(cur)
+      else {
+        cur.record.set("__count", cur.job.retrieve.data.head.head)
+      }
+    }
+
+    case "findMulti" => {
       if (cur.job.retrieve.data.length == 0)
         cur.next = List[Instruction]()
 
@@ -129,6 +138,7 @@ class RequestExecutor extends RequestVisitor {
         for (ins <- cur.next)
           stack += ins
       }
+    }
 
   }
 
@@ -160,7 +170,7 @@ class RequestExecutor extends RequestVisitor {
       if (join_field != null) {
         cur.running = true
         cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.sql(
+          SQLBuilder.select(
             cur.relation.resource,
             join_field,
             join_id,
@@ -181,7 +191,7 @@ class RequestExecutor extends RequestVisitor {
       if (cur.prev == req.stack.root) {
         cur.running = true
         cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.sql(cur.relation.resource, null, 0,
+          SQLBuilder.select(cur.relation.resource, null, 0,
             cur.args.slice(5, cur.args.size).toList,
             cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
       }
@@ -194,7 +204,7 @@ class RequestExecutor extends RequestVisitor {
           cur.args(1) = cur.relation.join_cond
 
         cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.sql(cur.relation.resource,
+          SQLBuilder.select(cur.relation.resource,
             cur.relation.join_field, cur.record.id,
             cur.args.slice(5, cur.args.size).toList,
             cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
@@ -202,6 +212,29 @@ class RequestExecutor extends RequestVisitor {
 
       else if (cur.relation.join_foreign == false)
         throw new ParseException("findSome on a non-foreign relation")
+
+    }
+
+    case "countMulti" => {
+
+      if (cur.prev == req.stack.root)
+        throw new ExecutionException("countAll is not supported for root resources")
+
+      else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
+        cur.record.set_id(cur.prev.record.id)
+        cur.running = true
+
+        if (cur.args(1) == null && cur.relation.join_cond != null)
+          cur.args(1) = cur.relation.join_cond
+
+        cur.job = SQLTap.db_pool.execute(
+          SQLBuilder.count(cur.relation.resource,
+            cur.relation.join_field, cur.record.id, cur.args(1)))
+
+      }
+
+      else if (cur.relation.join_foreign == false)
+        throw new ParseException("countAll on a non-foreign relation")
 
     }
 

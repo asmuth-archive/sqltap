@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 object SQLBuilder {
 
-  def sql(
+  def select(
     res: ResourceManifest,
     id_field: String,
     id: Int,
@@ -22,8 +22,7 @@ object SQLBuilder {
 
     "SELECT " +
 
-    (if (fields.size == 1 && fields.head == "*") "*" 
-      else if (fields.size==1 && fields.head == "COUNT") "COUNT(*) AS count"
+    (if (fields.size == 1 && fields.head == "*") "*"
       else fields.map(res.table_name + ".`" + _ + "`").mkString(", ")) +
 
     " FROM " + res.table_name +
@@ -39,6 +38,24 @@ object SQLBuilder {
 
     (if (limit != null) " LIMIT " + limit else "") +
     (if (offset != null) " OFFSET " + offset else "") +
+
+    ";"
+
+  )
+
+  def count(
+    res: ResourceManifest,
+    id_field: String,
+    id: Int,
+    cond: String
+  ) : String = (
+
+    "SELECT COUNT(*) FROM " + res.table_name +
+
+    (if (id_field != null || cond != null) " WHERE " else " ") +
+    (if (id_field != null) "`" + id_field + "` = " + id.toString else "") +
+    (if (cond != null && id_field != null) " AND " else "") +
+    (if (cond != null) cond else "") +
 
     ";"
 

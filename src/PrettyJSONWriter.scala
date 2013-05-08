@@ -40,8 +40,12 @@ class PrettyJSONWriter extends RequestVisitor {
         write(json(cur.relation.output_name) + ": [\n")
         scope = "]"; ind += 1
       }
-    } else {
 
+    } else if (cur.name == "countMulti") {
+      write(json(cur.relation.output_name) + ": ")
+      write(cur.record.get("__count"))
+
+    } else {
       if (cur.name == "findSingle") {
         write(json(cur.relation.name) + ": {\n")
         scope = "}"; ind += 1

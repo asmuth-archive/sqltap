@@ -27,7 +27,6 @@ object InstructionParser {
 
     case "findAll" => {
       cur.name = "findMulti"
-      println("FINDALLARGS", cur.args)
 
       val resource = cur.args(0)
 
@@ -43,14 +42,12 @@ object InstructionParser {
     }
 
     case "countAll" => {
-      cur.name = "findMulti"
+      cur.name = "countMulti"
 
       cur.args += null // condition
       cur.args += null // order
       cur.args += null // limit
       cur.args += null // offset
-
-      cur.args += "COUNT"
     }
 
     case "fetch" => {
