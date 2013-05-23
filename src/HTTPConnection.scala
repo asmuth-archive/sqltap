@@ -47,9 +47,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
   }
 
   private def execute_request() : Unit = {
-    println("yeah!!!!!!", parser.http_uri)
-
-    //sock.register
+    println("request: ",
+      parser.http_version,
+      parser.http_method,
+      parser.http_uri,
+      parser.http_headers)
   }
 
 }

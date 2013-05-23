@@ -8,6 +8,7 @@
 package com.paulasmuth.sqltap
 
 import java.nio.ByteBuffer
+import scala.collection.mutable.HashMap
 
 class HTTPParseError extends Exception
 
@@ -19,13 +20,16 @@ class HTTPParser {
   val HTTP_STATE_HKEY    = 4
   val HTTP_STATE_HVAL    = 5
 
-  var http_method : String = null
-  var http_uri    : String = null
+  var http_method  : String = null
+  var http_uri     : String = null
+  var http_version : String = null
+  var http_headers = new HashMap[String, String]
 
-  private var pos = 0
+  private var pos   = 0
   private var token = 0
   private var state = HTTP_STATE_METHOD
-  private val buf = new Array[Byte](4096)
+  private val buf   = new Array[Byte](4096)
+  private var hkey  : String = null
 
   def read(src: ByteBuffer) : Boolean = {
     val max = src.position
@@ -37,13 +41,11 @@ class HTTPParser {
 
           case HTTP_STATE_METHOD => {
             http_method = next_token(src)
-            println("method", http_method)
             state = HTTP_STATE_URI
           }
 
           case HTTP_STATE_URI => {
             http_uri = next_token(src)
-            println("uri", http_uri)
             state = HTTP_STATE_VERSION
           }
 
@@ -55,19 +57,21 @@ class HTTPParser {
         case '\n' => state match {
 
           case HTTP_STATE_VERSION => {
-            println("version", next_token(src))
+            next_token(src) match {
+              case "HTTP/1.0" => http_version = "1.0"
+              case "HTTP/1.1" => http_version = "1.1"
+              case _ => throw new HTTPParseError()
+            }
             state = HTTP_STATE_HKEY
           }
 
           case HTTP_STATE_HVAL => {
-            println("hval", next_token(src))
+            hkey = next_token(src)
             state = HTTP_STATE_HKEY
           }
 
-          case HTTP_STATE_HKEY => {
-            println("request finished")
+          case HTTP_STATE_HKEY =>
             return true
-          }
 
           case _ =>
             ()
@@ -77,7 +81,7 @@ class HTTPParser {
         case ':' => state match {
 
           case HTTP_STATE_HKEY => {
-            println("hkey", next_token(src))
+            http_headers += ((hkey, next_token(src)))
             state = HTTP_STATE_HVAL
           }
 
@@ -114,9 +118,13 @@ class HTTPParser {
   }
 
   def reset : Unit =  {
-    pos = 0
-    token = 0
-    state = HTTP_STATE_METHOD
+    http_headers.clear
+    pos          = 0
+    token        = 0
+    state        = HTTP_STATE_METHOD
+    http_method  = null
+    http_uri     = null
+    http_version = null
   }
 
 }
