@@ -12,20 +12,22 @@ import java.nio.{ByteBuffer}
 
 class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
-  val buf = ByteBuffer.allocate(4096) // FIXPAUL
+  val buf = ByteBuffer.allocate(128) // FIXPAUL
+  val parser = new HTTPParser()
 
   println("new http connection opened")
 
   def read() : Unit = {
     val chunk = sock.read(buf)
 
-    if (chunk == -1) {
+    if (chunk <= 0) {
       close()
       return
     }
 
     println("read ... bytes", chunk)
-
+    parser.read(buf)
+    //buf.clear
   }
 
   def close() : Unit = {
