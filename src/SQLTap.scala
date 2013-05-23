@@ -81,11 +81,11 @@ object SQLTap{
 
     var start = true
 
-    if (CONFIG contains 'config_base unary_!)
-      { log("--config required"); start = false }
+    //if (CONFIG contains 'config_base unary_!)
+    //  { log("--config required"); start = false }
 
-    if (CONFIG contains 'db_addr unary_!)
-      { log("--db required"); start = false }
+    //if (CONFIG contains 'db_addr unary_!)
+    //  { log("--db required"); start = false }
 
     if (start unary_!)
       { println; return usage(true) }
@@ -100,17 +100,22 @@ object SQLTap{
   }
 
   def boot = try {
-    load_config
+    //load_config
 
-    val db_threads = CONFIG('db_threads).toInt
-    db_pool.connect(CONFIG('db_addr), db_threads)
+    val workers = List(new Worker, new Worker, new Worker, new Worker)
+    for (worker <- workers) worker.start()
 
-    val http_threads = CONFIG('http_threads).toInt
-    val http_port = CONFIG.getOrElse('http_port, "0")
-      .asInstanceOf[String].toInt
+    val acceptor = new Acceptor(workers)
+    acceptor.run(2323)
+    //val db_threads = CONFIG('db_threads).toInt
+    //db_pool.connect(CONFIG('db_addr), db_threads)
 
-    val http = if (http_port > 0)
-      new HTTPServer(http_port, http_threads)
+    //val http_threads = CONFIG('http_threads).toInt
+    //val http_port = CONFIG.getOrElse('http_port, "0")
+    //  .asInstanceOf[String].toInt
+
+    //val http = if (http_port > 0)
+    //  new HTTPServer(http_port, http_threads)
 
   } catch {
     case e: Exception => exception(e, true)
