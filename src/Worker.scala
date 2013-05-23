@@ -16,29 +16,29 @@ class Worker() extends Thread {
   val loop = SelectorProvider.provider().openSelector()
   val conn_queue = new ConcurrentLinkedQueue[SocketChannel]()
 
-  override def run : Unit = {
-    println("worker started...")
+  override def run : Unit = while (true) {
+    println("select...")
+    loop.select()
 
-    while (true) {
-      loop.select()
+    while (!conn_queue.isEmpty)
+      accept()
 
-      while (!conn_queue.isEmpty)
-        accept()
+    val events = loop.selectedKeys().iterator()
 
-      val events = loop.selectedKeys().iterator()
+    while (events.hasNext) {
+      val event = events.next()
+      events.remove()
 
-      while (events.hasNext) {
-        next(events.next())
-        events.remove()
+      if (event.isValid) event.attachment match {
+        case conn: HTTPConnection => {
+
+          if (event.isReadable)
+            conn.read
+
+
+        }
       }
     }
-  }
-
-  private def next(event: SelectionKey) : Unit = {
-    if (!event.isValid)
-      return
-
-    println(event)
   }
 
   private def accept() : Unit = {
@@ -48,7 +48,10 @@ class Worker() extends Thread {
       return
 
     conn.configureBlocking(false)
-    conn.register(loop, SelectionKey.OP_READ)
+
+    conn
+      .register(loop, SelectionKey.OP_READ)
+      .attach(new HTTPConnection(conn, this))
 
     println("yeah!")
   }
