@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-import java.nio.channels.{SocketChannel}
+import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer}
 
 class HTTPConnection(sock: SocketChannel, worker: Worker) {
@@ -17,7 +17,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
   println("new http connection opened")
 
-  def read() : Unit = {
+  def read(event: SelectionKey) : Unit = {
+    var ready = false
     val chunk = sock.read(buf)
 
     if (chunk <= 0) {
@@ -26,13 +27,29 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
     }
 
     println("read ... bytes", chunk)
-    parser.read(buf)
-    //buf.clear
+
+    try {
+      ready = parser.read(buf)
+    } catch {
+      case e: HTTPParseError => return close()
+    }
+
+    if (ready) {
+      execute_request()
+      buf.clear
+      //event.interestOps(SelectionKey.OP_WRITE)
+    }
   }
 
-  def close() : Unit = {
+  private def close() : Unit = {
     println("connection closed")
     sock.close()
+  }
+
+  private def execute_request() : Unit = {
+    println("yeah!!!!!!", parser.http_uri)
+
+    //sock.register
   }
 
 }

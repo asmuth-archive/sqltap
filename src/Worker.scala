@@ -33,7 +33,7 @@ class Worker() extends Thread {
         case conn: HTTPConnection => {
 
           if (event.isReadable)
-            conn.read
+            conn.read(event)
 
 
         }

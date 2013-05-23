@@ -9,16 +9,15 @@ package com.paulasmuth.sqltap
 
 import java.nio.ByteBuffer
 
-class HTTPParser {
+class HTTPParseError extends Exception
 
-  class HTTPParseError extends Exception
+class HTTPParser {
 
   val HTTP_STATE_METHOD  = 1
   val HTTP_STATE_URI     = 2
   val HTTP_STATE_VERSION = 3
   val HTTP_STATE_HKEY    = 4
   val HTTP_STATE_HVAL    = 5
-  val HTTP_STATE_BODY    = 6
 
   var http_method : String = null
   var http_uri    : String = null
@@ -28,7 +27,7 @@ class HTTPParser {
   private var state = HTTP_STATE_METHOD
   private val buf = new Array[Byte](4096)
 
-  def read(src: ByteBuffer) = {
+  def read(src: ByteBuffer) : Boolean = {
     val max = src.position
 
     while (pos < max) {
@@ -67,7 +66,7 @@ class HTTPParser {
 
           case HTTP_STATE_HKEY => {
             println("request finished")
-            state = HTTP_STATE_BODY
+            return true
           }
 
           case _ =>
@@ -94,6 +93,8 @@ class HTTPParser {
 
       pos += 1
     }
+
+    false
   }
 
   private def next_token(src: ByteBuffer) : String = {
