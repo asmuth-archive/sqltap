@@ -97,13 +97,19 @@ class HTTPParser {
   }
 
   private def next_token(src: ByteBuffer) : String = {
-    var start = token
-    var end   = pos
+    var start = 0
+    var end   = pos - token
 
-    System.arraycopy(src.array, start, buf, 0, end - start)
-    token = pos
+    System.arraycopy(src.array, token, buf, 0, pos - token)
+    token = pos + 1
 
-    new String(buf, 0, pos - start, "UTF-8")
+    while (buf(start) == ' ')
+      start += 1
+
+    while (buf(end - 1) == '\r' || buf(end - 1) == '\n')
+      end -= 1
+
+    new String(buf, start, end - start, "UTF-8")
   }
 
   def reset : Unit =  {
