@@ -106,5 +106,10 @@ class HTTPParser {
     new String(buf, 0, pos - start, "UTF-8")
   }
 
+  def reset : Unit =  {
+    pos = 0
+    token = 0
+    state = HTTP_STATE_METHOD
+  }
 
 }
