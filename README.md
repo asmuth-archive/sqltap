@@ -40,30 +40,18 @@ Instructions
 ### findOne
 
     resource.findOne(id)
-
     relation.findOne
-
 
 
 ### findSome / findAll
 
     relation.findAll
-
-    findSome(limit, [, offset [, order]])
-
-
-### findWhere
-
-    findOneWhere(condition)
-
-    findAllWhere(condition)
-
-    findSomeWhere(condition, limit, [, offset [, order]])
+    relation.findAll(limit)
 
 
 ### count
 
-    relation.count
+    relation.countAll
 
 
 
@@ -80,15 +68,65 @@ You need java and sbt to build SQLTap:
     ./build jar
 
 
-Todo
-----
+FFP
+---
 
-+ implement last commands
-+ stats aggregation
-+ serialize qtime + query
-+ timeouts (http + sql)
-+ macros
-+ better json escaping
+yadda yadda, ffp integration
+
+### FQDNs
+
+JSON-like map nesting and lists/arrays are implemented by constructing special FQDNs for every entry.
+
+To convert the nested structures into a flat map, we represent each entry by a FQDN.... here be dragons
+(nested keys joined by forward slash, arrays are turned into objects where each key is the index from
+zero)
+
+simple example:
+
+    {
+      "fnord": "xxx",
+      "fubar": {
+        "one": "aaa",
+        "two": [
+          "111",
+          "222"
+        ]
+      }
+    }
+
+    ... becomes ...
+
+    {
+      "fnord":        "xxx",
+      "fubar/one":    "aaa",
+      "fubar/two/0":  "111",
+      "fubar/two/1":  "222"
+    }
+
+
+complex example:
+
+    {
+      "one": {
+        "two": [
+          {
+            "three": "aaaa"
+          },
+          {
+            "four": "bbbb"
+          }
+        ]
+      }
+    }
+
+    ... becomes ...
+
+    {
+      "one/two/0/three": "aaaa",
+      "one/two/1/four":  "bbb"
+    }
+
+
 
 License
 -------
