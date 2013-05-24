@@ -11,13 +11,13 @@ import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer}
 import java.net.{InetSocketAddress,ConnectException}
 
-class SQLError extends Exception
-
 class SQLConnection(worker: Worker) {
 
   val SQL_STATE_SYN  = 1
   val SQL_STATE_ACK  = 2
   val SQL_STATE_AUTH = 3
+
+  val SQL_MAX_PKT_LEN = 16777215
 
   private var state : Int = 0
   private val buf = ByteBuffer.allocate(4096) // FIXPAUL
@@ -68,6 +68,11 @@ class SQLConnection(worker: Worker) {
         cur_len += buf.get(1) << 8
         cur_len += buf.get(2) << 16
         cur_seq  = buf.get(3)
+
+        if (cur_len == SQL_MAX_PKT_LEN) {
+          SQLTap.error("sql packets > 16mb are currently not supported", false)
+          return close()
+        }
       }
 
       if (buf.position < 4 + cur_len)
@@ -83,7 +88,14 @@ class SQLConnection(worker: Worker) {
       buf.clear()
       buf.put(nxt)
 
-      packet(pkt)
+      try {
+        packet(pkt)
+      } catch {
+        case e: mysql.SQLProtocolError => {
+          SQLTap.error("sql protocol error: " + e.toString, false)
+          return close()
+        }
+      }
 
       cur_seq = 0
       cur_len = 0
@@ -95,13 +107,17 @@ class SQLConnection(worker: Worker) {
     sock.close()
   }
 
-  private def packet(pkt: Array[Byte]) : Unit = {
-    println(javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+  private def packet(pkt: Array[Byte]) : Unit = state match {
 
-    if (pkt(0) != 0x0a) {
-      SQLTap.error("unsupported mysql protocol version: " + pkt(0).toInt, true)
-      close()
+    case SQL_STATE_SYN => {
+      val handshake_req = new mysql.HandshakePacket(pkt)
+      val handshake_res = new mysql.HandshakeResponsePacket
+
+      handshake_res.username = "fnordinator"
+
+      println(javax.xml.bind.DatatypeConverter.printHexBinary(handshake_res.serialize))
     }
+
   }
 
 }
