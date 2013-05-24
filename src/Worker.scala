@@ -37,8 +37,23 @@ class Worker() extends Thread {
 
 
         }
+
+        case conn: SQLConnection => {
+
+          if (event.isConnectable)
+            conn.ready(event)
+
+        }
       }
     }
+  }
+
+  def get_sql_connection() : Unit = {
+    printf("opening a new connection to mysql...")
+
+    val conn = new SQLConnection(this)
+    conn.connect()
+
   }
 
   private def accept() : Unit = {

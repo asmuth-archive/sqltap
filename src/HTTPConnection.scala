@@ -37,6 +37,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
     if (ready) {
       execute_request()
       buf.clear
+
+      worker.get_sql_connection()
       //event.interestOps(SelectionKey.OP_WRITE)
     }
   }
