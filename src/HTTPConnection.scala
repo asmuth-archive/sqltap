@@ -12,8 +12,8 @@ import java.nio.{ByteBuffer}
 
 class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
-  val buf = ByteBuffer.allocate(4096) // FIXPAUL
-  val parser = new HTTPParser()
+  private val buf = ByteBuffer.allocate(4096) // FIXPAUL
+  private val parser = new HTTPParser()
 
   println("new http connection opened")
 

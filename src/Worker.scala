@@ -35,13 +35,15 @@ class Worker() extends Thread {
           if (event.isReadable)
             conn.read(event)
 
-
         }
 
         case conn: SQLConnection => {
 
           if (event.isConnectable)
             conn.ready(event)
+
+          if (event.isReadable)
+            conn.read(event)
 
         }
       }
