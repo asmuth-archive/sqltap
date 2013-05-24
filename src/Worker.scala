@@ -42,8 +42,11 @@ class Worker() extends Thread {
           if (event.isConnectable)
             conn.ready(event)
 
-          if (event.isReadable)
+          if (event.isValid && event.isReadable)
             conn.read(event)
+
+          if (event.isValid && event.isWritable)
+            conn.write(event)
 
         }
       }

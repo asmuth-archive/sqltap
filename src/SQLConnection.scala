@@ -8,7 +8,7 @@
 package com.paulasmuth.sqltap
 
 import java.nio.channels.{SocketChannel,SelectionKey}
-import java.nio.{ByteBuffer}
+import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(worker: Worker) {
@@ -20,7 +20,9 @@ class SQLConnection(worker: Worker) {
   val SQL_MAX_PKT_LEN = 16777215
 
   private var state : Int = 0
-  private val buf = ByteBuffer.allocate(4096) // FIXPAUL
+  private val read_buf = ByteBuffer.allocate(4096) // FIXPAUL
+  private val write_buf = ByteBuffer.allocate(4096) // FIXPAUL
+  write_buf.order(ByteOrder.LITTLE_ENDIAN)
 
   private val sock = SocketChannel.open()
   sock.configureBlocking(false)
@@ -43,7 +45,7 @@ class SQLConnection(worker: Worker) {
       sock.finishConnect
     } catch {
       case e: ConnectException => {
-        SQLTap.error("SQL connection failed: " + e.toString, false)
+        SQLTap.error("[SQL] connection failed: " + e.toString, false)
         return close()
       }
     }
@@ -52,47 +54,49 @@ class SQLConnection(worker: Worker) {
   }
 
   def read(event: SelectionKey) : Unit = {
-    val chunk = sock.read(buf)
+    val chunk = sock.read(read_buf)
 
     if (chunk <= 0) {
+      SQLTap.error("[SQL] read end of file ", false)
       close()
       return
     }
 
-    while (buf.position > 0) {
+    while (read_buf.position > 0) {
       if (cur_len == 0) {
-        if (buf.position < 4)
+        if (read_buf.position < 4)
           return
 
-        cur_len  = buf.get(0) - 20
-        cur_len += buf.get(1) << 8
-        cur_len += buf.get(2) << 16
-        cur_seq  = buf.get(3)
+        cur_len  = read_buf.get(0)
+        cur_len += read_buf.get(1) << 8
+        cur_len += read_buf.get(2) << 16
+        cur_seq  = read_buf.get(3)
 
         if (cur_len == SQL_MAX_PKT_LEN) {
-          SQLTap.error("sql packets > 16mb are currently not supported", false)
+          SQLTap.error("[SQL] packets > 16mb are currently not supported", false)
           return close()
         }
       }
 
-      if (buf.position < 4 + cur_len)
+      if (read_buf.position < 4 + cur_len)
         return
 
+      println(cur_len)
       val pkt = new Array[Byte](cur_len)
-      val nxt = new Array[Byte](buf.position - cur_len - 4)
+      val nxt = new Array[Byte](read_buf.position - cur_len - 4)
 
-      buf.flip()
-      buf.position(4)
-      buf.get(pkt)
-      buf.get(nxt)
-      buf.clear()
-      buf.put(nxt)
+      read_buf.flip()
+      read_buf.position(4)
+      read_buf.get(pkt)
+      read_buf.get(nxt)
+      read_buf.clear()
+      read_buf.put(nxt)
 
       try {
-        packet(pkt)
+        packet(event, pkt)
       } catch {
         case e: mysql.SQLProtocolError => {
-          SQLTap.error("sql protocol error: " + e.toString, false)
+          SQLTap.error("[SQL] protocol error: " + e.toString, false)
           return close()
         }
       }
@@ -102,22 +106,68 @@ class SQLConnection(worker: Worker) {
     }
   }
 
+  def write(event: SelectionKey) : Unit = {
+    try {
+      sock.write(write_buf)
+    } catch {
+      case e: Exception => {
+        SQLTap.error("[SQL] conn error: " + e.toString, false)
+        return close()
+      }
+    }
+
+    if (write_buf.remaining == 0) {
+      write_buf.clear
+      event.interestOps(SelectionKey.OP_READ)
+      println("write ready!")
+    }
+  }
+
   def close() : Unit = {
     println("sql connection closed")
     sock.close()
   }
 
-  private def packet(pkt: Array[Byte]) : Unit = state match {
+  private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = {
 
-    case SQL_STATE_SYN => {
-      val handshake_req = new mysql.HandshakePacket(pkt)
-      val handshake_res = new mysql.HandshakeResponsePacket
+    if ((pkt(0) & 0x000000ff) == 0xff) {
+      val err_msg = new String(pkt, 9, pkt.size - 9, "UTF-8")
+      var err_code = (pkt(0) & 0x000000ff) + ((pkt(1) & 0x000000ff) << 8)
 
-      handshake_res.username = "fnordinator"
-
-      println(javax.xml.bind.DatatypeConverter.printHexBinary(handshake_res.serialize))
+      SQLTap.error("[SQL] error (" + err_code + "): " + err_msg, false)
+      return close()
     }
 
+    else if ((pkt(0) & 0x000000ff) == 0x00) {
+      println("!!!!!OK PACKET!!!!!")
+    }
+
+    state match {
+
+      case SQL_STATE_SYN => {
+        val handshake_req = new mysql.HandshakePacket(pkt)
+        val handshake_res = new mysql.HandshakeResponsePacket(handshake_req)
+
+        handshake_res.username = "fnordinator"
+
+        write_packet(handshake_res.serialize)
+        state = SQL_STATE_ACK
+        event.interestOps(SelectionKey.OP_WRITE)
+
+        println(javax.xml.bind.DatatypeConverter.printHexBinary(handshake_res.serialize))
+      }
+
+    }
+  }
+
+  private def write_packet(data: Array[Byte]) = {
+    cur_seq += 1
+    write_buf.clear
+    write_buf.putShort(data.size.toShort)
+    write_buf.put(0.toByte)
+    write_buf.put((cur_seq).toByte)
+    write_buf.put(data)
+    write_buf.flip
   }
 
 }

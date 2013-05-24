@@ -7,15 +7,16 @@
 
 package com.paulasmuth.sqltap.mysql
 
-class HandshakeResponsePacket() extends SQLClientIssuedPacket {
+class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacket {
 
   var username = "root"
+  var auth_resp = "ads123"
 
   def serialize : Array[Byte] = {
-    val buf = new Array[Byte](33 + username.size)
+    val buf = new Array[Byte](34 + username.size)
 
-    // cap flags: CLIENT_PROTCOL_41
-    buf(0) = 0x0.toByte
+    // cap flags: CLIENT_PROTCOL_41 | CLIENT_SECURE_CONNECTION
+    buf(1) = 0x82.toByte
 
     // max packet size: 65535 byte
     buf(4) = 0xff.toByte
@@ -24,9 +25,17 @@ class HandshakeResponsePacket() extends SQLClientIssuedPacket {
     // character set: utf-8
     buf(8) = 0x21.toByte
 
+    val username_bytes = username.getBytes
+    val auth_resp_bytes = auth_resp.getBytes
+
     // username
-    System.arraycopy(username.getBytes, 0, buf, 32, username.size)
-    buf(32 + username.size) = 0
+    System.arraycopy(username_bytes, 0, buf, 32, username_bytes.size)
+    buf(32 + username_bytes.size) = 0
+
+    /*System.arraycopy(auth_resp_bytes, 0, buf, 33 + username_bytes.size,
+      auth_resp_bytes.size)
+
+    buf(33 + username_bytes.size + auth_resp_bytes.size) = 0*/
 
     return buf
   }
