@@ -13,9 +13,11 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(worker: Worker) {
 
-  val SQL_STATE_SYN  = 1
-  val SQL_STATE_ACK  = 2
-  val SQL_STATE_AUTH = 3
+  val SQL_STATE_SYN   = 1
+  val SQL_STATE_ACK   = 2
+  val SQL_STATE_AUTH  = 3
+  val SQL_STATE_EST   = 4
+  val SQL_STATE_QUERY = 5
 
   val SQL_MAX_PKT_LEN = 16777215
 
@@ -140,6 +142,23 @@ class SQLConnection(worker: Worker) {
 
     else if ((pkt(0) & 0x000000ff) == 0x00) {
       println("!!!!!OK PACKET!!!!!")
+
+      state match {
+
+        case SQL_STATE_ACK => {
+          println("connection established!")
+          state = SQL_STATE_EST
+
+          cur_seq = 0
+          write_query("select version();")
+          event.interestOps(SelectionKey.OP_WRITE)
+          state = SQL_STATE_QUERY
+
+        }
+
+      }
+
+      return
     }
 
     state match {
@@ -165,9 +184,20 @@ class SQLConnection(worker: Worker) {
     write_buf.clear
     write_buf.putShort(data.size.toShort)
     write_buf.put(0.toByte)
-    write_buf.put((cur_seq).toByte)
+    write_buf.put(cur_seq.toByte)
     write_buf.put(data)
     write_buf.flip
+  }
+
+  private def write_query(query: String) = {
+    write_buf.clear
+    write_buf.putShort((query.size + 1).toShort)
+    write_buf.put(0.toByte)
+    write_buf.put(cur_seq.toByte)
+    write_buf.put(0x03.toByte)
+    write_buf.put(query.getBytes)
+    write_buf.flip
+    cur_seq += 1
   }
 
 }
