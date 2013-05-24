@@ -176,6 +176,11 @@ class SQLConnection(worker: Worker) {
         println(javax.xml.bind.DatatypeConverter.printHexBinary(handshake_res.serialize))
       }
 
+      case SQL_STATE_QUERY => {
+        println("read result!!!")
+        println("result-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+      }
+
     }
   }
 
