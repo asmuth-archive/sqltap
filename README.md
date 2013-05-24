@@ -37,21 +37,48 @@ retrieve user record with id#2342 with all orders and all fields::
 Instructions
 ------------
 
-### findOne
 
-    resource.findOne(id)
-    relation.findOne
+### resource.findOne(id)
+...
+
+### relation.findOne
+...
+
+### relation.findOneWhere("condition")
+...
+
+### relation.findAll
+...
+
+### relation.findAll(limit)
+...
+
+### relation.findAll(limit, offset)
+...
+
+### relation.findAllWhere("condition")
+...
+
+### relation.findAllWhere("condition", limit)
+...
+
+### relation.findAllWhere("condition", limit, offset)
+...
+
+### relation.countAll
+...
 
 
-### findSome / findAll
+XML Schema
+----------
 
-    relation.findAll
-    relation.findAll(limit)
+here be dragons
 
 
-### count
+Prepared Queries
+----------------
 
-    relation.countAll
+here be dragons
 
 
 
@@ -59,6 +86,7 @@ Configuration
 -------------
 
 here be dragons
+
 
 Installation
 ------------
