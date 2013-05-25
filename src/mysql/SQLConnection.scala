@@ -14,13 +14,14 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(worker: Worker) {
 
-  val SQL_STATE_SYN   = 1
-  val SQL_STATE_ACK   = 2
-  val SQL_STATE_IDLE  = 3
-  val SQL_STATE_QINIT = 4
-  val SQL_STATE_QCOL  = 5
-  val SQL_STATE_QROW  = 6
-  val SQL_STATE_CLOSE = 7
+  val SQL_STATE_SYN     = 1
+  val SQL_STATE_ACK     = 2
+  val SQL_STATE_OLDAUTH = 2
+  val SQL_STATE_IDLE    = 3
+  val SQL_STATE_QINIT   = 4
+  val SQL_STATE_QCOL    = 5
+  val SQL_STATE_QROW    = 6
+  val SQL_STATE_CLOSE   = 7
 
   // max packet length: 16mb
   val SQL_MAX_PKT_LEN = 16777215
@@ -169,10 +170,12 @@ class SQLConnection(worker: Worker) {
     }
 
     case SQL_STATE_ACK => {
-      if ((pkt(0) & 0x000000ff) == 0xfe)
-        throw new SQLProtocolError("authentication failed")
-      else
+      if (pkt.size == 1 && (pkt(0) & 0x000000ff) == 0xfe) {
+        SQLTap.log_debug("[SQL] switching to mysql old authentication")
+        state = SQL_STATE_OLDAUTH
+      } else {
         SQLTap.error("received invalid packet in SQL_STATE_ACK", false)
+      }
     }
 
     case SQL_STATE_QINIT => {
