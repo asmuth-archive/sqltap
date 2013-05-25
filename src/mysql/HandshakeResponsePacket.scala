@@ -71,4 +71,7 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
   def set_username(username_str: String) =
     username = username_str.getBytes("UTF-8")
 
+  def set_auth_resp(data: Array[Byte]) =
+    auth_resp = data
+
 }
