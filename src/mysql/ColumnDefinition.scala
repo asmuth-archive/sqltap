@@ -7,21 +7,20 @@
 
 package com.paulasmuth.sqltap.mysql
 
-class ColumnDefinition extends SQLServerIssuedPacket {
+object ColumnDefinition {
 
-  var catalog   : (String, Int) = null
-  var schema    : (String, Int) = null
-  var table     : (String, Int) = null
-  var org_table : (String, Int) = null
-  var name      : (String, Int) = null
-  var org_name  : (String, Int) = null
-  var charset   : Int           = 0
-  var col_len   : Int           = 0
-  var col_type  : Int           = 0
-  var flags     : Int           = 0
-
-  def load(data: Array[Byte]) = {
-    var cur   = 0
+  def read_name(data: Array[Byte]) : String = {
+    var cur       : Int           = 0
+    var catalog   : (String, Int) = null
+    var schema    : (String, Int) = null
+    var table     : (String, Int) = null
+    var org_table : (String, Int) = null
+    var name      : (String, Int) = null
+    var org_name  : (String, Int) = null
+    var charset   : Int           = 0
+    var col_len   : Int           = 0
+    var col_type  : Int           = 0
+    var flags     : Int           = 0
 
     catalog   = LengthEncodedString.read(data, cur)
     schema    = LengthEncodedString.read(data, catalog._2)
@@ -43,10 +42,7 @@ class ColumnDefinition extends SQLServerIssuedPacket {
 
     flags     = BinaryInteger.read(data, cur, 2)
 
-    //println("load-col-def",
-    //  data.size, javax.xml.bind.DatatypeConverter.printHexBinary(data), catalog,
-    //  schema, table, org_table, name, org_name, charset, col_len, col_type, flags)
-
+    return name._1
   }
 
 }

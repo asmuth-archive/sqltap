@@ -210,8 +210,7 @@ class SQLConnection(worker: Worker) {
     }
 
     case SQL_STATE_QCOL => {
-      val col_def = new ColumnDefinition
-      col_def.load(pkt)
+      cur_qry.columns += ColumnDefinition.read_name(pkt)
     }
 
     case SQL_STATE_QROW => {
@@ -238,7 +237,7 @@ class SQLConnection(worker: Worker) {
     }
 
     case SQL_STATE_QROW => {
-      println("QUERY RESPONSE COMPLETE")
+      cur_qry.ready()
       idle(event)
     }
 
