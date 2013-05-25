@@ -22,6 +22,7 @@ class SQLConnection(worker: Worker) {
   val SQL_STATE_QROW  = 6
   val SQL_STATE_CLOSE = 7
 
+  // max packet length: 16mb
   val SQL_MAX_PKT_LEN = 16777215
 
   private var state : Int = 0
@@ -36,7 +37,7 @@ class SQLConnection(worker: Worker) {
   private var cur_len : Int = 0
 
   def connect() : Unit = {
-    val addr = new InetSocketAddress("127.0.0.1", 3307)
+    val addr = new InetSocketAddress("127.0.0.1", 3306)
     sock.connect(addr)
     state = SQL_STATE_SYN
 
@@ -95,7 +96,7 @@ class SQLConnection(worker: Worker) {
       read_buf.put(nxt)
 
       try {
-        packet(event, pkt)
+        next(event, pkt)
       } catch {
         case e: SQLProtocolError => {
           SQLTap.error("[SQL] protocol error: " + e.toString, false)
@@ -131,98 +132,105 @@ class SQLConnection(worker: Worker) {
     sock.close()
   }
 
-  private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = {
+  private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
 
-    if ((pkt(0) & 0x000000ff) == 0xff) {
-      val err_msg = new String(pkt, 9, pkt.size - 9, "UTF-8")
-      var err_code = (pkt(0) & 0x000000ff) + ((pkt(1) & 0x000000ff) << 8)
+    // err packet
+    if ((pkt(0) & 0x000000ff) == 0xff)
+      packet_err(event, pkt)
 
-      SQLTap.error("[SQL] error (" + err_code + "): " + err_msg, false)
-      return close()
+    // ok packet
+    else if ((pkt(0) & 0x000000ff) == 0x00)
+      packet_ok(event, pkt)
+
+    // eof packet
+    else if ((pkt(0) & 0x000000ff) == 0xfe && pkt.size == 5)
+      packet_eof(event, pkt)
+
+    // other packets
+    else
+      packet(event, pkt)
+
+  }
+
+  private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
+
+    case SQL_STATE_SYN => {
+      val syn_pkt = new HandshakePacket()
+      syn_pkt.load(pkt)
+
+      val ack_pkt = new HandshakeResponsePacket(syn_pkt)
+      ack_pkt.set_username("readonly")
+      //ack_pkt.set_auth_resp(SecurePasswordAuthentication.auth(syn_pkt, "xxx"))
+
+      write_packet(ack_pkt)
+
+      state = SQL_STATE_ACK
+      event.interestOps(SelectionKey.OP_WRITE)
     }
 
-    else if ((pkt(0) & 0x000000ff) == 0xfe && pkt.size == 5) {
-      println("!!!!!EOF PACKET!!!!!")
-
-      state match {
-
-        case SQL_STATE_QCOL => {
-          println("FIELD LIST COMPLETE")
-          state = SQL_STATE_QROW
-        }
-
-        case SQL_STATE_QROW => {
-          println("QUERY RESPONSE COMPLETE")
-          state = SQL_STATE_IDLE
-          println("SQL_CONN_IDLE")
-        }
-
-      }
-
-      return
+    case SQL_STATE_ACK => {
+      if ((pkt(0) & 0x000000ff) == 0xfe)
+        throw new SQLProtocolError("authentication failed")
+      else
+        SQLTap.error("received invalid packet in SQL_STATE_ACK", false)
     }
 
-    else if ((pkt(0) & 0x000000ff) == 0x00) {
-      println("!!!!!OK PACKET!!!!!")
+    case SQL_STATE_QINIT => {
+      val field_count = LengthEncodedInteger.read(pkt)
+      println("NUM FIELDS: " + field_count)
 
-      state match {
-
-        case SQL_STATE_ACK => {
-          println("connection established!")
-          state = SQL_STATE_IDLE
-
-          cur_seq = 0
-          write_query("select version();")
-          event.interestOps(SelectionKey.OP_WRITE)
-          state = SQL_STATE_QINIT
-
-        }
-
-      }
-
-      return
+      state = SQL_STATE_QCOL
     }
 
-    state match {
-
-      case SQL_STATE_SYN => {
-        val syn_pkt = new HandshakePacket()
-        syn_pkt.load(pkt)
-
-        val ack_pkt = new HandshakeResponsePacket(syn_pkt)
-        ack_pkt.set_username("readonly")
-        ack_pkt.set_auth_resp(SecurePasswordAuthentication.auth(syn_pkt, "readonly"))
-
-        write_packet(ack_pkt)
-
-        state = SQL_STATE_ACK
-        event.interestOps(SelectionKey.OP_WRITE)
-      }
-
-      case SQL_STATE_ACK => {
-        if ((pkt(0) & 0x000000ff) == 0xfe)
-          throw new SQLProtocolError("authentication failed")
-        else
-          SQLTap.error("received invalid packet in SQL_STATE_ACK", false)
-      }
-
-      case SQL_STATE_QINIT => {
-        val field_count = LengthEncodedInteger.read(pkt)
-        println("NUM FIELDS: " + field_count)
-
-        state = SQL_STATE_QCOL
-      }
-
-      case SQL_STATE_QCOL => {
-        val col_def = new ColumnDefinition
-        col_def.load(pkt)
-      }
-
-      case SQL_STATE_QROW => {
-        println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
-      }
-
+    case SQL_STATE_QCOL => {
+      val col_def = new ColumnDefinition
+      col_def.load(pkt)
     }
+
+    case SQL_STATE_QROW => {
+      println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+    }
+
+  }
+
+  private def packet_ok(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
+
+    case SQL_STATE_ACK => {
+      SQLTap.log_debug("[SQL] connection established!")
+      cur_seq = 0
+      state = SQL_STATE_IDLE
+
+      // STUB
+      write_query("select version();")
+      event.interestOps(SelectionKey.OP_WRITE)
+      state = SQL_STATE_QINIT
+      // EOF STUB
+    }
+
+  }
+
+  private def packet_eof(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
+
+    case SQL_STATE_QCOL => {
+      println("FIELD LIST COMPLETE")
+      state = SQL_STATE_QROW
+    }
+
+    case SQL_STATE_QROW => {
+      println("QUERY RESPONSE COMPLETE")
+      state = SQL_STATE_IDLE
+      println("SQL_CONN_IDLE")
+    }
+
+  }
+
+  private def packet_err(event: SelectionKey, pkt: Array[Byte]) : Unit = {
+    val err_msg  = BinaryString.read(pkt, 9, pkt.size - 9)
+    val err_code = BinaryInteger.read(pkt, 0, 2)
+
+    SQLTap.error("[SQL] error (" + err_code + "): " + err_msg, false)
+
+    close()
   }
 
   private def write_packet(packet: SQLClientIssuedPacket) = {
@@ -240,15 +248,26 @@ class SQLConnection(worker: Worker) {
     write_buf.flip
   }
 
-  private def write_query(query: String) = {
+  private def write_query(query_str: String) = {
+    val query = query_str.getBytes
     write_buf.clear
+
+    // write packet len (query len + 1 byte opcode)
     write_buf.putShort((query.size + 1).toShort)
     write_buf.put(0.toByte)
+
+    // write sequence number
     write_buf.put(cur_seq.toByte)
+
+    // write opcode COMM_QUERY (0x03)
     write_buf.put(0x03.toByte)
-    write_buf.put(query.getBytes)
-    write_buf.flip
+
+    // write query string
+    write_buf.put(query)
+
     cur_seq += 1
+    write_buf.flip
   }
+
 
 }
