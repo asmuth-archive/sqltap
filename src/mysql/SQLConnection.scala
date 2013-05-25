@@ -37,7 +37,7 @@ class SQLConnection(worker: Worker) {
   private var cur_len : Int = 0
 
   def connect() : Unit = {
-    val addr = new InetSocketAddress("127.0.0.1", 3306)
+    val addr = new InetSocketAddress("127.0.0.1", 3307)
     sock.connect(addr)
     state = SQL_STATE_SYN
 
@@ -160,7 +160,7 @@ class SQLConnection(worker: Worker) {
 
       val ack_pkt = new HandshakeResponsePacket(syn_pkt)
       ack_pkt.set_username("readonly")
-      //ack_pkt.set_auth_resp(SecurePasswordAuthentication.auth(syn_pkt, "xxx"))
+      ack_pkt.set_auth_resp(SecurePasswordAuthentication.auth(syn_pkt, "readonly"))
 
       write_packet(ack_pkt)
 

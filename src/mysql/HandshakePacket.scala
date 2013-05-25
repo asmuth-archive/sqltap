@@ -65,7 +65,7 @@ class HandshakePacket() extends SQLServerIssuedPacket {
       throw new SQLProtocolError(
         "mysql server does not support CLIENT_SECURE_CONNECTION")
 
-    authp_len     = Math.max(13, authp_len - 8)
+    authp_len     = Math.max(12, authp_len - 8)
     authp_data2   = BinaryString.read(data, cur, authp_len)
     cur          += authp_len
 
