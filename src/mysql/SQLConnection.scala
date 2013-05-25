@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,Worker}
+import com.paulasmuth.sqltap.{SQLTap,Worker,SQLQuery}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
@@ -42,10 +42,12 @@ class SQLConnection(worker: Worker) {
   private val sock = SocketChannel.open()
   sock.configureBlocking(false)
 
+  private var last_event : SelectionKey = null
   private var initial_handshake : HandshakePacket = null
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
+  private var cur_qry : SQLQuery = null
 
   def connect() : Unit = {
     val addr = new InetSocketAddress(hostname, port)
@@ -55,6 +57,17 @@ class SQLConnection(worker: Worker) {
     sock
       .register(worker.loop, SelectionKey.OP_CONNECT)
       .attach(this)
+  }
+
+  def execute(query: SQLQuery) : Unit = {
+    if (state != SQL_STATE_IDLE)
+      throw new SQLProtocolError("connection busy")
+
+    cur_qry = query
+    write_query(query.query)
+    state = SQL_STATE_QINIT
+
+    last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
   def ready(event: SelectionKey) : Unit = {
@@ -140,6 +153,7 @@ class SQLConnection(worker: Worker) {
   def close() : Unit = {
     println("sql connection closed")
     state = SQL_STATE_CLOSE
+    worker.sql_connection_close(this)
     sock.close()
   }
 
@@ -212,12 +226,9 @@ class SQLConnection(worker: Worker) {
       SQLTap.log_debug("[SQL] connection established!")
       cur_seq = 0
       state = SQL_STATE_IDLE
-
-      // STUB
-      write_query("select id, username from users where id = 1;")
-      event.interestOps(SelectionKey.OP_WRITE)
-      state = SQL_STATE_QINIT
-      // EOF STUB
+      event.interestOps(0)
+      last_event = event
+      worker.sql_connection_ready(this)
     }
 
   }
@@ -232,6 +243,9 @@ class SQLConnection(worker: Worker) {
     case SQL_STATE_QROW => {
       println("QUERY RESPONSE COMPLETE")
       state = SQL_STATE_IDLE
+      event.interestOps(0)
+      last_event = event
+      worker.sql_connection_ready(this)
       println("SQL_CONN_IDLE")
     }
 
