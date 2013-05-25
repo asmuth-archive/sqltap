@@ -5,8 +5,9 @@
 // file except in compliance with the License. You may obtain a copy of
 // the License at: http://opensource.org/licenses/MIT
 
-package com.paulasmuth.sqltap
+package com.paulasmuth.sqltap.mysql
 
+import com.paulasmuth.sqltap.{SQLTap,Worker}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
@@ -100,7 +101,7 @@ class SQLConnection(worker: Worker) {
       try {
         packet(event, pkt)
       } catch {
-        case e: mysql.SQLProtocolError => {
+        case e: SQLProtocolError => {
           SQLTap.error("[SQL] protocol error: " + e.toString, false)
           return close()
         }
@@ -189,10 +190,10 @@ class SQLConnection(worker: Worker) {
     state match {
 
       case SQL_STATE_SYN => {
-        val syn_pkt = new mysql.HandshakePacket()
+        val syn_pkt = new HandshakePacket()
         syn_pkt.load(pkt)
 
-        val ack_pkt = new mysql.HandshakeResponsePacket(syn_pkt)
+        val ack_pkt = new HandshakeResponsePacket(syn_pkt)
         ack_pkt.username = "root"
 
         write_packet(ack_pkt)
@@ -202,14 +203,14 @@ class SQLConnection(worker: Worker) {
       }
 
       case SQL_STATE_QINIT => {
-        val field_count = mysql.LengthEncodedInteger.read(pkt)
+        val field_count = LengthEncodedInteger.read(pkt)
         println("NUM FIELDS: " + field_count)
 
         state = SQL_STATE_QCOL
       }
 
       case SQL_STATE_QCOL => {
-        val col_def = new mysql.ColumnDefinition
+        val col_def = new ColumnDefinition
         col_def.load(pkt)
       }
 
@@ -220,7 +221,7 @@ class SQLConnection(worker: Worker) {
     }
   }
 
-  private def write_packet(packet: mysql.SQLClientIssuedPacket) = {
+  private def write_packet(packet: SQLClientIssuedPacket) = {
     cur_seq += 1
     write_buf.clear
 
