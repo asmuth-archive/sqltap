@@ -43,9 +43,9 @@ class ColumnDefinition extends SQLServerIssuedPacket {
 
     flags     = BinaryInteger.read(data, cur, 2)
 
-    println("load-col-def",
-      data.size, javax.xml.bind.DatatypeConverter.printHexBinary(data), catalog,
-      schema, table, org_table, name, org_name, charset, col_len, col_type, flags)
+    //println("load-col-def",
+    //  data.size, javax.xml.bind.DatatypeConverter.printHexBinary(data), catalog,
+    //  schema, table, org_table, name, org_name, charset, col_len, col_type, flags)
 
   }
 

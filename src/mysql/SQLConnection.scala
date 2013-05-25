@@ -204,7 +204,7 @@ class SQLConnection(worker: Worker) {
 
     case SQL_STATE_QINIT => {
       val field_count = LengthEncodedInteger.read(pkt)
-      println("NUM FIELDS: " + field_count)
+      //println("NUM FIELDS: " + field_count)
 
       state = SQL_STATE_QCOL
     }
@@ -215,7 +215,8 @@ class SQLConnection(worker: Worker) {
     }
 
     case SQL_STATE_QROW => {
-      println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+      println("READ ROW")
+      //println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
     }
 
   }
@@ -224,11 +225,7 @@ class SQLConnection(worker: Worker) {
 
     case SQL_STATE_ACK => {
       SQLTap.log_debug("[SQL] connection established!")
-      cur_seq = 0
-      state = SQL_STATE_IDLE
-      event.interestOps(0)
-      last_event = event
-      worker.sql_connection_ready(this)
+      idle(event)
     }
 
   }
@@ -236,17 +233,13 @@ class SQLConnection(worker: Worker) {
   private def packet_eof(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
 
     case SQL_STATE_QCOL => {
-      println("FIELD LIST COMPLETE")
+      //println("FIELD LIST COMPLETE")
       state = SQL_STATE_QROW
     }
 
     case SQL_STATE_QROW => {
       println("QUERY RESPONSE COMPLETE")
-      state = SQL_STATE_IDLE
-      event.interestOps(0)
-      last_event = event
-      worker.sql_connection_ready(this)
-      println("SQL_CONN_IDLE")
+      idle(event)
     }
 
   }
@@ -260,6 +253,14 @@ class SQLConnection(worker: Worker) {
     close()
   }
 
+  private def idle(event: SelectionKey) : Unit = {
+    println("SQL_CONN_IDLE")
+    state = SQL_STATE_IDLE
+    event.interestOps(0)
+    last_event = event
+    cur_seq = 0
+    worker.sql_connection_ready(this)
+  }
 
   private def authenticate() : Unit = state match {
 
