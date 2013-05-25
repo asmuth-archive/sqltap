@@ -9,12 +9,12 @@ package com.paulasmuth.sqltap.mysql
 
 object LengthEncodedString {
 
-  def read(data: Array[Byte], pos: Int) : String = {
+  def read(data: Array[Byte], pos: Int) : (String, Int) = {
     var length : Int = 0
     var offset : Int = pos
 
     if ((data(pos) & 0x000000ff) < 0xfb) {
-      length += (data(0) & 0x000000ff)
+      length += (data(pos) & 0x000000ff)
       offset += 1
     }
 
@@ -37,7 +37,9 @@ object LengthEncodedString {
     else
       throw new SQLProtocolError("invalid length encoded string")
 
-    return new String(data, offset, length, "UTF-8")
+    val string = new String(data, offset, length, "UTF-8")
+
+    return (string, offset + length)
   }
 
 }

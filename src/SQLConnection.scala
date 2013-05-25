@@ -13,14 +13,14 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(worker: Worker) {
 
-  val SQL_STATE_SYN    = 1
-  val SQL_STATE_ACK    = 2
-  val SQL_STATE_AUTH   = 3
-  val SQL_STATE_IDLE   = 5
-  val SQL_STATE_QINIT  = 6
-  val SQL_STATE_QFIELD = 7
-  val SQL_STATE_QROW   = 8
-  val SQL_STATE_CLOSE  = 9
+  val SQL_STATE_SYN   = 1
+  val SQL_STATE_ACK   = 2
+  val SQL_STATE_AUTH  = 3
+  val SQL_STATE_IDLE  = 5
+  val SQL_STATE_QINIT = 6
+  val SQL_STATE_QCOL  = 7
+  val SQL_STATE_QROW  = 8
+  val SQL_STATE_CLOSE = 9
 
   val SQL_MAX_PKT_LEN = 16777215
 
@@ -149,7 +149,7 @@ class SQLConnection(worker: Worker) {
 
       state match {
 
-        case SQL_STATE_QFIELD => {
+        case SQL_STATE_QCOL => {
           println("FIELD LIST COMPLETE")
           state = SQL_STATE_QROW
         }
@@ -205,11 +205,12 @@ class SQLConnection(worker: Worker) {
         val field_count = mysql.LengthEncodedInteger.read(pkt)
         println("NUM FIELDS: " + field_count)
 
-        state = SQL_STATE_QFIELD
+        state = SQL_STATE_QCOL
       }
 
-      case SQL_STATE_QFIELD => {
-        println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+      case SQL_STATE_QCOL => {
+        val col_def = new mysql.ColumnDefinition
+        col_def.load(pkt)
       }
 
       case SQL_STATE_QROW => {
