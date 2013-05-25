@@ -50,14 +50,14 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
     var len = 0
 
     // static fields (caps, maxsize, charset, reserved)
-    len    += 4 + 4 + 24
+    len += 4 + 4 + 24
 
     // username field + \0 byte
-    len    += username.size + 1
+    len += username.size + 1
 
     // auth resp len + auth resp
     if (auth_resp == null)
-      len    += 1
+      len += 1
     else
       len += auth_resp.size + 1
 

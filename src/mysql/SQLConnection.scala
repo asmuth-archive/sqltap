@@ -73,10 +73,8 @@ class SQLConnection(worker: Worker) {
         if (read_buf.position < 4)
           return
 
-        cur_len  = read_buf.get(0)
-        cur_len += read_buf.get(1) << 8
-        cur_len += read_buf.get(2) << 16
-        cur_seq  = read_buf.get(3)
+        cur_len  = BinaryInteger.read(read_buf.array, 0, 3)
+        cur_seq  = BinaryInteger.read(read_buf.array, 3, 1)
 
         if (cur_len == SQL_MAX_PKT_LEN) {
           SQLTap.error("[SQL] packets > 16mb are currently not supported", false)
@@ -87,7 +85,6 @@ class SQLConnection(worker: Worker) {
       if (read_buf.position < 4 + cur_len)
         return
 
-      println(cur_len)
       val pkt = new Array[Byte](cur_len)
       val nxt = new Array[Byte](read_buf.position - cur_len - 4)
 
