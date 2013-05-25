@@ -7,14 +7,16 @@
 
 package com.paulasmuth.sqltap.mysql
 
+import java.nio.{ByteBuffer}
+
 class SQLProtocolError(msg: String) extends Exception {
   override def toString = msg
 }
 
 trait SQLClientIssuedPacket {
-
+  def write(buf: ByteBuffer) : Unit
+  def length() : Int
 }
 
 trait SQLServerIssuedPacket {
-
 }

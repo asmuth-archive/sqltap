@@ -9,9 +9,9 @@ package com.paulasmuth.sqltap.mysql
 
 class HandshakePacket() extends SQLServerIssuedPacket {
 
-  var capabilities : Int = 0
+  var capabilities : Long = 0
   var server_ver   : (String, Int) = null
-  var authp_len     : Int = 0
+  var authp_len    : Int = 0
   var authp_name   : (String, Int) = null
   var authp_data1  : (String, Int) = null
   var authp_data2  : String = null
@@ -36,7 +36,7 @@ class HandshakePacket() extends SQLServerIssuedPacket {
     authp_data1    = BinaryString.read_null(data, cur)
     cur            = authp_data1._2
 
-    capabilities   = BinaryInteger.read(data, cur, 2)
+    capabilities   = BinaryInteger.read(data, cur, 2).toLong
     cur           += 2
 
     // old mysql versions send a short handshake packet
@@ -49,7 +49,7 @@ class HandshakePacket() extends SQLServerIssuedPacket {
     status_flags   = BinaryInteger.read(data, cur, 2)
     cur           += 2
 
-    capabilities  += BinaryInteger.read(data, cur, 2) << 16
+    capabilities  += BinaryInteger.read(data, cur, 2).toLong << 16L
     cur           += 2
 
     authp_len     += BinaryInteger.read(data, cur, 1)
@@ -73,7 +73,7 @@ class HandshakePacket() extends SQLServerIssuedPacket {
       status_flags, authp_len, authp_data2)
 
     // check for CLIENT_PLUGIN_AUTH flag (0x00080000)
-    if ((capabilities & 0x00008000) != 0x00080000)
+    if ((capabilities & 0x00080000L) != 0x00080000L)
       return
 
     authp_name    = BinaryString.read_null(data, cur)

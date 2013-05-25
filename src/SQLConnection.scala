@@ -36,7 +36,7 @@ class SQLConnection(worker: Worker) {
   private var cur_len : Int = 0
 
   def connect() : Unit = {
-    val addr = new InetSocketAddress("127.0.0.1", 3306)
+    val addr = new InetSocketAddress("127.0.0.1", 3307)
     sock.connect(addr)
     state = SQL_STATE_SYN
 
@@ -189,17 +189,16 @@ class SQLConnection(worker: Worker) {
     state match {
 
       case SQL_STATE_SYN => {
-        val handshake_req = new mysql.HandshakePacket()
-        handshake_req.load(pkt)
+        val syn_pkt = new mysql.HandshakePacket()
+        syn_pkt.load(pkt)
 
-        val handshake_res = new mysql.HandshakeResponsePacket(handshake_req)
-        handshake_res.username = "root"
+        val ack_pkt = new mysql.HandshakeResponsePacket(syn_pkt)
+        ack_pkt.username = "root"
 
-        write_packet(handshake_res.serialize)
+        write_packet(ack_pkt)
+
         state = SQL_STATE_ACK
         event.interestOps(SelectionKey.OP_WRITE)
-
-        println(javax.xml.bind.DatatypeConverter.printHexBinary(handshake_res.serialize))
       }
 
       case SQL_STATE_QINIT => {
@@ -221,13 +220,18 @@ class SQLConnection(worker: Worker) {
     }
   }
 
-  private def write_packet(data: Array[Byte]) = {
+  private def write_packet(packet: mysql.SQLClientIssuedPacket) = {
     cur_seq += 1
     write_buf.clear
-    write_buf.putShort(data.size.toShort)
-    write_buf.put(0.toByte)
+
+    // write packet len
+    write_buf.putShort(packet.length.toShort)
+    write_buf.put(0x00.toByte)
+
+    // write sequence number
     write_buf.put(cur_seq.toByte)
-    write_buf.put(data)
+
+    packet.write(write_buf)
     write_buf.flip
   }
 

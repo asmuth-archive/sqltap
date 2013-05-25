@@ -7,37 +7,67 @@
 
 package com.paulasmuth.sqltap.mysql
 
+import java.nio.{ByteBuffer}
+
 class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacket {
 
-  var username = "root"
-  var auth_resp = "ads123"
+  var username     = "root"
+  var username_len = 4
 
-  def serialize : Array[Byte] = {
-    val buf = new Array[Byte](34 + username.size)
+  var auth_resp : Array[Byte] = null
 
+  def write(buf: ByteBuffer) : Unit = {
     // cap flags: CLIENT_PROTCOL_41 | CLIENT_SECURE_CONNECTION
-    buf(1) = 0x82.toByte
+    buf.putInt(0x00000200 | 0x00008000)
 
-    // max packet size: 65535 byte
-    buf(4) = 0xff.toByte
-    buf(5) = 0xff.toByte
+    // max packet size: 16mb
+    buf.putInt(0x01000000)
 
-    // character set: utf-8
-    buf(8) = 0x21.toByte
+    // character set: utf8
+    buf.put(0x21.toByte)
 
-    val username_bytes = username.getBytes
-    val auth_resp_bytes = auth_resp.getBytes
+    // 23 bytes \0 (reserved)
+    buf.put((new Array[Byte](23)))
 
-    // username
-    System.arraycopy(username_bytes, 0, buf, 32, username_bytes.size)
-    buf(32 + username_bytes.size) = 0
+    // username + \0 byte
+    buf.put(username.getBytes)
+    buf.put(0x00.toByte)
 
-    /*System.arraycopy(auth_resp_bytes, 0, buf, 33 + username_bytes.size,
-      auth_resp_bytes.size)
+    // auth_resp
+    if (auth_resp == null) {
+      buf.put(0x00.toByte)
+    } else {
+      buf.put(auth_resp.size.toByte)
+      buf.put(auth_resp)
+    }
 
-    buf(33 + username_bytes.size + auth_resp_bytes.size) = 0*/
+    // auth plugin name
+    if (req.authp_name != null) {
+      buf.put(req.authp_name._1.getBytes)
+      buf.put(0x00.toByte)
+    }
+  }
 
-    return buf
+  def length() : Int = {
+    var len = 0
+
+    // static fields (caps, maxsize, charset, reserved)
+    len    += 4 + 4 + 24
+
+    // username field + \0 byte
+    len    += username_len + 1
+
+    // auth resp len + auth resp
+    if (auth_resp == null)
+      len    += 1
+    else
+      len += auth_resp.size + 1
+
+    // auth plugin name + \0 byte
+    if (req.authp_name != null)
+      len += req.authp_name._1.getBytes.size + 1
+
+    return len
   }
 
 }
