@@ -16,15 +16,18 @@ class SQLConnection(worker: Worker) {
 
   val SQL_STATE_SYN     = 1
   val SQL_STATE_ACK     = 2
-  val SQL_STATE_OLDAUTH = 2
-  val SQL_STATE_IDLE    = 3
-  val SQL_STATE_QINIT   = 4
-  val SQL_STATE_QCOL    = 5
-  val SQL_STATE_QROW    = 6
-  val SQL_STATE_CLOSE   = 7
+  val SQL_STATE_OLDAUTH = 3
+  val SQL_STATE_IDLE    = 4
+  val SQL_STATE_QINIT   = 5
+  val SQL_STATE_QCOL    = 6
+  val SQL_STATE_QROW    = 7
+  val SQL_STATE_CLOSE   = 8
 
   // max packet length: 16mb
   val SQL_MAX_PKT_LEN = 16777215
+
+  val password = "xxx"
+  val username = "readonly"
 
   private var state : Int = 0
   private val read_buf = ByteBuffer.allocate(4096) // FIXPAUL
@@ -33,6 +36,8 @@ class SQLConnection(worker: Worker) {
 
   private val sock = SocketChannel.open()
   sock.configureBlocking(false)
+
+  private var initial_handshake : HandshakePacket = null
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
@@ -156,23 +161,23 @@ class SQLConnection(worker: Worker) {
   private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
 
     case SQL_STATE_SYN => {
-      val syn_pkt = new HandshakePacket()
-      syn_pkt.load(pkt)
-
-      val ack_pkt = new HandshakeResponsePacket(syn_pkt)
-      ack_pkt.set_username("readonly")
-      ack_pkt.set_auth_resp(SecurePasswordAuthentication.auth(syn_pkt, "readonly"))
-
-      write_packet(ack_pkt)
-
+      initial_handshake = new HandshakePacket()
+      initial_handshake.load(pkt)
       state = SQL_STATE_ACK
+      authenticate()
+
       event.interestOps(SelectionKey.OP_WRITE)
     }
 
     case SQL_STATE_ACK => {
       if (pkt.size == 1 && (pkt(0) & 0x000000ff) == 0xfe) {
         SQLTap.log_debug("[SQL] switching to mysql old authentication")
+
         state = SQL_STATE_OLDAUTH
+        authenticate()
+        state = SQL_STATE_ACK
+
+        event.interestOps(SelectionKey.OP_WRITE)
       } else {
         SQLTap.error("received invalid packet in SQL_STATE_ACK", false)
       }
@@ -234,6 +239,31 @@ class SQLConnection(worker: Worker) {
     SQLTap.error("[SQL] error (" + err_code + "): " + err_msg, false)
 
     close()
+  }
+
+
+  private def authenticate() : Unit = state match {
+
+    case SQL_STATE_ACK => {
+      val auth_pkt = new HandshakeResponsePacket(initial_handshake)
+      auth_pkt.set_username(username)
+
+      auth_pkt.set_auth_resp(
+        SecurePasswordAuthentication.auth(initial_handshake, password))
+
+      write_packet(auth_pkt)
+    }
+
+    case SQL_STATE_OLDAUTH => {
+      val auth_pkt = new AuthSwitchResponsePacket()
+      println("write auth switch response")
+
+      auth_pkt.set_auth_resp(
+        OldPasswordAuthentication.auth(initial_handshake, password))
+
+      write_packet(auth_pkt)
+    }
+
   }
 
   private def write_packet(packet: SQLClientIssuedPacket) = {
