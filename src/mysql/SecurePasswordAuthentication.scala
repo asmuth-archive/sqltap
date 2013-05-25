@@ -27,36 +27,9 @@ object SecurePasswordAuthentication {
     concat(req.authp_data1._1.getBytes, req.authp_data2.getBytes),
     password)
 
-  def auth(challenge: Array[Byte], password: String) : Array[Byte] = {
-    println("HASH STAGE 1", javax.xml.bind.DatatypeConverter.printHexBinary(
-      sha1(password.getBytes)))
-    
-    println("HASH STAGE 2", javax.xml.bind.DatatypeConverter.printHexBinary(
-      sha1(sha1(password.getBytes))))
-  
-    println("HASH CHALLENGE", javax.xml.bind.DatatypeConverter.printHexBinary(
-      sha1(concat(challenge, sha1(sha1(password.getBytes))))  ))
-    
-    println("XOR LEFT", javax.xml.bind.DatatypeConverter.printHexBinary(
-      sha1(password.getBytes)  ))
-
-    println("XOR RIGHT", javax.xml.bind.DatatypeConverter.printHexBinary(
-      sha1(concat(challenge, sha1(sha1(password.getBytes))))  ))
-    
-    println("XOR RES", javax.xml.bind.DatatypeConverter.printHexBinary(
-       xor(
-      sha1(password.getBytes),
-      sha1(concat(challenge, sha1(sha1(password.getBytes))))) ))
-
-    val response = xor(
-      sha1(password.getBytes),
-      sha1(concat(challenge, sha1(sha1(password.getBytes)))))
-
-    println("CHALLENGE", javax.xml.bind.DatatypeConverter.printHexBinary(challenge), challenge.size)
-    println("REPONSE", javax.xml.bind.DatatypeConverter.printHexBinary(response), response.size)
-
-    return response
-  }
+  def auth(challenge: Array[Byte], password: String) : Array[Byte] = xor(
+    sha1(password.getBytes),
+    sha1(concat(challenge, sha1(sha1(password.getBytes)))))
 
   private def sha1(in: Array[Byte]) : Array[Byte] = {
     sha1_md.update(in)
@@ -69,12 +42,8 @@ object SecurePasswordAuthentication {
     if (left.size != right.size)
       throw new Exception("arrays must be the of same length")
 
-    for (n <- (0 until left.size)) {
-      val l = left(n)  & 0x000000ff
-      val r = right(n) & 0x000000ff
-      res(n) = ((l ^ r) & 0x000000ff).toByte
-  println("XOR", l, r,res(n))
-    }
+    for (n <- (0 until left.size))
+      res(n) = (left(n) ^ right(n)).toByte
 
     return res
   }
