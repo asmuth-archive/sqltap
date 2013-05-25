@@ -39,20 +39,20 @@ object SQLTap{
       if (args(n) == "--http")
         { CONFIG += (('http_port, args(n+1))); n += 2 }
 
-      else if (args(n) == "--http-threads")
-        { CONFIG += (('http_threads, args(n+1))); n += 2 }
+      else if (args(n) == "--mysql-host")
+        { CONFIG += (('mysql_host, args(n+1))); n += 2 }
 
-      else if (args(n) == "--http-timeout")
-        { CONFIG += (('http_timeout, args(n+1))); n += 2 }
+      else if (args(n) == "--mysql-port")
+        { CONFIG += (('mysql_port, args(n+1))); n += 2 }
 
-      else if (args(n) == "--db")
-        { CONFIG += (('db_addr, args(n+1))); n += 2 }
+      else if (args(n) == "--mysql-user")
+        { CONFIG += (('mysql_user, args(n+1))); n += 2 }
 
-      else if (args(n) == "--db-threads")
-        { CONFIG += (('db_threads, args(n+1))); n += 2 }
+      else if (args(n) == "--mysql-password")
+        { CONFIG += (('mysql_pass, args(n+1))); n += 2 }
 
-      else if (args(n) == "--db-timeout")
-        { CONFIG += (('db_timeout, args(n+1))); n += 2 }
+      else if (args(n) == "--mysql-database")
+        { CONFIG += (('mysql_db, args(n+1))); n += 2 }
 
       else if (args(n) == "--memcached-ttl")
         { CONFIG += (('memcached_ttl, args(n+1))); n += 2 }
@@ -206,14 +206,14 @@ object SQLTap{
     if (head)
       println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
-    println("usage: sqltapd [options]                                                    ")
+    println("usage: sqltapd [options]                                                   ")
     println("  -c, -config       <dir>     path to xml config files                     ")
     println("  --http            <port>    start http server on this port               ")
-    println("  --http-threads    <num>     number of http worker-threads (default: 4)   ")
-    println("  --http-timeout    <msecs>   http request timeout (default: 5000ms)       ")
-    println("  --db              <addr>    connect to mysql on this jdbc address        ")
-    println("  --db-threads      <num>     number of db worker-threads (default: 16)    ")
-    println("  --db-timeout      <msecs>   database query timeout (default: 5000ms)     ")
+    println("  --mysql-host      <addr>    mysql server hostname                        ")
+    println("  --mysql-port      <port>    mysql server port                            ")
+    println("  --mysql-user      <user>    mysql server username                        ")
+    println("  --mysql-password  <pass>    mysql server password                        ")
+    println("  --mysql-database  <db>      mysql server database (USE ...;)             ")
     println("  --memcached       <addrs>   comma-seperated memcache servers (host:port) ")
     println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
     println("  -h, --help                  you're reading it...                         ")

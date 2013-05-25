@@ -54,11 +54,24 @@ class Worker() extends Thread {
   }
 
   def get_sql_connection() : Unit = {
-    printf("opening a new connection to mysql...")
-
     val conn = new mysql.SQLConnection(this)
-    conn.connect()
 
+    if (SQLTap.CONFIG contains 'mysql_host)
+      conn.hostname = SQLTap.CONFIG('mysql_host)
+
+    if (SQLTap.CONFIG contains 'mysql_port)
+      conn.port = SQLTap.CONFIG('mysql_port).toInt
+
+    if (SQLTap.CONFIG contains 'mysql_user)
+      conn.username = SQLTap.CONFIG('mysql_user)
+
+    if (SQLTap.CONFIG contains 'mysql_pass)
+      conn.password = SQLTap.CONFIG('mysql_pass)
+
+    if (SQLTap.CONFIG contains 'mysql_db)
+      conn.database = SQLTap.CONFIG('mysql_db)
+
+    conn.connect()
   }
 
   private def accept() : Unit = {

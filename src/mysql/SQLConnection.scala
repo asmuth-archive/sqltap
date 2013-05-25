@@ -14,24 +14,25 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(worker: Worker) {
 
-  val SQL_STATE_SYN     = 1
-  val SQL_STATE_ACK     = 2
-  val SQL_STATE_OLDAUTH = 3
-  val SQL_STATE_IDLE    = 4
-  val SQL_STATE_QINIT   = 5
-  val SQL_STATE_QCOL    = 6
-  val SQL_STATE_QROW    = 7
-  val SQL_STATE_CLOSE   = 8
+  var hostname : String = "127.0.0.1"
+  var port     : Int    = 3306
+  var username : String = "root"
+  var password : String = ""
+  var database : String = null
+
+  private val SQL_STATE_SYN     = 1
+  private val SQL_STATE_ACK     = 2
+  private val SQL_STATE_OLDAUTH = 3
+  private val SQL_STATE_IDLE    = 4
+  private val SQL_STATE_QINIT   = 5
+  private val SQL_STATE_QCOL    = 6
+  private val SQL_STATE_QROW    = 7
+  private val SQL_STATE_CLOSE   = 8
 
   // max packet length: 16mb
-  val SQL_MAX_PKT_LEN   = 16777215
-  val SQL_WRITE_BUF_LEN = 4096
-  val SQL_READ_BUF_LEN  = 65535
-
-  val password = "" //"readonly"
-  val username = "root"
-  val hostname = "127.0.0.1"
-  val port     = 3306
+  private val SQL_MAX_PKT_LEN   = 16777215
+  private val SQL_WRITE_BUF_LEN = 4096
+  private val SQL_READ_BUF_LEN  = 65535
 
   private var state : Int = 0
   private val read_buf = ByteBuffer.allocate(SQL_READ_BUF_LEN)
@@ -213,7 +214,7 @@ class SQLConnection(worker: Worker) {
       state = SQL_STATE_IDLE
 
       // STUB
-      write_query("select version();")
+      write_query("select id, username from users where id = 1;")
       event.interestOps(SelectionKey.OP_WRITE)
       state = SQL_STATE_QINIT
       // EOF STUB
