@@ -36,7 +36,7 @@ class SQLConnection(worker: Worker) {
   private var cur_len : Int = 0
 
   def connect() : Unit = {
-    val addr = new InetSocketAddress("127.0.0.1", 3306)
+    val addr = new InetSocketAddress("127.0.0.1", 3307)
     sock.connect(addr)
     state = SQL_STATE_SYN
 
@@ -189,9 +189,10 @@ class SQLConnection(worker: Worker) {
     state match {
 
       case SQL_STATE_SYN => {
-        val handshake_req = new mysql.HandshakePacket(pkt)
-        val handshake_res = new mysql.HandshakeResponsePacket(handshake_req)
+        val handshake_req = new mysql.HandshakePacket()
+        handshake_req.load(pkt)
 
+        val handshake_res = new mysql.HandshakeResponsePacket(handshake_req)
         handshake_res.username = "root"
 
         write_packet(handshake_res.serialize)

@@ -7,42 +7,64 @@
 
 package com.paulasmuth.sqltap.mysql
 
-class HandshakePacket(data: Array[Byte]) extends SQLServerIssuedPacket {
+class HandshakePacket() extends SQLServerIssuedPacket {
 
-  private var str_offset = 1
-  private var capabilities : Long = 0
-  private var authp_len : Int = 0
+  var capabilities : Int = 0
+  var server_ver   : (String, Int) = null
+  var authp_data1  : (String, Int) = null
+  var conn_id      : Int = 0
+  var charset      : Int = 0
+  var status_flags : Int = 0
 
-  if (data(0) != 0x0a)
-    throw new SQLProtocolError("unsupported mysql protocol version: " + data(0).toInt)
+  def load(data: Array[Byte]) = {
+    var cur = 1
 
-  while (str_offset < data.size && data(str_offset) != 0)
-    str_offset += 1
+    // 0x0a == MySQL Protocol Version 10
+    if (data(0) != 0x0a)
+      throw new SQLProtocolError(
+        "unsupported mysql protocol version: " + data(0).toInt)
 
-  if (data.size < str_offset + 17)
-    throw new SQLProtocolError("missing mysql capability flags")
+    server_ver    = BinaryString.read_null(data, cur)
+    cur           = server_ver._2
+    println("CAPA POS", cur)
 
-  // yuck, unsigned bytes are a big ugly hack in java... ~paul
-  capabilities += (data(str_offset + 14) & 0x000000ff).toLong
-  capabilities += (data(str_offset + 15) & 0x000000ff) << 8L
+    conn_id       = BinaryInteger.read(data, cur, 4)
+    cur          += 4
 
-  if ((capabilities & 0x02) == 0)
-    throw new SQLProtocolError("mysql server does not support CLIENT_PROTOCOL_41")
+    authp_data1   = BinaryString.read_null(data, cur)
+    cur           = authp_data1._2
 
-  if (data.size <= str_offset + 16)
-    throw new SQLProtocolError("mysql server version too old")
+    capabilities  = BinaryInteger.read(data, cur, 2)
+    cur          += 2
 
-  capabilities += (data(str_offset + 19) & 0x000000ff) << 16L
-  capabilities += (data(str_offset + 20) & 0x000000ff) << 24L
+    println("CAPA", capabilities)
 
-  if ((capabilities & 0x8000) != 0x8000)
-    throw new SQLProtocolError("mysql server does not support CLIENT_SECURE_CONNECTION")
+    // old mysql versions send a short handshake packet
+    if (cur + 1 >= data.size)
+      throw new SQLProtocolError(
+        "mysql server version too old")
 
-  //if ((capabilities & 0x80000) == 0x80000)
-  //  throw new SQLProtocolError("CLIENT_AUTH_PLUGIN is not supported")
+    charset       = BinaryInteger.read(data, cur, 1)
+    cur          += 1
 
-    //authp_len = (data(str_offset + 21) & 0x000000ff)
+    status_flags  = BinaryInteger.read(data, cur, 2)
+    cur          += 2
 
+    capabilities += BinaryInteger.read(data, cur, 2) << 16
+    cur          += 2
 
-  println("CAPA", capabilities)
+    println("CAPA", capabilities)
+
+    // check for CLIENT_PROTOCOL_41 flag (0x00000200)
+    if ((capabilities & 0x00000200) != 0x00000200)
+      throw new SQLProtocolError(
+        "mysql server does not support CLIENT_PROTOCOL_41")
+
+    // check for CLIENT_SECURE_CONNECTION flag (0x00008000)
+    if ((capabilities & 0x00008000) != 0x00008000)
+      throw new SQLProtocolError(
+        "mysql server does not support CLIENT_SECURE_CONNECTION")
+
+  }
+
 }
