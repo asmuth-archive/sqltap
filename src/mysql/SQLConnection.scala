@@ -8,6 +8,7 @@
 package com.paulasmuth.sqltap.mysql
 
 import com.paulasmuth.sqltap.{SQLTap,Worker,SQLQuery}
+import scala.collection.mutable.{ListBuffer}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
@@ -210,8 +211,21 @@ class SQLConnection(worker: Worker) {
     }
 
     case SQL_STATE_QROW => {
-      println("READ ROW")
-      //println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+      var cur = 0
+      var row = new ListBuffer[String]
+
+      while (cur < pkt.size) {
+        if ((pkt(cur) & 0x000000ff) == 0xfb) {
+          row += null
+          cur += 1
+        } else {
+          val str = LengthEncodedString.read(pkt, cur)
+          row += str._1
+          cur = str._2
+        }
+      }
+
+      cur_qry.rows += row
     }
 
   }

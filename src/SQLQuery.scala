@@ -7,14 +7,13 @@
 
 package com.paulasmuth.sqltap
 
-import scala.collection.mutable.LinkedList
 import scala.collection.mutable.ListBuffer
 
 class SQLQuery(query_str: String) {
 
   val query    : String = query_str
   var columns  = new ListBuffer[String]()
-  var rows     = new LinkedList[LinkedList[String]]()
+  var rows     = new ListBuffer[ListBuffer[String]]()
   var num_cols = 0
 
   def ready() : Unit = {
