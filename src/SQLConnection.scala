@@ -13,13 +13,14 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(worker: Worker) {
 
-  val SQL_STATE_SYN   = 1
-  val SQL_STATE_ACK   = 2
-  val SQL_STATE_AUTH  = 3
-  val SQL_STATE_EST   = 4
-  val SQL_STATE_WAIT  = 5
-  val SQL_STATE_QINIT = 6
-  val SQL_STATE_QROW  = 7
+  val SQL_STATE_SYN    = 1
+  val SQL_STATE_ACK    = 2
+  val SQL_STATE_AUTH   = 3
+  val SQL_STATE_IDLE   = 5
+  val SQL_STATE_QINIT  = 6
+  val SQL_STATE_QFIELD = 7
+  val SQL_STATE_QROW   = 8
+  val SQL_STATE_CLOSE  = 9
 
   val SQL_MAX_PKT_LEN = 16777215
 
@@ -129,6 +130,7 @@ class SQLConnection(worker: Worker) {
 
   def close() : Unit = {
     println("sql connection closed")
+    state = SQL_STATE_CLOSE
     sock.close()
   }
 
@@ -142,6 +144,27 @@ class SQLConnection(worker: Worker) {
       return close()
     }
 
+    else if ((pkt(0) & 0x000000ff) == 0xfe && pkt.size == 5) {
+      println("!!!!!EOF PACKET!!!!!")
+
+      state match {
+
+        case SQL_STATE_QFIELD => {
+          println("FIELD LIST COMPLETE")
+          state = SQL_STATE_QROW
+        }
+
+        case SQL_STATE_QROW => {
+          println("QUERY RESPONSE COMPLETE")
+          state = SQL_STATE_IDLE
+          println("SQL_CONN_IDLE")
+        }
+
+      }
+
+      return
+    }
+
     else if ((pkt(0) & 0x000000ff) == 0x00) {
       println("!!!!!OK PACKET!!!!!")
 
@@ -149,7 +172,7 @@ class SQLConnection(worker: Worker) {
 
         case SQL_STATE_ACK => {
           println("connection established!")
-          state = SQL_STATE_EST
+          state = SQL_STATE_IDLE
 
           cur_seq = 0
           write_query("select version();")
@@ -179,15 +202,18 @@ class SQLConnection(worker: Worker) {
       }
 
       case SQL_STATE_QINIT => {
-        val row_count = mysql.LengthEncodedInteger.read(pkt)
-        println("NUM ROWS: " + row_count)
+        val field_count = mysql.LengthEncodedInteger.read(pkt)
+        println("NUM FIELDS: " + field_count)
 
-        state = SQL_STATE_QROW
+        state = SQL_STATE_QFIELD
+      }
+
+      case SQL_STATE_QFIELD => {
+        println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
       }
 
       case SQL_STATE_QROW => {
-        println("read result!!!")
-        println("result-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
+        println("field-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
       }
 
     }
