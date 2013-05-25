@@ -46,10 +46,7 @@ class Worker() extends Thread {
             conn.read(event)
 
         } catch {
-          case e: Exception => {
-            SQLTap.error("[HTTP] exception: " + e.toString, false)
-            conn.close
-          }
+          case e: Exception => conn.error(e)
         }
 
         case conn: mysql.SQLConnection => try {
@@ -78,7 +75,7 @@ class Worker() extends Thread {
 
     if (conn == null) {
       if (sql_queue.length >= sql_queue_maxlen)
-        throw new Exception("sql queue is full")
+        throw new TemporaryException("sql queue is full")
 
       sql_queue += query
     } else {

@@ -33,14 +33,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
     }
 
     if (ready) {
-      execute_request()
+      event.interestOps(0)
+      execute()
       buf.clear
-
-      // STUB
-      for (n <- (1 to 20)) worker.execute_sql_query(new SQLQuery("select id, username, email from users where id < 3;"))
-      //EOF STUB
-
-      //event.interestOps(SelectionKey.OP_WRITE)
     }
   }
 
@@ -49,12 +44,39 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
     sock.close()
   }
 
-  private def execute_request() : Unit = {
+  private def execute() : Unit = {
     println("request: ",
       parser.http_version,
       parser.http_method,
       parser.http_uri,
       parser.http_headers)
+
+    // STUB
+    for (n <- (1 to 20)) worker.execute_sql_query(new SQLQuery("select id, username, email from users where id < 3;"))
+    //EOF STUB
+  }
+
+  def error(e: Throwable) : Unit = e match {
+    case e: ParseException =>
+      http_error(404, e.toString)
+
+    case e: NotFoundException =>
+      http_error(404, e.toString)
+
+    case e: ExecutionException =>
+      http_error(500, e.toString)
+
+    case e: TemporaryException =>
+      http_error(503, e.toString)
+
+    case e: Exception => {
+      SQLTap.error("[HTTP] exception: " + e.toString, false)
+      close
+    }
+  }
+
+  private def http_error(code: Int, message: String) : Unit = {
+    println("HTTP_ERROR", code, message)
   }
 
 }

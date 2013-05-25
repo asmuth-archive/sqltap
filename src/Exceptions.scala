@@ -7,15 +7,19 @@
 
 package com.paulasmuth.sqltap
 
-class ParseException(msg: String) extends Exception{
+class ParseException(msg: String) extends Exception {
   override def toString = msg
 }
 
-class ExecutionException(msg: String) extends Exception{
+class ExecutionException(msg: String) extends Exception {
   override def toString = msg
 }
 
-class NotFoundException(cur: Instruction = null) extends Exception{
+class TemporaryException(msg: String) extends Exception {
+  override def toString = msg
+}
+
+class NotFoundException(cur: Instruction = null) extends Exception {
   override def toString =
     if (cur == null)
       "not found"
