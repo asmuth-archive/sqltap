@@ -16,12 +16,11 @@ class SQLConnection(worker: Worker) {
 
   val SQL_STATE_SYN   = 1
   val SQL_STATE_ACK   = 2
-  val SQL_STATE_AUTH  = 3
-  val SQL_STATE_IDLE  = 5
-  val SQL_STATE_QINIT = 6
-  val SQL_STATE_QCOL  = 7
-  val SQL_STATE_QROW  = 8
-  val SQL_STATE_CLOSE = 9
+  val SQL_STATE_IDLE  = 3
+  val SQL_STATE_QINIT = 4
+  val SQL_STATE_QCOL  = 5
+  val SQL_STATE_QROW  = 6
+  val SQL_STATE_CLOSE = 7
 
   val SQL_MAX_PKT_LEN = 16777215
 
@@ -192,11 +191,19 @@ class SQLConnection(worker: Worker) {
 
         val ack_pkt = new HandshakeResponsePacket(syn_pkt)
         ack_pkt.set_username("readonly")
+        ack_pkt.set_auth_resp(SecurePasswordAuthentication.auth(syn_pkt, "readonly"))
 
         write_packet(ack_pkt)
 
         state = SQL_STATE_ACK
         event.interestOps(SelectionKey.OP_WRITE)
+      }
+
+      case SQL_STATE_ACK => {
+        if ((pkt(0) & 0x000000ff) == 0xfe)
+          throw new SQLProtocolError("authentication failed")
+        else
+          SQLTap.error("received invalid packet in SQL_STATE_ACK", false)
       }
 
       case SQL_STATE_QINIT => {
