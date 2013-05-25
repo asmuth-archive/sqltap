@@ -12,9 +12,10 @@ import scala.collection.mutable.ListBuffer
 
 class SQLQuery(query_str: String) {
 
-  val query   : String = query_str
-  var columns = new ListBuffer[String]()
-  var rows    = new LinkedList[LinkedList[String]]()
+  val query    : String = query_str
+  var columns  = new ListBuffer[String]()
+  var rows     = new LinkedList[LinkedList[String]]()
+  var num_cols = 0
 
   def ready() : Unit = {
     println("SQL_QUERY_READY", query, columns, rows)

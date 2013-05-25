@@ -26,8 +26,6 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       return
     }
 
-    println("read ... bytes", chunk)
-
     try {
       ready = parser.read(buf)
     } catch {
@@ -39,7 +37,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       buf.clear
 
       // STUB
-      for (n <- (1 to 20)) worker.execute_sql_query(new SQLQuery("select * from users where id < 3;"))
+      for (n <- (1 to 20)) worker.execute_sql_query(new SQLQuery("select id, username, email from users where id < 3;"))
       //EOF STUB
 
       //event.interestOps(SelectionKey.OP_WRITE)

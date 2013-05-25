@@ -146,12 +146,10 @@ class SQLConnection(worker: Worker) {
     if (write_buf.remaining == 0) {
       write_buf.clear
       event.interestOps(SelectionKey.OP_READ)
-      println("write ready!")
     }
   }
 
   def close() : Unit = {
-    println("sql connection closed")
     state = SQL_STATE_CLOSE
     worker.sql_connection_close(this)
     sock.close()
@@ -203,9 +201,7 @@ class SQLConnection(worker: Worker) {
     }
 
     case SQL_STATE_QINIT => {
-      val field_count = LengthEncodedInteger.read(pkt)
-      //println("NUM FIELDS: " + field_count)
-
+      cur_qry.num_cols = LengthEncodedInteger.read(pkt)
       state = SQL_STATE_QCOL
     }
 
@@ -232,7 +228,6 @@ class SQLConnection(worker: Worker) {
   private def packet_eof(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
 
     case SQL_STATE_QCOL => {
-      //println("FIELD LIST COMPLETE")
       state = SQL_STATE_QROW
     }
 
@@ -253,7 +248,6 @@ class SQLConnection(worker: Worker) {
   }
 
   private def idle(event: SelectionKey) : Unit = {
-    println("SQL_CONN_IDLE")
     state = SQL_STATE_IDLE
     event.interestOps(0)
     last_event = event
@@ -279,7 +273,6 @@ class SQLConnection(worker: Worker) {
 
     case SQL_STATE_OLDAUTH => {
       val auth_pkt = new AuthSwitchResponsePacket()
-      println("write auth switch response")
 
       auth_pkt.set_auth_resp(
         OldPasswordAuthentication.auth(initial_handshake, password))
