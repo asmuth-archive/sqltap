@@ -67,6 +67,7 @@ class SQLConnection(worker: Worker) {
     cur_qry = query
     write_query(query.query)
     state = SQL_STATE_QINIT
+    cur_qry.start()
 
     last_event.interestOps(SelectionKey.OP_WRITE)
   }

@@ -14,10 +14,20 @@ class SQLQuery(query_str: String) {
   val query    : String = query_str
   var columns  = new ListBuffer[String]()
   var rows     = new ListBuffer[ListBuffer[String]]()
-  var num_cols = 0
+  var num_cols : Int  = 0
+  var qtime    : Long = 0
+
+  private var tik : Long = 0
+  private var tok : Long = 0
+
+  def start() : Unit = {
+    tik = System.nanoTime
+  }
 
   def ready() : Unit = {
-    println("SQL_QUERY_READY", query, columns, rows)
+    tok = System.nanoTime
+    qtime = tok - tik
+    println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
   }
 
 }
