@@ -13,10 +13,17 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
 
   private var username  : Array[Byte] = null
   private var auth_resp : Array[Byte] = null
+  private var database  : Array[Byte] = null
 
   def write(buf: ByteBuffer) : Unit = {
     // cap flags: CLIENT_PROTCOL_41 | CLIENT_SECURE_CONNECTION
-    buf.putInt(0x00000200 | 0x00008000)
+    var capabilities = 0x00000200 | 0x00008000
+
+    // cap flag: CLIENT_CONNECT_WITH_DB (0x00000008)
+    if (database != null)
+      capabilities |= 0x00000008
+
+    buf.putInt(capabilities)
 
     // max packet size: 16mb
     buf.putInt(0x01000000)
@@ -37,6 +44,12 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
     } else {
       buf.put(auth_resp.size.toByte)
       buf.put(auth_resp)
+    }
+
+    // database + \0 byte
+    if (database != null) {
+      buf.put(database)
+      buf.put(0x00.toByte)
     }
 
     // auth plugin name
@@ -61,6 +74,10 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
     else
       len += auth_resp.size + 1
 
+    // database + \0 byte
+    if (database != null)
+      len += database.size + 1
+
     // auth plugin name + \0 byte
     if (req.authp_name != null)
       len += req.authp_name._1.getBytes.size + 1
@@ -73,5 +90,8 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
 
   def set_auth_resp(data: Array[Byte]) =
     auth_resp = data
+
+  def set_database(database_str: String) =
+    database = database_str.getBytes("UTF-8")
 
 }

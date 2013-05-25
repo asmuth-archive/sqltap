@@ -18,7 +18,7 @@ class SQLConnection(worker: Worker) {
   var port     : Int    = 3306
   var username : String = "root"
   var password : String = ""
-  var database : String = null
+  var database : String = ""
 
   private val SQL_STATE_SYN     = 1
   private val SQL_STATE_ACK     = 2
@@ -252,6 +252,9 @@ class SQLConnection(worker: Worker) {
     case SQL_STATE_ACK => {
       val auth_pkt = new HandshakeResponsePacket(initial_handshake)
       auth_pkt.set_username(username)
+
+      if (database.length > 0)
+        auth_pkt.set_database(database)
 
       if (password.length > 0)
         auth_pkt.set_auth_resp(
