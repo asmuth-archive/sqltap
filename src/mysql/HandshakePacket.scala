@@ -24,7 +24,7 @@ class HandshakePacket(data: Array[Byte]) extends SQLServerIssuedPacket {
 
   // yuck, unsigned bytes are a big ugly hack in java... ~paul
   capabilities += (data(str_offset + 14) & 0x000000ff).toLong
-  capabilities += (data(str_offset + 15) & 0x000000ff) << 8.toLong
+  capabilities += (data(str_offset + 15) & 0x000000ff) << 8L
 
   if ((capabilities & 0x02) == 0)
     throw new SQLProtocolError("mysql server does not support CLIENT_PROTOCOL_41")
@@ -32,8 +32,8 @@ class HandshakePacket(data: Array[Byte]) extends SQLServerIssuedPacket {
   if (data.size <= str_offset + 16)
     throw new SQLProtocolError("mysql server version too old")
 
-  capabilities += (data(str_offset + 19) & 0x000000ff) << 16.toLong
-  capabilities += (data(str_offset + 20) & 0x000000ff) << 24.toLong
+  capabilities += (data(str_offset + 19) & 0x000000ff) << 16L
+  capabilities += (data(str_offset + 20) & 0x000000ff) << 24L
 
   if ((capabilities & 0x8000) != 0x8000)
     throw new SQLProtocolError("mysql server does not support CLIENT_SECURE_CONNECTION")

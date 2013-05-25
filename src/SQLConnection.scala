@@ -17,7 +17,9 @@ class SQLConnection(worker: Worker) {
   val SQL_STATE_ACK   = 2
   val SQL_STATE_AUTH  = 3
   val SQL_STATE_EST   = 4
-  val SQL_STATE_QUERY = 5
+  val SQL_STATE_WAIT  = 5
+  val SQL_STATE_QINIT = 6
+  val SQL_STATE_QROW  = 7
 
   val SQL_MAX_PKT_LEN = 16777215
 
@@ -152,7 +154,7 @@ class SQLConnection(worker: Worker) {
           cur_seq = 0
           write_query("select version();")
           event.interestOps(SelectionKey.OP_WRITE)
-          state = SQL_STATE_QUERY
+          state = SQL_STATE_QINIT
 
         }
 
@@ -167,7 +169,7 @@ class SQLConnection(worker: Worker) {
         val handshake_req = new mysql.HandshakePacket(pkt)
         val handshake_res = new mysql.HandshakeResponsePacket(handshake_req)
 
-        handshake_res.username = "fnordinator"
+        handshake_res.username = "root"
 
         write_packet(handshake_res.serialize)
         state = SQL_STATE_ACK
@@ -176,7 +178,14 @@ class SQLConnection(worker: Worker) {
         println(javax.xml.bind.DatatypeConverter.printHexBinary(handshake_res.serialize))
       }
 
-      case SQL_STATE_QUERY => {
+      case SQL_STATE_QINIT => {
+        val row_count = mysql.LengthEncodedInteger.read(pkt)
+        println("NUM ROWS: " + row_count)
+
+        state = SQL_STATE_QROW
+      }
+
+      case SQL_STATE_QROW => {
         println("read result!!!")
         println("result-data", javax.xml.bind.DatatypeConverter.printHexBinary(pkt))
       }
