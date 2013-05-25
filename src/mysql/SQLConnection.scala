@@ -152,6 +152,9 @@ class SQLConnection(worker: Worker) {
   }
 
   def close() : Unit = {
+    if (state == SQL_STATE_CLOSE)
+      return
+
     state = SQL_STATE_CLOSE
     worker.sql_connection_close(this)
     sock.close()

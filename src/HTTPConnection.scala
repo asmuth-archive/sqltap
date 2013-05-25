@@ -12,8 +12,12 @@ import java.nio.{ByteBuffer}
 
 class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
+  private val HTTP_STATE_INIT  = 1
+  private val HTTP_STATE_CLOSE = 2
+
   private val buf = ByteBuffer.allocate(4096) // FIXPAUL
   private val parser = new HTTPParser()
+  private var state = HTTP_STATE_INIT
 
   println("new http connection opened")
 
@@ -40,7 +44,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
   }
 
   def close() : Unit = {
+    if (state == HTTP_STATE_CLOSE)
+      return
+
     println("connection closed")
+    state = HTTP_STATE_CLOSE
     sock.close()
   }
 

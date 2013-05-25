@@ -13,6 +13,20 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.collection.mutable.ListBuffer
 
+// TODO
+//   > sqlconnpool
+//   > request + nonblock integration
+//   > http request router
+//   > http response writer
+//   > instruction refactoring / split
+//   > parser refactoring
+//   > findWhere
+//   > prepared queries
+//   > memcached proto + pool
+//   > prepared query caching
+//   > prepared query autoexpiration
+//   > stats
+
 class Worker() extends Thread {
 
   val loop = SelectorProvider.provider().openSelector()

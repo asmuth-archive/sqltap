@@ -14,11 +14,11 @@ class HTTPParseError extends Exception
 
 class HTTPParser {
 
-  val HTTP_STATE_METHOD  = 1
-  val HTTP_STATE_URI     = 2
-  val HTTP_STATE_VERSION = 3
-  val HTTP_STATE_HKEY    = 4
-  val HTTP_STATE_HVAL    = 5
+  private val HTTP_STATE_METHOD  = 1
+  private val HTTP_STATE_URI     = 2
+  private val HTTP_STATE_VERSION = 3
+  private val HTTP_STATE_HKEY    = 4
+  private val HTTP_STATE_HVAL    = 5
 
   var http_method  : String = null
   var http_uri     : String = null
