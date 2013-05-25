@@ -24,14 +24,18 @@ class SQLConnection(worker: Worker) {
   val SQL_STATE_CLOSE   = 8
 
   // max packet length: 16mb
-  val SQL_MAX_PKT_LEN = 16777215
+  val SQL_MAX_PKT_LEN   = 16777215
+  val SQL_WRITE_BUF_LEN = 4096
+  val SQL_READ_BUF_LEN  = 65535
 
-  val password = "xxx"
-  val username = "readonly"
+  val password = "" //"readonly"
+  val username = "root"
+  val hostname = "127.0.0.1"
+  val port     = 3306
 
   private var state : Int = 0
-  private val read_buf = ByteBuffer.allocate(4096) // FIXPAUL
-  private val write_buf = ByteBuffer.allocate(4096) // FIXPAUL
+  private val read_buf = ByteBuffer.allocate(SQL_READ_BUF_LEN)
+  private val write_buf = ByteBuffer.allocate(SQL_WRITE_BUF_LEN)
   write_buf.order(ByteOrder.LITTLE_ENDIAN)
 
   private val sock = SocketChannel.open()
@@ -43,7 +47,7 @@ class SQLConnection(worker: Worker) {
   private var cur_len : Int = 0
 
   def connect() : Unit = {
-    val addr = new InetSocketAddress("127.0.0.1", 3307)
+    val addr = new InetSocketAddress(hostname, port)
     sock.connect(addr)
     state = SQL_STATE_SYN
 
@@ -248,8 +252,9 @@ class SQLConnection(worker: Worker) {
       val auth_pkt = new HandshakeResponsePacket(initial_handshake)
       auth_pkt.set_username(username)
 
-      auth_pkt.set_auth_resp(
-        SecurePasswordAuthentication.auth(initial_handshake, password))
+      if (password.length > 0)
+        auth_pkt.set_auth_resp(
+          SecurePasswordAuthentication.auth(initial_handshake, password))
 
       write_packet(auth_pkt)
     }
