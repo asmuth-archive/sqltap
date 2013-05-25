@@ -194,7 +194,7 @@ class SQLConnection(worker: Worker) {
         syn_pkt.load(pkt)
 
         val ack_pkt = new HandshakeResponsePacket(syn_pkt)
-        ack_pkt.username = "root"
+        ack_pkt.set_username("readonly")
 
         write_packet(ack_pkt)
 

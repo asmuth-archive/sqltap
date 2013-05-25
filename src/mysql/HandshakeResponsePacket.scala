@@ -11,10 +11,8 @@ import java.nio.{ByteBuffer}
 
 class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacket {
 
-  var username     = "root"
-  var username_len = 4
-
-  var auth_resp : Array[Byte] = null
+  private var username  : Array[Byte] = null
+  private var auth_resp : Array[Byte] = null
 
   def write(buf: ByteBuffer) : Unit = {
     // cap flags: CLIENT_PROTCOL_41 | CLIENT_SECURE_CONNECTION
@@ -30,7 +28,7 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
     buf.put((new Array[Byte](23)))
 
     // username + \0 byte
-    buf.put(username.getBytes)
+    buf.put(username)
     buf.put(0x00.toByte)
 
     // auth_resp
@@ -55,7 +53,7 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
     len    += 4 + 4 + 24
 
     // username field + \0 byte
-    len    += username_len + 1
+    len    += username.size + 1
 
     // auth resp len + auth resp
     if (auth_resp == null)
@@ -69,5 +67,8 @@ class HandshakeResponsePacket(req: HandshakePacket) extends SQLClientIssuedPacke
 
     return len
   }
+
+  def set_username(username_str: String) =
+    username = username_str.getBytes("UTF-8")
 
 }
