@@ -44,7 +44,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
     }
   }
 
-  private def close() : Unit = {
+  def close() : Unit = {
     println("connection closed")
     sock.close()
   }

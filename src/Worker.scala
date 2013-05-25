@@ -18,11 +18,13 @@ class Worker() extends Thread {
   val loop = SelectorProvider.provider().openSelector()
   val conn_queue = new ConcurrentLinkedQueue[SocketChannel]()
 
-  private val sql_conns      = new ListBuffer[SQLConnection]()
-  private val sql_conns_idle = new ListBuffer[SQLConnection]()
-  private var sql_conns_max  = 2
-  private var sql_conns_num  = 0
-  private val sql_queue      = new ListBuffer[SQLQuery]()
+  private val sql_conns        = new ListBuffer[SQLConnection]()
+  private val sql_conns_idle   = new ListBuffer[SQLConnection]()
+  private var sql_conns_max    = 2
+  private var sql_conns_num    = 0
+  private val sql_queue        = new ListBuffer[SQLQuery]()
+  private var sql_queue_maxlen = 10
+
 
   override def run : Unit = while (true) {
     println("select...")
@@ -38,14 +40,19 @@ class Worker() extends Thread {
       events.remove()
 
       if (event.isValid) event.attachment match {
-        case conn: HTTPConnection => {
+        case conn: HTTPConnection => try {
 
           if (event.isReadable)
             conn.read(event)
 
+        } catch {
+          case e: Exception => {
+            SQLTap.error("[HTTP] exception: " + e.toString, false)
+            conn.close
+          }
         }
 
-        case conn: mysql.SQLConnection => {
+        case conn: mysql.SQLConnection => try {
 
           if (event.isConnectable)
             conn.ready(event)
@@ -56,20 +63,25 @@ class Worker() extends Thread {
           if (event.isValid && event.isWritable)
             conn.write(event)
 
+        } catch {
+          case e: Exception => {
+            SQLTap.error("[SQL] exception: " + e.toString, false)
+            conn.close
+          }
         }
       }
     }
   }
 
   def execute_sql_query(query: SQLQuery) : Unit = {
-    println("execute sql query...")
     val conn = get_sql_connection
 
     if (conn == null) {
-      println("no sql connection available, queueing...")
+      if (sql_queue.length >= sql_queue_maxlen)
+        throw new Exception("sql queue is full")
+
       sql_queue += query
     } else {
-      println("yeah, got an sql connection!")
       conn.execute(query)
     }
   }

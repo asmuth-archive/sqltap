@@ -31,9 +31,9 @@ class SQLConnection(worker: Worker) {
   private val SQL_STATE_CLOSE   = 8
 
   // max packet length: 16mb
-  private val SQL_MAX_PKT_LEN   = 16777215
-  private val SQL_WRITE_BUF_LEN = 4096
-  private val SQL_READ_BUF_LEN  = 65535
+  private val SQL_MAX_PKT_LEN    = 16777215
+  private val SQL_WRITE_BUF_LEN  = 4096
+  private val SQL_READ_BUF_LEN   = 65535
 
   private var state : Int = 0
   private val read_buf = ByteBuffer.allocate(SQL_READ_BUF_LEN)
