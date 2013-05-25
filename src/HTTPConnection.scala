@@ -38,7 +38,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       execute_request()
       buf.clear
 
-      worker.get_sql_connection()
+      // STUB
+      val qry = new SQLQuery("select * from user where id = 1;")
+      worker.execute_sql_query(qry)
+      //EOF STUB
+
       //event.interestOps(SelectionKey.OP_WRITE)
     }
   }

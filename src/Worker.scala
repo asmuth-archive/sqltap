@@ -53,6 +53,10 @@ class Worker() extends Thread {
     }
   }
 
+  def execute_sql_query(query: SQLQuery) : Unit = {
+    println("execute sql query...")
+  }
+
   def get_sql_connection() : Unit = {
     val conn = new mysql.SQLConnection(this)
 
