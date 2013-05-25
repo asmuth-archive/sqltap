@@ -7,7 +7,6 @@
 
 package com.paulasmuth.sqltap
 
-//import java.io._
 import java.nio.{ByteBuffer}
 import java.net.{InetSocketAddress}
 import java.nio.channels.{ServerSocketChannel,SelectionKey}
@@ -44,7 +43,6 @@ class Acceptor(workers: List[Worker]) {
       val conn = ssock.accept()
 
       seq = (seq + 1) % workers.size
-      println("accept", seq)
 
       workers(seq).conn_queue.add(conn)
       workers(seq).loop.wakeup()

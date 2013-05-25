@@ -20,11 +20,10 @@ class Worker() extends Thread {
 
   private val sql_conns        = new ListBuffer[SQLConnection]()
   private val sql_conns_idle   = new ListBuffer[SQLConnection]()
-  private var sql_conns_max    = 2
+  private var sql_conns_max    = 20
   private var sql_conns_num    = 0
   private val sql_queue        = new ListBuffer[SQLQuery]()
-  private var sql_queue_maxlen = 10
-
+  private var sql_queue_maxlen = 100
 
   override def run : Unit = while (true) {
     println("select...")
@@ -133,7 +132,6 @@ class Worker() extends Thread {
 
     sql_conns_num += 1
     sql_conns     += conn
-    //sql_conns_idle.insert(conn)
   }
 
   private def accept() : Unit = {
@@ -147,8 +145,6 @@ class Worker() extends Thread {
     conn
       .register(loop, SelectionKey.OP_READ)
       .attach(new HTTPConnection(conn, this))
-
-    println("yeah!")
   }
 
 }
