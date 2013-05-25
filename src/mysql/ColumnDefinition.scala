@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-class ColumnDefinition {
+class ColumnDefinition extends SQLServerIssuedPacket {
 
   var catalog   : (String, Int) = null
   var schema    : (String, Int) = null

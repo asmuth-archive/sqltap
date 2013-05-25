@@ -9,6 +9,9 @@ package com.paulasmuth.sqltap.mysql
 
 object BinaryString {
 
+  def read(data: Array[Byte], pos: Int, len: Int) : String =
+    return new String(data, pos, len, "UTF-8")
+
   def read_null(data: Array[Byte], pos: Int) : (String, Int) = {
     val max : Int = data.size
     var end : Int = pos

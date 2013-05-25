@@ -36,7 +36,7 @@ class SQLConnection(worker: Worker) {
   private var cur_len : Int = 0
 
   def connect() : Unit = {
-    val addr = new InetSocketAddress("127.0.0.1", 3307)
+    val addr = new InetSocketAddress("127.0.0.1", 3306)
     sock.connect(addr)
     state = SQL_STATE_SYN
 
