@@ -19,8 +19,7 @@ object SQLTap{
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
-    'db_threads   -> "16",
-    'http_threads -> "4",
+    'http_port     -> "8080",
     'memcached_ttl -> "3600"
   )
 
@@ -79,16 +78,8 @@ object SQLTap{
 
     }
 
-    var start = true
-
-    //if (CONFIG contains 'config_base unary_!)
-    //  { log("--config required"); start = false }
-
-    //if (CONFIG contains 'db_addr unary_!)
-    //  { log("--db required"); start = false }
-
-    if (start unary_!)
-      { println; return usage(true) }
+    if (CONFIG contains 'config_base unary_!)
+      { log("--config required"); println; return usage(true)  }
 
     DEFAULTS.foreach(d =>
       if (CONFIG contains d._1 unary_!) CONFIG += d )
@@ -100,23 +91,13 @@ object SQLTap{
   }
 
   def boot = try {
-    //load_config
+    load_config
 
     val workers = List(new Worker, new Worker, new Worker, new Worker)
     for (worker <- workers) worker.start()
 
     val acceptor = new Acceptor(workers)
-    acceptor.run(2323)
-    //val db_threads = CONFIG('db_threads).toInt
-    //db_pool.connect(CONFIG('db_addr), db_threads)
-
-    //val http_threads = CONFIG('http_threads).toInt
-    //val http_port = CONFIG.getOrElse('http_port, "0")
-    //  .asInstanceOf[String].toInt
-
-    //val http = if (http_port > 0)
-    //  new HTTPServer(http_port, http_threads)
-
+    acceptor.run(CONFIG('http_port).toInt)
   } catch {
     case e: Exception => exception(e, true)
   }
