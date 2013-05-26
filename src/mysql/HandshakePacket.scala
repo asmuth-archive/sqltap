@@ -69,17 +69,11 @@ class HandshakePacket() extends SQLServerIssuedPacket {
     authp_data2   = BinaryString.read(data, cur, authp_len)
     cur          += authp_len
 
-    println("initial-handshake", capabilities, server_ver, authp_data1, conn_id,
-      status_flags, authp_len, authp_data2)
-
     // check for CLIENT_PLUGIN_AUTH flag (0x00080000)
     if ((capabilities & 0x00080000L) != 0x00080000L)
       return
 
     authp_name    = BinaryString.read_null(data, cur)
-
-    println("initial-handshake-plugin-auth", capabilities, server_ver, authp_data1, conn_id,
-      status_flags, authp_len, authp_data2, authp_name)
   }
 
 }
