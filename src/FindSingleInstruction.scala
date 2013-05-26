@@ -40,17 +40,11 @@ class FindSingleInstruction extends Instruction with ReadyCallback[SQLQuery] {
       join_id = prev.record.id
     }
 
-    if (join_field != null) {
-      running = true
-
-      val qry = new SQLQuery(
+    if (join_field != null)
+      execute_query(
         SQLBuilder.select(
           relation.resource, join_field, join_id, fields.toList, 
           conditions, order, null, null))
-
-      qry.attach(this)
-      request.worker.sql_pool.execute(qry)
-    }
 
     if (running == true)
       execute_next
