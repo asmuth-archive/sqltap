@@ -7,13 +7,13 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,Worker,SQLQuery}
+import com.paulasmuth.sqltap.{SQLTap}
 import scala.collection.mutable.{ListBuffer}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
 
-class SQLConnection(worker: Worker) {
+class SQLConnection(pool: SQLConnectionPool) {
 
   var hostname : String = "127.0.0.1"
   var port     : Int    = 3306
@@ -56,7 +56,7 @@ class SQLConnection(worker: Worker) {
     state = SQL_STATE_SYN
 
     sock
-      .register(worker.loop, SelectionKey.OP_CONNECT)
+      .register(pool.loop, SelectionKey.OP_CONNECT)
       .attach(this)
   }
 
@@ -156,7 +156,7 @@ class SQLConnection(worker: Worker) {
       return
 
     state = SQL_STATE_CLOSE
-    worker.sql_connection_close(this)
+    pool.close(this)
     sock.close()
   }
 
@@ -270,7 +270,7 @@ class SQLConnection(worker: Worker) {
     event.interestOps(0)
     last_event = event
     cur_seq = 0
-    worker.sql_connection_ready(this)
+    pool.ready(this)
   }
 
   private def authenticate() : Unit = state match {

@@ -60,7 +60,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       parser.http_headers)
 
     // STUB
-    for (n <- (1 to 20)) worker.execute_sql_query(new SQLQuery("select id, username, email from users where id < 3;"))
+    for (n <- (1 to 20)) worker.sql_pool.execute(
+      new mysql.SQLQuery("select id, username, email from users where id < 3;"))
     //EOF STUB
   }
 

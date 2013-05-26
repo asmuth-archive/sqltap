@@ -5,7 +5,7 @@
 // file except in compliance with the License. You may obtain a copy of
 // the License at: http://opensource.org/licenses/MIT
 
-package com.paulasmuth.sqltap
+package com.paulasmuth.sqltap.mysql
 
 import scala.collection.mutable.ListBuffer
 

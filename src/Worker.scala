@@ -7,17 +7,17 @@
 
 package com.paulasmuth.sqltap
 
-import com.paulasmuth.sqltap.mysql.{SQLConnection}
+import com.paulasmuth.sqltap.mysql.{SQLQuery,SQLConnectionPool}
 import java.nio.channels.{ServerSocketChannel,SelectionKey,SocketChannel}
 import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
-import scala.collection.mutable.ListBuffer
 
 // TODO
-//   > sqlconnpool
 //   > request + nonblock integration
 //   > http request router
 //   > http response writer
+//   > prepared query relation :)
+//   > multi raw sql mode
 //   > instruction refactoring / split
 //   > parser refactoring
 //   > findWhere
@@ -29,21 +29,15 @@ import scala.collection.mutable.ListBuffer
 
 class Worker() extends Thread {
 
-  val loop = SelectorProvider.provider().openSelector()
-  val conn_queue = new ConcurrentLinkedQueue[SocketChannel]()
-
-  private val sql_conns        = new ListBuffer[SQLConnection]()
-  private val sql_conns_idle   = new ListBuffer[SQLConnection]()
-  private var sql_conns_max    = 20
-  private var sql_conns_num    = 0
-  private val sql_queue        = new ListBuffer[SQLQuery]()
-  private var sql_queue_maxlen = 100
+  val queue    = new ConcurrentLinkedQueue[SocketChannel]()
+  val loop     = SelectorProvider.provider().openSelector()
+  val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
 
   override def run : Unit = while (true) {
     println("select...")
     loop.select()
 
-    while (!conn_queue.isEmpty)
+    while (!queue.isEmpty)
       accept()
 
     val events = loop.selectedKeys().iterator()
@@ -83,73 +77,8 @@ class Worker() extends Thread {
     }
   }
 
-  def execute_sql_query(query: SQLQuery) : Unit = {
-    val conn = get_sql_connection
-
-    if (conn == null) {
-      if (sql_queue.length >= sql_queue_maxlen)
-        throw new TemporaryException("sql queue is full")
-
-      sql_queue += query
-    } else {
-      conn.execute(query)
-    }
-  }
-
-  def sql_connection_ready(conn: SQLConnection) : Unit = {
-    sql_conns_idle += conn
-
-    for (n <- (0 until sql_queue.length)) {
-      val exec_conn = get_sql_connection()
-
-      if (exec_conn != null) {
-        exec_conn.execute(sql_queue.remove(0))
-      }
-    }
-  }
-
-  def sql_connection_close(conn: SQLConnection) : Unit = {
-    sql_conns -= conn
-    sql_conns_idle -= conn
-    sql_conns_num -= 1
-  }
-
-  private def get_sql_connection() : SQLConnection = {
-    if (sql_conns_num < sql_conns_max)
-      new_sql_connection()
-
-    if (sql_conns_idle.length > 0)
-      return sql_conns_idle.remove(0)
-
-    return null
-  }
-
-  private def new_sql_connection() : Unit = {
-    val conn = new mysql.SQLConnection(this)
-
-    if (SQLTap.CONFIG contains 'mysql_host)
-      conn.hostname = SQLTap.CONFIG('mysql_host)
-
-    if (SQLTap.CONFIG contains 'mysql_port)
-      conn.port = SQLTap.CONFIG('mysql_port).toInt
-
-    if (SQLTap.CONFIG contains 'mysql_user)
-      conn.username = SQLTap.CONFIG('mysql_user)
-
-    if (SQLTap.CONFIG contains 'mysql_pass)
-      conn.password = SQLTap.CONFIG('mysql_pass)
-
-    if (SQLTap.CONFIG contains 'mysql_db)
-      conn.database = SQLTap.CONFIG('mysql_db)
-
-    conn.connect()
-
-    sql_conns_num += 1
-    sql_conns     += conn
-  }
-
   private def accept() : Unit = {
-    val conn : SocketChannel = conn_queue.poll()
+    val conn : SocketChannel = queue.poll()
 
     if (conn == null)
       return

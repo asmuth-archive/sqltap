@@ -44,7 +44,7 @@ class Acceptor(workers: List[Worker]) {
 
       seq = (seq + 1) % workers.size
 
-      workers(seq).conn_queue.add(conn)
+      workers(seq).queue.add(conn)
       workers(seq).loop.wakeup()
     }
   }
