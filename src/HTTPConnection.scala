@@ -61,7 +61,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
     // STUB
     for (n <- (1 to 30)) worker.sql_pool.execute(
-      new mysql.SQLQuery("select id, username from users where id = 1;"))
+      new mysql.SQLQuery("select id, username from users where id = 1 order by id desc;"))
     //EOF STUB
 
     //new mysql.SQLQuery("select id, username from users where id < 2000000 order by created_at DESC limit 1;"))
