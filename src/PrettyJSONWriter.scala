@@ -17,8 +17,8 @@ class PrettyJSONWriter extends RequestVisitor {
   def run : Unit = {
     buf.append("[\n")
 
-    for (ind <- (0 until req.stack.root.next.length))
-      next(req.stack.root, ind)
+    //for (ind <- (0 until req.stack.root.next.length))
+    //  next(req.stack.root, ind)
 
     buf.append("\n]")
     req.resp_data = buf.toString

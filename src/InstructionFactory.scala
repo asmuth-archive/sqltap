@@ -9,6 +9,14 @@ package com.paulasmuth.sqltap
 
 object InstructionFactory {
 
+  def make(name: String) : Instruction = {
+    println("MAKE", name)
+    val ins = new FindSingleInstruction()
+
+    return ins
+  }
+
+
   def expand(cur: Instruction) : Unit = {
     /*
     val instructions = (List[Instruction]() /: cur.job.retrieve.data)(
@@ -28,10 +36,11 @@ object InstructionFactory {
   }
 
   private def copy(src: Instruction) : Instruction = {
-    var cpy = new Instruction
-    cpy.name = src.name
-    cpy.args = src.args
-    cpy
+    //var cpy = new Instruction
+    //cpy.name = src.name
+    //cpy.args = src.args
+    //cpy
+    src
   }
 
   private def link(par: Instruction, cld: Instruction) : Unit = {

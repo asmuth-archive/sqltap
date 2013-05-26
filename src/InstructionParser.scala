@@ -13,7 +13,7 @@ package com.paulasmuth.sqltap
 
 object InstructionParser {
 
-  def parse(cur: Instruction) : Unit = cur.name match {
+/*  def parse(cur: Instruction) : Unit = cur.name match {
 
     case "findOne" => {
       cur.name = "findSingle"
@@ -63,5 +63,6 @@ object InstructionParser {
       throw new ParseException("invalid instruction: " + cur.name)
 
   }
+*/
 
 }

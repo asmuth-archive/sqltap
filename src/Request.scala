@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 class Request(_req_str: String, _worker: Worker) {
 
-  val stack = new InstructionStack
+  //val stack = new InstructionStack
   var etime = List[Long]()
 
   val req_str = _req_str
@@ -29,11 +29,11 @@ class Request(_req_str: String, _worker: Worker) {
     etime = etime :+ System.nanoTime
 
     println("INSTRUCTION STACK:")
-    stack.inspect()
+    //stack.inspect()
 
     //executor.run(this)
     
-    stack.root.execute(this)
+    //stack.root.execute(this)
     etime = etime :+ System.nanoTime
 
     //writer.run(this)

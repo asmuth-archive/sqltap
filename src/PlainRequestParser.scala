@@ -7,11 +7,16 @@
 
 package com.paulasmuth.sqltap
 
+import scala.collection.mutable.ListBuffer
+
 class PlainRequestParser extends RequestVisitor {
 
   var scope = 'root
   var depth = 0
   var funcb = 0
+
+  var args  = new ListBuffer[String]()
+  var stack = new ListBuffer[Instruction]()
 
   val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
   val t_sfld = """^([0-9a-z_\-]+)([,\}].*)""".r // fixpaul
@@ -25,7 +30,7 @@ class PlainRequestParser extends RequestVisitor {
   val t_fall = """\*([\},].*)""".r
 
   def run : Unit = {
-    if(req.req_str == null)
+    if (req.req_str == null)
       throw new ParseException("no query string")
 
     SQLTap.log_debug("Request: " + req.req_str)
@@ -40,7 +45,7 @@ class PlainRequestParser extends RequestVisitor {
 
     if (SQLTap.debug) {
       SQLTap.log_debug("Parser stack:")
-      req.stack.inspect
+      stack.head.inspect(0)
     }
   }
 
@@ -66,10 +71,7 @@ class PlainRequestParser extends RequestVisitor {
         { pop; parse(tail) }
 
       case t_ssep(tail: String) =>
-        if (scope == 'root)
-          { pop; push_down; parse(tail) }
-        else
-          { parse(tail) }
+        { parse(tail) }
 
       case _ => done = false
     }
@@ -82,10 +84,10 @@ class PlainRequestParser extends RequestVisitor {
     next match {
 
       case t_rsrc(arg: String, tail: String) =>
-        { req.stack.push_arg(arg); parse(tail) }
+        {  println("ARG", arg); args += arg; parse(tail) }
 
       case t_func(name: String, tail: String) =>
-        { req.stack.head.name = name; parse(tail); if (name != "countAll") funcb += 1 }
+        { args += name; parse(tail); if (name != "countAll") funcb += 1 }
 
       case _ => done = false
     }
@@ -96,14 +98,14 @@ class PlainRequestParser extends RequestVisitor {
     next match {
 
       case t_fall(tail: String) =>
-        { req.stack.head.name = "fetch"; req.stack.push_arg("*"); parse(tail) }
+        { stack.head.fields += "*"; parse(tail) }
 
       case t_sfld(name: String, tail: String) =>
-        { req.stack.head.name = "fetch"; req.stack.push_arg(name); parse(tail) }
+        { stack.head.fields += name; parse(tail) }
 
       case t_sarg(arg: String, tail: String) =>
         if (scope == 'arg)
-          { req.stack.push_arg(arg); parse(tail) }
+          { args += arg; parse(tail) }
         else
           throw new ParseException("unexpected token: " + arg)
 
@@ -112,13 +114,19 @@ class PlainRequestParser extends RequestVisitor {
     }
   }
 
-  private def push_down =
-    { depth += 1; emit; req.stack.push_down }
+  private def push_down = {
+    InstructionFactory.make(args.head) +=: stack
+    args.clear
+    depth += 1
+  }
 
-  private def pop =
-    { depth -= 1; emit; req.stack.pop }
+  private def pop = {
+    if (stack.length != 1) {
+      val ins = stack.remove(0)
+      stack.head.next += ins
+    }
 
-  private def emit =
-    InstructionParser.parse(req.stack.head)
+    depth -= 1 
+  }
 
 }

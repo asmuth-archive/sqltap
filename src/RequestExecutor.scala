@@ -18,7 +18,7 @@ class RequestExecutor extends RequestVisitor {
 
   def run() : Unit = {
     stime = System.nanoTime
-    stack += req.stack.root
+    //stack += req.stack.root
     next
   }
 

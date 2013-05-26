@@ -10,10 +10,12 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 import scala.collection.mutable.ListBuffer
 
-class Instruction extends ReadyCallback[SQLQuery] {
-  var name : String = null
-  var args = ListBuffer[String]()
-  var next = List[Instruction]()
+trait Instruction {
+
+  val name : String
+
+  var fields = ListBuffer[String]()
+  var next = ListBuffer[Instruction]()
   var prev : Instruction = null
 
   var running = false
@@ -24,13 +26,15 @@ class Instruction extends ReadyCallback[SQLQuery] {
   var relation : ResourceRelation = null
   var record : Record = null
 
-  def inspect(lvl: Int) : Unit = 
-    SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: [" + (
-      if (args.size > 0) args.mkString(", ") else "none") + "]")
+  def inspect(lvl: Int) : Unit = {
+    SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", fields: [" + (
+      if (fields.size > 0) fields.mkString(", ") else "none") + "]")
 
+    for (ins <- next)
+      ins.inspect(lvl+1)
+  }
 
-  // FIXPAUL: refactor this, it should be three classes (FindSingleInstruction, ...)
-  def execute(req: Request) : Unit = {
+  def execute(req: Request) : Unit  /* = {
     println("EXECUTE NOW")
     inspect(0)
 
@@ -111,10 +115,10 @@ class Instruction extends ReadyCallback[SQLQuery] {
 
         if (prev == req.stack.root) {
           running = true
-          /*job = SQLTap.db_pool.execute(
-            SQLBuilder.select(relation.resource, null, 0,
-              args.slice(5, args.size).toList,
-              args(1), args(2), args(3), args(4)))*/
+          // job = SQLTap.db_pool.execute(
+          //  SQLBuilder.select(relation.resource, null, 0,
+          //    args.slice(5, args.size).toList,
+          //    args(1), args(2), args(3), args(4)))
         }
 
         else if (relation.join_foreign == true && prev.record.has_id) {
@@ -124,11 +128,11 @@ class Instruction extends ReadyCallback[SQLQuery] {
           if (args(1) == null && relation.join_cond != null)
             args(1) = relation.join_cond
 
-          /*job = SQLTap.db_pool.execute(
-            SQLBuilder.select(relation.resource,
-              relation.join_field, record.id,
-              args.slice(5, args.size).toList,
-              args(1), args(2), args(3), args(4)))*/
+          //job = SQLTap.db_pool.execute(
+          //  SQLBuilder.select(relation.resource,
+          //    relation.join_field, record.id,
+          //    args.slice(5, args.size).toList,
+          //    args(1), args(2), args(3), args(4)))
         }
 
         else if (relation.join_foreign == false)
@@ -148,9 +152,9 @@ class Instruction extends ReadyCallback[SQLQuery] {
           if (args(1) == null && relation.join_cond != null)
             args(1) = relation.join_cond
 
-          /*job = SQLTap.db_pool.execute(
-            SQLBuilder.count(relation.resource,
-              relation.join_field, record.id, args(1)))*/
+          //job = SQLTap.db_pool.execute(
+          //  SQLBuilder.count(relation.resource,
+          //    relation.join_field, record.id, args(1)))
 
         }
 
@@ -162,50 +166,6 @@ class Instruction extends ReadyCallback[SQLQuery] {
     }
   }
 
-  def ready(query: SQLQuery) : Unit = {
-    println("READY!")
-
-    if (next.size == 0)
-      println("UNROLL!!!!")
-
-    name match {
-
-      case "findSingle" => {
-        /*
-        if (query.rows.length == 0)
-          throw new NotFoundException(cur)
-        else
-          record.load(job.retrieve.head, job.retrieve.data.head)
-          */
-      }
-
-      case "countMulti" => {
-        /*
-        if (query.rows.length == 0)
-          throw new NotFoundException(cur)
-        else {
-          record.set("__count", job.retrieve.data.head.head)
-        }
-        */
-      }
-
-      case "findMulti" => {
-        if (query.rows.length == 0)
-          next = List[Instruction]()
-
-        else {
-          val skip_execution = (next.length == 0)
-          InstructionFactory.expand(this)
-
-          if (skip_execution)
-            return
-
-          //for (ins <- next)
-          //  stack += ins
-        }
-      }
-
-    }
-  }
+*/
 
 }
