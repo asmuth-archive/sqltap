@@ -111,8 +111,10 @@ class PlainRequestParser(req: Request) {
   }
 
   private def push_down = {
-    stack.push_down(
-      InstructionFactory.make(args))
+    val ins = InstructionFactory.make(args)
+    ins.request = req
+
+    stack.push_down(ins)
 
     args.clear
     depth += 1

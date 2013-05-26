@@ -33,7 +33,7 @@ class Request(_req_str: String, _worker: Worker) {
       stack.inspect()
     }
 
-    stack.head.execute(this)
+    stack.head.execute()
     etime = etime :+ System.nanoTime
 
     //writer.run(this)

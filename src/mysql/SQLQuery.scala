@@ -33,7 +33,7 @@ class SQLQuery(query_str: String) {
 
     tok = System.nanoTime
     qtime = tok - tik
-    println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
+   println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query) //, columns, rows)
   }
 
   def attach(_callback: ReadyCallback[SQLQuery]) : Unit =

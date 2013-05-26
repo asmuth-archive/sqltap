@@ -19,9 +19,8 @@ class RequestExecutor extends RequestVisitor {
   def run() : Unit = {
     stime = System.nanoTime
     //stack += req.stack.root
-    next
   }
-
+/*
   private def next() : Unit = {
     val search_depth =
       Math.min(SEARCH_DEPTH, stack.length - 1)
@@ -47,6 +46,8 @@ class RequestExecutor extends RequestVisitor {
       SQLTap.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.query.query)
     }
   }
+
+*/
 
   private def execute(cur: Instruction) : Unit =()
 /*

@@ -22,9 +22,10 @@ trait Instruction {
   var running = false
   var ready = false
 
-  var query : SQLQuery = null
   var relation : ResourceRelation = null
   var record : Record = null
+
+  var request : Request = null
 
   def inspect(lvl: Int) : Unit =
     SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
@@ -46,7 +47,7 @@ trait Instruction {
     inspect(0)
   }
 
-  def execute(req: Request) : Unit /* = {
+  def execute() : Unit /* = {
     println("EXECUTE NOW")
     name match {
 
@@ -109,5 +110,10 @@ trait Instruction {
   }
 
 */
+
+  def execute_next() : Unit =
+    for (ins <- next)
+      if (ins.running == false)
+        ins.execute()
 
 }

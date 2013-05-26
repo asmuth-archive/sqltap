@@ -14,7 +14,7 @@ class FindSingleInstruction extends Instruction with ReadyCallback[SQLQuery] {
   var conditions : String = null
   var order      : String = null
 
-  def execute(req: Request) : Unit = {
+  def execute() : Unit = {
     var join_field : String = null
     var join_id    : Int    = 0
 
@@ -49,10 +49,20 @@ class FindSingleInstruction extends Instruction with ReadyCallback[SQLQuery] {
           conditions, order, null, null))
 
       qry.attach(this)
-      req.worker.sql_pool.execute(qry)
+      request.worker.sql_pool.execute(qry)
     }
+
+    if (running == true)
+      execute_next
   }
 
-  def ready(qry: SQLQuery) : Unit = ()
+  def ready(qry: SQLQuery) : Unit = {
+    if (qry.rows.length == 0)
+      throw new NotFoundException(this)
+    //else
+    //  record.load(job.retrieve.head, job.retrieve.data.head)
+
+    execute_next
+  }
 
 }
