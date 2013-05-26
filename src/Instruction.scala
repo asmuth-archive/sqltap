@@ -39,39 +39,6 @@ trait Instruction extends ReadyCallback[SQLQuery] {
       throw new ExecutionException("relation not found: " + resource_name)
   }
 
-/*
-
-
-      }
-
-      case "countMulti" => {
-
-        if (prev == req.stack.root)
-          throw new ExecutionException("countAll is not supported for root resources")
-
-        else if (relation.join_foreign == true && prev.record.has_id) {
-          record.set_id(prev.record.id)
-          running = true
-
-          if (args(1) == null && relation.join_cond != null)
-            args(1) = relation.join_cond
-
-          //job = SQLTap.db_pool.execute(
-          //  SQLBuilder.count(relation.resource,
-          //    relation.join_field, record.id, args(1)))
-
-        }
-
-        else if (relation.join_foreign == false)
-          throw new ParseException("countAll on a non-foreign relation")
-
-      }
-
-    }
-  }
-
-*/
-
   def execute_query(qry_str: String) : Unit = {
     val qry = new SQLQuery(qry_str)
     qry.attach(this)
@@ -80,15 +47,15 @@ trait Instruction extends ReadyCallback[SQLQuery] {
   }
 
 
-  def execute_next() : Unit =
+  def execute_next() : Unit = {
     for (ins <- next)
       if (ins.running == false)
         ins.execute()
+  }
 
-
-  def inspect(lvl: Int) : Unit =
+  def inspect(lvl: Int) : Unit = {
     SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
       if (fields.size > 0) fields.mkString(", ") else "none") + "]")
-
+  }
 
 }
