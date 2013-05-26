@@ -18,6 +18,7 @@ class Request(_req_str: String, worker: Worker) {
   var resp_data : String = null
 
   private val parser = new PlainRequestParser()
+  private val executor = new RequestExecutor()
 
   def run() : Request = {
     etime = etime :+ System.nanoTime
@@ -28,7 +29,7 @@ class Request(_req_str: String, worker: Worker) {
     println("INSTRUCTION STACK:")
     stack.inspect()
 
-    //executor.run(this)
+    executor.run(this)
     etime = etime :+ System.nanoTime
 
     //writer.run(this)

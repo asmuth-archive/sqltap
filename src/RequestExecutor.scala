@@ -83,9 +83,8 @@ class RequestExecutor extends RequestVisitor {
 
       }
 
-      peek(cur)
+      cur.execute(req)
     }
-
 
 
   private def prepare(cur: Instruction) = {
@@ -142,101 +141,4 @@ class RequestExecutor extends RequestVisitor {
 
   }
 
-  private def peek(cur: Instruction) : Unit = cur.name match {
-
-    case "findSingle" => {
-      var join_field : String = null
-      var join_id    : Int    = 0
-
-      if (cur.args.size < 5)
-        throw new ParseException("empty field list")
-
-      if (cur.record.has_id) {
-        join_field = cur.relation.resource.id_field
-        join_id = cur.record.id
-      }
-
-      else if (cur.relation.join_foreign == false && cur.prev.ready) {
-        join_field = cur.relation.resource.id_field
-        join_id = cur.prev.record.get(cur.relation.join_field).toInt
-        cur.record.set_id(join_id)
-      }
-
-      else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
-        join_field = cur.relation.join_field
-        join_id = cur.prev.record.id
-      }
-
-      if (join_field != null) {
-        cur.running = true
-        cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.select(
-            cur.relation.resource,
-            join_field,
-            join_id,
-            cur.args.slice(4, cur.args.size).toList, // fields
-            cur.args(2), // cond
-            cur.args(3), // order
-            null, // limit
-            null  // offset
-          ))
-      }
-    }
-
-    case "findMulti" => {
-
-      if (cur.args.size < 6)
-        throw new ParseException("empty field list")
-
-      if (cur.prev == req.stack.root) {
-        cur.running = true
-        cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.select(cur.relation.resource, null, 0,
-            cur.args.slice(5, cur.args.size).toList,
-            cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
-      }
-
-      else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
-        cur.record.set_id(cur.prev.record.id)
-        cur.running = true
-
-        if (cur.args(1) == null && cur.relation.join_cond != null)
-          cur.args(1) = cur.relation.join_cond
-
-        cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.select(cur.relation.resource,
-            cur.relation.join_field, cur.record.id,
-            cur.args.slice(5, cur.args.size).toList,
-            cur.args(1), cur.args(2), cur.args(3), cur.args(4)))
-      }
-
-      else if (cur.relation.join_foreign == false)
-        throw new ParseException("findSome on a non-foreign relation")
-
-    }
-
-    case "countMulti" => {
-
-      if (cur.prev == req.stack.root)
-        throw new ExecutionException("countAll is not supported for root resources")
-
-      else if (cur.relation.join_foreign == true && cur.prev.record.has_id) {
-        cur.record.set_id(cur.prev.record.id)
-        cur.running = true
-
-        if (cur.args(1) == null && cur.relation.join_cond != null)
-          cur.args(1) = cur.relation.join_cond
-
-        cur.job = SQLTap.db_pool.execute(
-          SQLBuilder.count(cur.relation.resource,
-            cur.relation.join_field, cur.record.id, cur.args(1)))
-
-      }
-
-      else if (cur.relation.join_foreign == false)
-        throw new ParseException("countAll on a non-foreign relation")
-
-    }
-
-  }
 }
