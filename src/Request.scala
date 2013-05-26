@@ -7,12 +7,14 @@
 
 package com.paulasmuth.sqltap
 
-class Request(_req_str: String, worker: Worker) {
+class Request(_req_str: String, _worker: Worker) {
 
   val stack = new InstructionStack
   var etime = List[Long]()
 
   val req_str = _req_str
+  val worker  = _worker
+
   //var ready = false
   var resp_status : Int = 200
   var resp_data : String = null
@@ -29,7 +31,9 @@ class Request(_req_str: String, worker: Worker) {
     println("INSTRUCTION STACK:")
     stack.inspect()
 
-    executor.run(this)
+    //executor.run(this)
+    
+    stack.root.execute(this)
     etime = etime :+ System.nanoTime
 
     //writer.run(this)

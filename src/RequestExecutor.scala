@@ -27,49 +27,31 @@ class RequestExecutor extends RequestVisitor {
       Math.min(SEARCH_DEPTH, stack.length - 1)
 
     for (idx <- (0 to search_depth).reverse)
-      if (stack(idx).running == false) {
+      if (stack(idx).running != true) {
         execute(stack(idx))
 
-        if (stack(idx).running) 
+        if (stack(idx).running)
           return next
       }
-
-    pop(stack.remove(0))
-
-    if (stack.length > 0)
-      next
   }
 
   private def pop(cur: Instruction) : Unit = {
-    if (cur.ready)
-      return
-
-    if (cur.job == null)
-      throw new ExecutionException("deadlock while executing: " + 
-        cur.name + ", " + cur.args.mkString(","))
-
-    if (cur.job.retrieve.error != null)
-      throw new ExecutionException(cur.job.retrieve.error)
+    if (cur.query.error != null)
+      throw new ExecutionException(cur.query.error)
 
     cur.ready = true
 
     if (SQLTap.debug) {
-      val qtime = (cur.job.result.qtime / 1000000.0).toString
+      val qtime = (cur.query.qtime / 1000000.0).toString
       val otime = ((System.nanoTime - stime) / 1000000.0).toString
-      SQLTap.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.job.query)
+      SQLTap.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.query.query)
     }
 
     fetch(cur)
   }
 
-  private def execute(cur: Instruction) : Unit =
-
-    if (cur.name == "execute") {
-      cur.ready = true
-
-      for (next <- cur.next)
-        execute(next)
-    }
+  private def execute(cur: Instruction) : Unit =()
+/*
 
     else {
       if (cur.relation == null) {
@@ -85,23 +67,9 @@ class RequestExecutor extends RequestVisitor {
 
       cur.execute(req)
     }
-
+*/
 
   private def prepare(cur: Instruction) = {
-
-    if (cur.prev == req.stack.root) {
-      cur.relation = SQLTap.manifest(cur.args(0)).to_relation
-    } else {
-      cur.relation = cur.prev.relation.resource.relation(cur.args(0))
-    }
-
-    if (cur.relation != null)
-      cur.prepare
-    else
-      throw new ExecutionException("relation not found: " + cur.args(0))
-
-    if(cur.name == "findSingle" && cur.args(1) != null)
-      cur.record.set_id(cur.args(1).toInt)
 
   }
 
@@ -109,22 +77,26 @@ class RequestExecutor extends RequestVisitor {
   private def fetch(cur: Instruction) : Unit =  cur.name match {
 
     case "findSingle" => {
-      if (cur.job.retrieve.data.length == 0)
+      /*
+      if (cur.query.rows.length == 0)
         throw new NotFoundException(cur)
       else
         cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
+        */
     }
 
     case "countMulti" => {
-      if (cur.job.retrieve.data.length == 0)
+      /*
+      if (cur.query.rows.length == 0)
         throw new NotFoundException(cur)
       else {
         cur.record.set("__count", cur.job.retrieve.data.head.head)
       }
+      */
     }
 
     case "findMulti" => {
-      if (cur.job.retrieve.data.length == 0)
+      if (cur.query.rows.length == 0)
         cur.next = List[Instruction]()
 
       else {

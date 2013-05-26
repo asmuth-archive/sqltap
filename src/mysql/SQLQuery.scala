@@ -16,6 +16,7 @@ class SQLQuery(query_str: String) {
   var rows     = new ListBuffer[ListBuffer[String]]()
   var num_cols : Int  = 0
   var qtime    : Long = 0
+  var error    : String = null
 
   private var tik : Long = 0
   private var tok : Long = 0
@@ -27,8 +28,7 @@ class SQLQuery(query_str: String) {
   def ready() : Unit = {
     tok = System.nanoTime
     qtime = tok - tik
-    //println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
-    println("SQL_QUERY_READY", (qtime / 1000000.toDouble))
+    println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
   }
 
 }

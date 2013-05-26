@@ -10,6 +10,7 @@ package com.paulasmuth.sqltap
 object InstructionFactory {
 
   def expand(cur: Instruction) : Unit = {
+    /*
     val instructions = (List[Instruction]() /: cur.job.retrieve.data)(
       (lst: List[Instruction], row: List[String]) => {
         val ins = new Instruction
@@ -23,6 +24,7 @@ object InstructionFactory {
       })
 
     cur.next = instructions
+    */
   }
 
   private def copy(src: Instruction) : Instruction = {
