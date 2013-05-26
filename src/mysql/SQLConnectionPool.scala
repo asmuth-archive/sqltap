@@ -23,6 +23,9 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
   private val connections_idle = new ListBuffer[SQLConnection]()
   private val queue            = new ListBuffer[SQLQuery]()
 
+  for (n <- (0 until max_connections))
+    connect()
+
   def execute(query: SQLQuery) : Unit = {
     val connection = get
 
