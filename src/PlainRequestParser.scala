@@ -9,14 +9,14 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.ListBuffer
 
-class PlainRequestParser extends RequestVisitor {
+class PlainRequestParser(req: Request) {
 
+  val stack = req.stack
   var scope = 'root
   var depth = 0
   var funcb = 0
 
   var args  = new ListBuffer[String]()
-  var stack = new InstructionStack()
 
   val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
   val t_sfld = """^([0-9a-z_\-]+)([,\}].*)""".r // fixpaul
@@ -29,7 +29,7 @@ class PlainRequestParser extends RequestVisitor {
   val t_ssep = """^,(.*)""".r
   val t_fall = """\*([\},].*)""".r
 
-  def run : Unit = {
+  def run() : Unit = {
     if (req.req_str == null)
       throw new ParseException("no query string")
 
@@ -43,10 +43,6 @@ class PlainRequestParser extends RequestVisitor {
     if (funcb != 0)
       throw new ParseException("instruction missing {}-body")
 
-    if (SQLTap.debug) {
-      SQLTap.log_debug("Parser stack:")
-      stack.inspect
-    }
   }
 
 

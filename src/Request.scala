@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 class Request(_req_str: String, _worker: Worker) {
 
-  //val stack = new InstructionStack
+  val stack = new InstructionStack()
   var etime = List[Long]()
 
   val req_str = _req_str
@@ -19,21 +19,21 @@ class Request(_req_str: String, _worker: Worker) {
   var resp_status : Int = 200
   var resp_data : String = null
 
-  private val parser = new PlainRequestParser()
-  private val executor = new RequestExecutor()
 
   def run() : Request = {
     etime = etime :+ System.nanoTime
 
-    parser.run(this)
+    // FIXPAUL: this should be a static method!
+    (new PlainRequestParser(this)).run
+
     etime = etime :+ System.nanoTime
 
-    println("INSTRUCTION STACK:")
-    //stack.inspect()
+    if (SQLTap.debug) {
+      SQLTap.log_debug("Request:")
+      stack.inspect()
+    }
 
-    //executor.run(this)
-    
-    //stack.root.execute(this)
+    stack.head.execute(this)
     etime = etime :+ System.nanoTime
 
     //writer.run(this)
