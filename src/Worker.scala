@@ -34,7 +34,7 @@ class Worker() extends Thread {
   val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
 
   override def run : Unit = while (true) {
-    println("select...")
+    //println("select...")
     loop.select()
 
     while (!queue.isEmpty)
@@ -70,6 +70,7 @@ class Worker() extends Thread {
         } catch {
           case e: Exception => {
             SQLTap.error("[SQL] exception: " + e.toString, false)
+            SQLTap.exception(e, false)
             conn.close
           }
         }

@@ -15,20 +15,22 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class SQLConnection(pool: SQLConnectionPool) {
 
-  var hostname : String = "127.0.0.1"
-  var port     : Int    = 3306
-  var username : String = "root"
-  var password : String = ""
-  var database : String = ""
+  var hostname  : String  = "127.0.0.1"
+  var port      : Int     = 3306
+  var username  : String  = "root"
+  var password  : String  = ""
+  var database  : String  = ""
+  var safe_mode : Boolean = false
 
   private val SQL_STATE_SYN     = 1
   private val SQL_STATE_ACK     = 2
   private val SQL_STATE_OLDAUTH = 3
-  private val SQL_STATE_IDLE    = 4
-  private val SQL_STATE_QINIT   = 5
-  private val SQL_STATE_QCOL    = 6
-  private val SQL_STATE_QROW    = 7
-  private val SQL_STATE_CLOSE   = 8
+  private val SQL_STATE_SINIT   = 4
+  private val SQL_STATE_IDLE    = 5
+  private val SQL_STATE_QINIT   = 6
+  private val SQL_STATE_QCOL    = 7
+  private val SQL_STATE_QROW    = 8
+  private val SQL_STATE_CLOSE   = 9
 
   // max packet length: 16mb
   private val SQL_MAX_PKT_LEN    = 16777215
@@ -243,6 +245,11 @@ class SQLConnection(pool: SQLConnectionPool) {
 
     case SQL_STATE_ACK => {
       SQLTap.log_debug("[SQL] connection established!")
+      init_session(event)
+    }
+
+    case SQL_STATE_SINIT => {
+      SQLTap.log_debug("[SQL] connection ready")
       idle(event)
     }
 
@@ -303,6 +310,18 @@ class SQLConnection(pool: SQLConnectionPool) {
       write_packet(auth_pkt)
     }
 
+  }
+
+  private def init_session(event: SelectionKey) : Unit = {
+    if (safe_mode)
+      return idle(event)
+
+    state = SQL_STATE_SINIT
+    cur_seq = 0
+
+    write_query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;")
+
+    event.interestOps(SelectionKey.OP_WRITE)
   }
 
   private def write_packet(packet: SQLClientIssuedPacket) = {

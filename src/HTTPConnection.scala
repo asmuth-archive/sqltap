@@ -60,9 +60,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       parser.http_headers)
 
     // STUB
-    for (n <- (1 to 20)) worker.sql_pool.execute(
-      new mysql.SQLQuery("select id, username, email from users where id < 3;"))
+    for (n <- (1 to 30)) worker.sql_pool.execute(
+      new mysql.SQLQuery("select id, username from users where id = 1;"))
     //EOF STUB
+
+    //new mysql.SQLQuery("select id, username from users where id < 2000000 order by created_at DESC limit 1;"))
   }
 
   def error(e: Throwable) : Unit = e match {
@@ -80,6 +82,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
     case e: Exception => {
       SQLTap.error("[HTTP] exception: " + e.toString, false)
+      SQLTap.exception(e, false)
       close
     }
   }

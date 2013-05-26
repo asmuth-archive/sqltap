@@ -93,7 +93,7 @@ object SQLTap{
   def boot = try {
     load_config
 
-    val workers = List(new Worker, new Worker, new Worker, new Worker)
+    val workers = List(new Worker)
     for (worker <- workers) worker.start()
 
     val acceptor = new Acceptor(workers)
