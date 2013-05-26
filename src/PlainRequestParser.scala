@@ -116,7 +116,7 @@ class PlainRequestParser extends RequestVisitor {
 
   private def push_down = {
     stack.push_down(
-      InstructionFactory.make(args.head))
+      InstructionFactory.make(args))
 
     args.clear
     depth += 1

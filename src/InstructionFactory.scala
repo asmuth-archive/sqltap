@@ -7,11 +7,64 @@
 
 package com.paulasmuth.sqltap
 
+import scala.collection.mutable.ListBuffer
+
 object InstructionFactory {
 
-  def make(name: String) : Instruction = {
-    println("MAKE", name)
-    val ins = new FindSingleInstruction()
+  private def copy(src: Instruction) : Instruction = {
+    //var cpy = new Instruction
+    //cpy.name = src.name
+    //cpy.args = src.args
+    //cpy
+    src
+  }
+
+  private def link(par: Instruction, cld: Instruction) : Unit = {
+    cld.prev = par
+    par.next = par.next :+ cld
+  }
+
+  private def deep_copy(src: Instruction, dst: Instruction) : Unit =
+    for (nxt <- src.next) {
+      var cpy = copy(nxt)
+      link(dst, cpy)
+      deep_copy(nxt, cpy)
+    }
+
+  def make(args: ListBuffer[String]) : Instruction = {
+    println("MAKE", args)
+    var ins : Instruction = null
+
+    args(1) match {
+
+      case "findOne" => {
+        ins = new FindSingleInstruction(args(0))
+      }
+
+      case "findAll" => {
+        ins = new FindSingleInstruction(args(0))
+
+        /*
+        val limit = if (cur.args.size == 2)
+          cur.args(1) else null
+        */
+      }
+
+      case "countAll" => {
+        ins = new FindSingleInstruction(args(0))
+      }
+
+      /*
+      case "fetch" => {
+        cur.prev.next = cur.prev.next diff List(cur)
+        cur.prev.args = cur.prev.args :+ cur.args.head
+      }
+      */
+
+      case _ =>
+        throw new ParseException("invalid instruction: " + args(1))
+
+    }
 
     return ins
   }
@@ -34,25 +87,5 @@ object InstructionFactory {
     cur.next = instructions
     */
   }
-
-  private def copy(src: Instruction) : Instruction = {
-    //var cpy = new Instruction
-    //cpy.name = src.name
-    //cpy.args = src.args
-    //cpy
-    src
-  }
-
-  private def link(par: Instruction, cld: Instruction) : Unit = {
-    cld.prev = par
-    par.next = par.next :+ cld
-  }
-
-  private def deep_copy(src: Instruction, dst: Instruction) : Unit =
-    for (nxt <- src.next) {
-      var cpy = copy(nxt)
-      link(dst, cpy)
-      deep_copy(nxt, cpy)
-    }
 
 }

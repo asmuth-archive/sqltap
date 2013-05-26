@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-class FindSingleInstruction extends Instruction {
+class FindSingleInstruction(res: String) extends Instruction {
 
   val name : String = "findOne"
 
