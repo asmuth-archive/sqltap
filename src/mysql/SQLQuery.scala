@@ -7,6 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
+import com.paulasmuth.sqltap.{ReadyCallback}
 import scala.collection.mutable.ListBuffer
 
 class SQLQuery(query_str: String) {
@@ -17,6 +18,7 @@ class SQLQuery(query_str: String) {
   var num_cols : Int  = 0
   var qtime    : Long = 0
   var error    : String = null
+  var callback : ReadyCallback[SQLQuery] = null
 
   private var tik : Long = 0
   private var tok : Long = 0
@@ -26,9 +28,15 @@ class SQLQuery(query_str: String) {
   }
 
   def ready() : Unit = {
+    if (callback != null)
+      callback.ready(this)
+
     tok = System.nanoTime
     qtime = tok - tik
     println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
   }
+
+  def attach(_callback: ReadyCallback[SQLQuery]) : Unit =
+    callback = _callback
 
 }

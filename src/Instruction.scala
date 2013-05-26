@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 import scala.collection.mutable.ListBuffer
 
-class Instruction {
+class Instruction extends ReadyCallback[SQLQuery] {
   var name : String = null
   var args = ListBuffer[String]()
   var next = List[Instruction]()
@@ -99,6 +99,7 @@ class Instruction {
               null  // offset
             ))
 
+          qry.attach(this)
           req.worker.sql_pool.execute(qry)
         }
       }
@@ -159,6 +160,10 @@ class Instruction {
       }
 
     }
+  }
+
+  def ready(query: SQLQuery) = {
+    println("READY!")
   }
 
 }
