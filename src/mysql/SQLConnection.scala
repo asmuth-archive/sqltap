@@ -236,6 +236,11 @@ class SQLConnection(pool: SQLConnectionPool) {
 
   private def packet_ok(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
 
+    case SQL_STATE_QINIT => {
+      cur_qry.ready()
+      idle(event)
+    }
+
     case SQL_STATE_ACK => {
       SQLTap.log_debug("[SQL] connection established!")
       idle(event)

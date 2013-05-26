@@ -27,7 +27,8 @@ class SQLQuery(query_str: String) {
   def ready() : Unit = {
     tok = System.nanoTime
     qtime = tok - tik
-    println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
+    //println("SQL_QUERY_READY", (qtime / 1000000.toDouble), query, columns, rows)
+    println("SQL_QUERY_READY", (qtime / 1000000.toDouble))
   }
 
 }
