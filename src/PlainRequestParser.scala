@@ -16,7 +16,7 @@ class PlainRequestParser extends RequestVisitor {
   var funcb = 0
 
   var args  = new ListBuffer[String]()
-  var stack = new ListBuffer[Instruction]()
+  var stack = new InstructionStack()
 
   val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
   val t_sfld = """^([0-9a-z_\-]+)([,\}].*)""".r // fixpaul
@@ -45,7 +45,7 @@ class PlainRequestParser extends RequestVisitor {
 
     if (SQLTap.debug) {
       SQLTap.log_debug("Parser stack:")
-      stack.head.inspect(0)
+      stack.inspect
     }
   }
 
@@ -84,7 +84,7 @@ class PlainRequestParser extends RequestVisitor {
     next match {
 
       case t_rsrc(arg: String, tail: String) =>
-        {  println("ARG", arg); args += arg; parse(tail) }
+        { args += arg; parse(tail) }
 
       case t_func(name: String, tail: String) =>
         { args += name; parse(tail); if (name != "countAll") funcb += 1 }
@@ -98,10 +98,10 @@ class PlainRequestParser extends RequestVisitor {
     next match {
 
       case t_fall(tail: String) =>
-        { stack.head.fields += "*"; parse(tail) }
+        { stack.push_field("*"); parse(tail) }
 
       case t_sfld(name: String, tail: String) =>
-        { stack.head.fields += name; parse(tail) }
+        { stack.push_field(name); parse(tail) }
 
       case t_sarg(arg: String, tail: String) =>
         if (scope == 'arg)
@@ -115,18 +115,18 @@ class PlainRequestParser extends RequestVisitor {
   }
 
   private def push_down = {
-    InstructionFactory.make(args.head) +=: stack
+    stack.push_down(
+      InstructionFactory.make(args.head))
+
     args.clear
     depth += 1
   }
 
   private def pop = {
-    if (stack.length != 1) {
-      val ins = stack.remove(0)
-      stack.head.next += ins
-    }
+    if (stack.length != 1)
+      stack.pop()
 
-    depth -= 1 
+    depth -= 1
   }
 
 }

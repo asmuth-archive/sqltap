@@ -26,13 +26,9 @@ trait Instruction {
   var relation : ResourceRelation = null
   var record : Record = null
 
-  def inspect(lvl: Int) : Unit = {
+  def inspect(lvl: Int) : Unit =
     SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", fields: [" + (
       if (fields.size > 0) fields.mkString(", ") else "none") + "]")
-
-    for (ins <- next)
-      ins.inspect(lvl+1)
-  }
 
   def execute(req: Request) : Unit  /* = {
     println("EXECUTE NOW")

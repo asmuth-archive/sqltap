@@ -9,24 +9,28 @@ package com.paulasmuth.sqltap
 
 class InstructionStack {
 
-  val root : Instruction = null
-  var head : Instruction = null
+  val root   : Instruction = null
+  var head   : Instruction = null
+  var length : Int         = 0
 
-  def push_down : Unit = {
-    //val next = new Instruction
-    //head.next = head.next :+ next
-    //next.prev = head
-    //head = next
+  def push_down(ins: Instruction) : Unit = {
+    ins.prev = head
+    head = ins
+    length += 1
   }
 
-  def pop : Unit =
-    head = head.prev
+  def push_field(field: String) =
+    head.fields += field
 
-  //def push_arg(arg: String) =
-  //  head.args += arg
+  def pop() : Unit = {
+    val ins = head
+    head = head.prev
+    head.next += ins
+    length -= 1
+  }
 
   def inspect() : Unit =
-    inspect_one(root, 1)
+    inspect_one(head, 1)
 
   private def inspect_one(cur: Instruction, lvl: Int) : Unit = {
     cur.inspect(lvl)
