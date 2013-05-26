@@ -35,7 +35,6 @@ object InstructionFactory {
     }
 
   def make(args: ListBuffer[String]) : Instruction = {
-    println("MAKE", args)
     var ins : Instruction = null
 
     args(1) match {
@@ -48,11 +47,10 @@ object InstructionFactory {
       }
 
       case "findAll" => {
-        println("MAKEMULTI")
         ins = new FindMultiInstruction()
 
-        //if (args.length >= 3)
-        //  ins.limit  = args(2)
+        if (args.length >= 3)
+          ins.asInstanceOf[FindMultiInstruction].limit  = args(2)
       }
 
       case "countAll" => {
