@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 import scala.collection.mutable.ListBuffer
 
-trait Instruction extends ReadyCallback[SQLQuery] {
+trait Instruction {
 
   var next          = ListBuffer[Instruction]()
   var prev          : Instruction = null
@@ -21,6 +21,7 @@ trait Instruction extends ReadyCallback[SQLQuery] {
   var relation      : ResourceRelation = null
   var record        : Record = null
   var request       : Request = null
+  var args          : ListBuffer[String] = null
 
   var resource_name : String = null
   var record_id     : String = null
@@ -38,14 +39,6 @@ trait Instruction extends ReadyCallback[SQLQuery] {
     else
       throw new ExecutionException("relation not found: " + resource_name)
   }
-
-  def execute_query(qry_str: String) : Unit = {
-    val qry = new SQLQuery(qry_str)
-    qry.attach(this)
-    request.worker.sql_pool.execute(qry)
-    running = true
-  }
-
 
   def execute_next() : Unit = {
     for (ins <- next)

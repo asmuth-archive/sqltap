@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 import scala.collection.mutable.{ListBuffer}
 
-class FindMultiInstruction extends Instruction with ReadyCallback[SQLQuery] {
+class FindMultiInstruction extends SQLInstruction {
 
   var conditions : String = null
   var order      : String = null
@@ -21,10 +21,10 @@ class FindMultiInstruction extends Instruction with ReadyCallback[SQLQuery] {
     if (fields.length == 0)
       fields += record.resource.id_field
 
-    if (prev.prev == null) {
+    if (prev == null) {
       execute_query(
         SQLBuilder.select(
-          relation.resource, null, 0, fields.toList, 
+          relation.resource, null, 0, fields.toList,
           conditions, order, limit, offset))
 
     } else if (relation.join_foreign == true && prev.record.has_id) {
@@ -46,16 +46,30 @@ class FindMultiInstruction extends Instruction with ReadyCallback[SQLQuery] {
   }
 
   def ready(query: SQLQuery) : Unit = {
+    var execute_ = true
+
     if (query.rows.length == 0)
       next = new ListBuffer[Instruction]()
 
-    else if (next.length == 0)
-      ()//InstructionFactory.expand(this)
+    if (next.length == 0)
+      execute_ = false
 
-    else {
-      //InstructionFactory.expand(this)
-      execute_next
+    val instructions = new ListBuffer[Instruction]()
+
+    for (row <- query.rows) {
+      val ins = new PhiInstruction()
+      ins.relation = relation
+      ins.prev = this
+      ins.record = new Record(relation.resource)
+      ins.record.load(query.columns, row)
+      InstructionFactory.deep_copy(this, ins)
+      instructions += ins
     }
+
+    next = instructions
+
+    if (execute_)
+      execute_next
   }
 
 }

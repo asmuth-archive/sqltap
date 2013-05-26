@@ -7,47 +7,32 @@
 
 package com.paulasmuth.sqltap
 
+import com.paulasmuth.sqltap.mysql.{SQLQuery}
 import scala.collection.mutable.ListBuffer
 
 object InstructionFactory {
 
   private def copy(src: Instruction) : Instruction = {
-    //var cpy = new Instruction
-    //cpy.name = src.name
-    //cpy.args = src.args
-    //cpy
-    src
+    var cpy = make(src.args)
+    cpy.fields = src.fields.clone()
+    cpy.relation = src.relation
+    cpy.request = src.request
+    cpy.args = src.args
+    cpy.record = new Record(src.relation.resource)
+    cpy
   }
 
-  private def link(par: Instruction, cld: Instruction) : Unit = {
+  def link(par: Instruction, cld: Instruction) : Unit = {
     cld.prev = par
     par.next = par.next :+ cld
   }
 
-  private def deep_copy(src: Instruction, dst: Instruction) : Unit =
+  def deep_copy(src: Instruction, dst: Instruction) : Unit =
     for (nxt <- src.next) {
       var cpy = copy(nxt)
       link(dst, cpy)
       deep_copy(nxt, cpy)
     }
-
-  def expand(cur: Instruction) : Unit = {
-    /*
-    val instructions = (List[Instruction]() /: cur.job.retrieve.data)(
-      (lst: List[Instruction], row: List[String]) => {
-        val ins = new Instruction
-        ins.name = "execute"
-        ins.relation = cur.relation
-        ins.prepare
-        ins.record.load(cur.job.retrieve.head, row)
-        ins.prev = cur
-        deep_copy(cur, ins)
-        lst :+ ins
-      })
-
-    cur.next = instructions
-    */
-  }
 
   def make(args: ListBuffer[String]) : Instruction = {
     println("MAKE", args)
@@ -63,24 +48,16 @@ object InstructionFactory {
       }
 
       case "findAll" => {
-        ins = new FindSingleInstruction()
+        println("MAKEMULTI")
+        ins = new FindMultiInstruction()
 
-        /*
-        val limit = if (cur.args.size == 2)
-          cur.args(1) else null
-        */
+        //if (args.length >= 3)
+        //  ins.limit  = args(2)
       }
 
       case "countAll" => {
         ins = new FindSingleInstruction()
       }
-
-      /*
-      case "fetch" => {
-        cur.prev.next = cur.prev.next diff List(cur)
-        cur.prev.args = cur.prev.args :+ cur.args.head
-      }
-      */
 
       case _ =>
         throw new ParseException("invalid instruction: " + args(1))
@@ -88,6 +65,7 @@ object InstructionFactory {
     }
 
     ins.resource_name = args(0)
+    ins.args = args.clone()
 
     return ins
   }

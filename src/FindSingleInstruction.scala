@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
-class FindSingleInstruction extends Instruction with ReadyCallback[SQLQuery] {
+class FindSingleInstruction extends SQLInstruction {
 
   var conditions : String = null
   var order      : String = null
