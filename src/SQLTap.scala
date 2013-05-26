@@ -122,10 +122,10 @@ object SQLTap{
 
         println("prepared query: " + query_name + "\nnumber of ids: " + ids.length)
 
-        PreparedQueryCache.execute(query, ids, NullOutputStream, true)
+       // PreparedQueryCache.execute(query, ids, NullOutputStream, true)
       }
 
-      PreparedQueryCache.shutdown
+      //PreparedQueryCache.shutdown
       db_pool.shutdown
     }
 

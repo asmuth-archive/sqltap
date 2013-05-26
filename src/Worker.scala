@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > prepared query caching
 //   > prepared query autoexpiration
 //   > stats
+//   > version based expiration for product listviews
 
 class Worker() extends Thread {
 

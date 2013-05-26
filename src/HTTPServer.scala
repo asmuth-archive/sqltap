@@ -13,6 +13,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.io.PrintStream
 import java.io.OutputStream
 
+/*
 class HTTPServer(port: Int, num_threads: Int) {
   org.eclipse.jetty.util.log.Log.setLog(null);
 
@@ -45,3 +46,4 @@ class HTTPServer(port: Int, num_threads: Int) {
   }
 
 }
+*/

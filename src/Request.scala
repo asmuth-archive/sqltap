@@ -7,26 +7,31 @@
 
 package com.paulasmuth.sqltap
 
-class Request(_req_str: String, parser: RequestVisitor, executor: RequestVisitor, writer: RequestVisitor) {
+class Request(_req_str: String, worker: Worker) {
 
   val stack = new InstructionStack
   var etime = List[Long]()
 
   val req_str = _req_str
-  var ready = false
+  //var ready = false
   var resp_status : Int = 200
   var resp_data : String = null
 
-  def run : Request = {
+  private val parser = new PlainRequestParser()
+
+  def run() : Request = {
     etime = etime :+ System.nanoTime
 
     parser.run(this)
     etime = etime :+ System.nanoTime
 
-    executor.run(this)
+    println("INSTRUCTION STACK:")
+    stack.inspect()
+
+    //executor.run(this)
     etime = etime :+ System.nanoTime
 
-    writer.run(this)
+    //writer.run(this)
     etime = etime :+ System.nanoTime
 
     this

@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit
 import net.spy.memcached.MemcachedClient
 import java.io.OutputStream
 
+/*
 object PreparedQueryCache {
 
   val memcached_ttl = SQLTap.CONFIG('memcached_ttl).toInt
@@ -62,3 +63,4 @@ object PreparedQueryCache {
   }
 
 }
+*/

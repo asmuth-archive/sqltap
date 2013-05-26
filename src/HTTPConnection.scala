@@ -60,8 +60,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       parser.http_headers)
 
     // STUB
-    for (n <- (1 to 30)) worker.sql_pool.execute(
-      new mysql.SQLQuery("select id, username from users where id = 1 order by id desc;"))
+    val req = new Request("user.findOne(1){username,email}", worker)
+    req.run()
+    //for (n <- (1 to 30)) worker.sql_pool.execute(
+    //  new mysql.SQLQuery("select id, username from users where id = 1 order by id desc;"))
     //EOF STUB
 
     //new mysql.SQLQuery("select id, username from users where id < 2000000 order by created_at DESC limit 1;"))
