@@ -16,6 +16,7 @@ class InstructionStack {
   def push_down(ins: Instruction) : Unit = {
     ins.prev = head
     head = ins
+    ins.prepare()
     length += 1
   }
 

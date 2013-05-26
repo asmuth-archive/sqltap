@@ -7,11 +7,52 @@
 
 package com.paulasmuth.sqltap
 
-class FindSingleInstruction(res: String) extends Instruction {
+import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
-  val name : String = "findOne"
+class FindSingleInstruction extends Instruction with ReadyCallback[SQLQuery] {
 
-  def execute(req: Request) : Unit  = ()
+  var conditions : String = null
+  var order      : String = null
 
+  def execute(req: Request) : Unit = {
+    var join_field : String = null
+    var join_id    : Int    = 0
+
+    if (fields.length == 0)
+      fields += record.resource.id_field
+
+    if (record_id != null)
+      record.set_id(record_id)
+
+    if (record.has_id) {
+      join_field = relation.resource.id_field
+      join_id = record.id
+    }
+
+    else if (relation.join_foreign == false && prev.ready) {
+      join_field = relation.resource.id_field
+      join_id = prev.record.get(relation.join_field).toInt
+      record.set_id(join_id)
+    }
+
+    else if (relation.join_foreign == true && prev.record.has_id) {
+      join_field = relation.join_field
+      join_id = prev.record.id
+    }
+
+    if (join_field != null) {
+      running = true
+
+      val qry = new SQLQuery(
+        SQLBuilder.select(
+          relation.resource, join_field, join_id, fields.toList, 
+          conditions, order, null, null))
+
+      qry.attach(this)
+      req.worker.sql_pool.execute(qry)
+    }
+  }
+
+  def ready(qry: SQLQuery) : Unit = ()
 
 }

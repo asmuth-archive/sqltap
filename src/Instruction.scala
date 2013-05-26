@@ -12,7 +12,8 @@ import scala.collection.mutable.ListBuffer
 
 trait Instruction {
 
-  val name : String
+  var resource_name : String = null
+  var record_id     : String = null
 
   var fields = ListBuffer[String]()
   var next = ListBuffer[Instruction]()
@@ -20,89 +21,34 @@ trait Instruction {
 
   var running = false
   var ready = false
-  var prepared = false
 
   var query : SQLQuery = null
   var relation : ResourceRelation = null
   var record : Record = null
 
   def inspect(lvl: Int) : Unit =
-    SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", fields: [" + (
+    SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
       if (fields.size > 0) fields.mkString(", ") else "none") + "]")
 
-  def execute(req: Request) : Unit  /* = {
-    println("EXECUTE NOW")
-    inspect(0)
-
-    if (name != "execute" && prepared == false) {
-      if (prev == req.stack.root) {
-        relation = SQLTap.manifest(args(0)).to_relation
-      } else {
-        relation = prev.relation.resource.relation(args(0))
-      }
-
-      if (relation != null)
-        record = new Record(relation.resource)
-      else
-        throw new ExecutionException("relation not found: " + args(0))
-
-      if(name == "findSingle" && args(1) != null)
-        record.set_id(args(1).toInt)
-
-      prepared = true
+  def prepare() : Unit = {
+    if (prev == null) {
+      relation = SQLTap.manifest(resource_name).to_relation
+    } else {
+      relation = prev.relation.resource.relation(resource_name)
     }
 
+    if (relation != null)
+      record = new Record(relation.resource)
+    else
+      throw new ExecutionException("relation not found: " + resource_name)
+
+    println("PREPARE")
+    inspect(0)
+  }
+
+  def execute(req: Request) : Unit /* = {
+    println("EXECUTE NOW")
     name match {
-
-      case "execute" => {
-        ready = true
-
-        for (next <- next)
-          next.execute(req)
-      }
-
-      case "findSingle" => {
-        var join_field : String = null
-        var join_id    : Int    = 0
-
-        if (args.size < 5)
-          throw new ParseException("empty field list")
-
-        if (record.has_id) {
-          join_field = relation.resource.id_field
-          join_id = record.id
-        }
-
-        else if (relation.join_foreign == false && prev.ready) {
-          join_field = relation.resource.id_field
-          join_id = prev.record.get(relation.join_field).toInt
-          record.set_id(join_id)
-        }
-
-        else if (relation.join_foreign == true && prev.record.has_id) {
-          join_field = relation.join_field
-          join_id = prev.record.id
-        }
-
-        if (join_field != null) {
-          running = true
-
-          val qry = new SQLQuery(
-            SQLBuilder.select(
-              relation.resource,
-              join_field,
-              join_id,
-              args.slice(4, args.size).toList, // fields
-              args(2), // cond
-              args(3), // order
-              null, // limit
-              null  // offset
-            ))
-
-          qry.attach(this)
-          req.worker.sql_pool.execute(qry)
-        }
-      }
 
       case "findMulti" => {
 

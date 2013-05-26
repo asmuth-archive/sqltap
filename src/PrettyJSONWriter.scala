@@ -24,7 +24,7 @@ class PrettyJSONWriter extends RequestVisitor {
     req.resp_data = buf.toString
   }
 
-  private def next(cur: Instruction, index: Int) : Unit = {
+  private def next(cur: Instruction, index: Int) : Unit = {/*
     var scope : String = null
 
     if (index != 0)
@@ -75,7 +75,7 @@ class PrettyJSONWriter extends RequestVisitor {
     if (scope != null)
       { buf.append("\n"); ind -= 1; write(scope) }
 
-  }
+  */}
 
   private def json(str: String) : String =
     if (str == null) "null" else

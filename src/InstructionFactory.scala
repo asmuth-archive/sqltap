@@ -31,45 +31,6 @@ object InstructionFactory {
       deep_copy(nxt, cpy)
     }
 
-  def make(args: ListBuffer[String]) : Instruction = {
-    println("MAKE", args)
-    var ins : Instruction = null
-
-    args(1) match {
-
-      case "findOne" => {
-        ins = new FindSingleInstruction(args(0))
-      }
-
-      case "findAll" => {
-        ins = new FindSingleInstruction(args(0))
-
-        /*
-        val limit = if (cur.args.size == 2)
-          cur.args(1) else null
-        */
-      }
-
-      case "countAll" => {
-        ins = new FindSingleInstruction(args(0))
-      }
-
-      /*
-      case "fetch" => {
-        cur.prev.next = cur.prev.next diff List(cur)
-        cur.prev.args = cur.prev.args :+ cur.args.head
-      }
-      */
-
-      case _ =>
-        throw new ParseException("invalid instruction: " + args(1))
-
-    }
-
-    return ins
-  }
-
-
   def expand(cur: Instruction) : Unit = {
     /*
     val instructions = (List[Instruction]() /: cur.job.retrieve.data)(
@@ -87,5 +48,50 @@ object InstructionFactory {
     cur.next = instructions
     */
   }
+
+  def make(args: ListBuffer[String]) : Instruction = {
+    println("MAKE", args)
+    var ins : Instruction = null
+
+    args(1) match {
+
+      case "findOne" => {
+        ins = new FindSingleInstruction()
+
+        if (args.length == 3)
+          ins.record_id = args(2)
+      }
+
+      case "findAll" => {
+        ins = new FindSingleInstruction()
+
+        /*
+        val limit = if (cur.args.size == 2)
+          cur.args(1) else null
+        */
+      }
+
+      case "countAll" => {
+        ins = new FindSingleInstruction()
+      }
+
+      /*
+      case "fetch" => {
+        cur.prev.next = cur.prev.next diff List(cur)
+        cur.prev.args = cur.prev.args :+ cur.args.head
+      }
+      */
+
+      case _ =>
+        throw new ParseException("invalid instruction: " + args(1))
+
+    }
+
+    ins.resource_name = args(0)
+
+    return ins
+  }
+
+
 
 }
