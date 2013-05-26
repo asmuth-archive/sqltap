@@ -46,8 +46,6 @@ class RequestExecutor extends RequestVisitor {
       val otime = ((System.nanoTime - stime) / 1000000.0).toString
       SQLTap.log_debug("Finished (" + qtime + "ms) @ " + otime + "ms: "  + cur.query.query)
     }
-
-    fetch(cur)
   }
 
   private def execute(cur: Instruction) : Unit =()
@@ -68,49 +66,5 @@ class RequestExecutor extends RequestVisitor {
       cur.execute(req)
     }
 */
-
-  private def prepare(cur: Instruction) = {
-
-  }
-
-
-  private def fetch(cur: Instruction) : Unit =  cur.name match {
-
-    case "findSingle" => {
-      /*
-      if (cur.query.rows.length == 0)
-        throw new NotFoundException(cur)
-      else
-        cur.record.load(cur.job.retrieve.head, cur.job.retrieve.data.head)
-        */
-    }
-
-    case "countMulti" => {
-      /*
-      if (cur.query.rows.length == 0)
-        throw new NotFoundException(cur)
-      else {
-        cur.record.set("__count", cur.job.retrieve.data.head.head)
-      }
-      */
-    }
-
-    case "findMulti" => {
-      if (cur.query.rows.length == 0)
-        cur.next = List[Instruction]()
-
-      else {
-        val skip_execution = (cur.next.length == 0)
-        InstructionFactory.expand(cur)
-
-        if (skip_execution)
-          return
-
-        for (ins <- cur.next)
-          stack += ins
-      }
-    }
-
-  }
 
 }

@@ -162,8 +162,50 @@ class Instruction extends ReadyCallback[SQLQuery] {
     }
   }
 
-  def ready(query: SQLQuery) = {
+  def ready(query: SQLQuery) : Unit = {
     println("READY!")
+
+    if (next.size == 0)
+      println("UNROLL!!!!")
+
+    name match {
+
+      case "findSingle" => {
+        /*
+        if (query.rows.length == 0)
+          throw new NotFoundException(cur)
+        else
+          record.load(job.retrieve.head, job.retrieve.data.head)
+          */
+      }
+
+      case "countMulti" => {
+        /*
+        if (query.rows.length == 0)
+          throw new NotFoundException(cur)
+        else {
+          record.set("__count", job.retrieve.data.head.head)
+        }
+        */
+      }
+
+      case "findMulti" => {
+        if (query.rows.length == 0)
+          next = List[Instruction]()
+
+        else {
+          val skip_execution = (next.length == 0)
+          InstructionFactory.expand(this)
+
+          if (skip_execution)
+            return
+
+          //for (ins <- next)
+          //  stack += ins
+        }
+      }
+
+    }
   }
 
 }
