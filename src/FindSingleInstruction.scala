@@ -50,11 +50,11 @@ class FindSingleInstruction extends Instruction with ReadyCallback[SQLQuery] {
       execute_next
   }
 
-  def ready(qry: SQLQuery) : Unit = {
-    if (qry.rows.length == 0)
+  def ready(query: SQLQuery) : Unit = {
+    if (query.rows.length == 0)
       throw new NotFoundException(this)
-    //else
-    //  record.load(job.retrieve.head, job.retrieve.data.head)
+    else
+      record.load(query.columns, query.rows(0))
 
     execute_next
   }

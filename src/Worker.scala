@@ -13,20 +13,20 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
-//   > request + nonblock integration
 //   > http request router
 //   > http response writer
 //   > prepared query relation :)
 //   > multi raw sql mode
-//   > instruction refactoring / split
-//   > parser refactoring
 //   > findWhere
-//   > prepared queries
+//   > prepared query instruction
 //   > memcached proto + pool
 //   > prepared query caching
 //   > prepared query autoexpiration
 //   > stats
 //   > version based expiration for product listviews
+//   > optimize record class (use hashmap...)
+//   > use proper linkedlists instead of listbuffers all over the place
+//   > parser refactoring
 
 class Worker() extends Thread {
 

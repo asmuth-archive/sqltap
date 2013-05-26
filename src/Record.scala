@@ -7,12 +7,13 @@
 
 package com.paulasmuth.sqltap
 
+import scala.collection.mutable.{ListBuffer}
+
 class Record(_resource: ResourceManifest) {
+
   val resource = _resource
-
-  var fields = List[String]()
-  var data   = List[String]()
-
+  var fields  = ListBuffer[String]()
+  var data    = ListBuffer[String]()
 
   def id : Int =
     get(resource.id_field).toInt
@@ -27,7 +28,7 @@ class Record(_resource: ResourceManifest) {
     fields.indexOf(resource.id_field) >= 0
 
 
-  def load(_fields: List[String], _data: List[String]) =
+  def load(_fields: ListBuffer[String], _data: ListBuffer[String]) =
     { fields = _fields; data = _data }
 
 
