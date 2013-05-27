@@ -20,7 +20,8 @@ object SQLTap{
 
   var DEFAULTS = HashMap[Symbol, String](
     'http_port     -> "8080",
-    'memcached_ttl -> "3600"
+    'memcached_ttl -> "3600",
+    'threads       -> "4"
   )
 
   val manifest = HashMap[String,ResourceManifest]()
@@ -58,6 +59,9 @@ object SQLTap{
       else if (args(n) == "--memcached")
         { CONFIG += (('memcached, args(n+1))); n += 2 }
 
+      else if ((args(n) == "-t") || (args(n) == "--threads"))
+        { CONFIG += (('threads, args(n+1))); n += 2 }
+
       else if ((args(n) == "-c") || (args(n) == "--config"))
         { CONFIG += (('config_base, args(n+1))); n += 2 }
 
@@ -92,10 +96,10 @@ object SQLTap{
   def boot = try {
     load_config
 
-    val workers = List(new Worker)
-    for (worker <- workers) worker.start()
-
+    val workers  = (1 to CONFIG('threads).toInt).map(n => new Worker).toList
     val acceptor = new Acceptor(workers)
+
+    workers.map(_.start())
     acceptor.run(CONFIG('http_port).toInt)
   } catch {
     case e: Exception => exception(e, true)
@@ -187,7 +191,8 @@ object SQLTap{
       println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
     println("usage: sqltapd [options]                                                   ")
-    println("  -c, -config       <dir>     path to xml config files                     ")
+    println("  -c, --config      <dir>     path to xml config files                     ")
+    println("  -t, --threads     <nuk>     number of worker threads (default: 4)        ")
     println("  --http            <port>    start http server on this port               ")
     println("  --mysql-host      <addr>    mysql server hostname                        ")
     println("  --mysql-port      <port>    mysql server port                            ")
