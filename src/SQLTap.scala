@@ -28,7 +28,6 @@ object SQLTap{
 
   var debug   = false
 
-  val db_pool = new DBConnectionPool
 
   def main(args: Array[String]) : Unit = {
     var n = 0
@@ -113,7 +112,7 @@ object SQLTap{
 
     if (existing.nonEmpty) {
       val db_threads = CONFIG('db_threads).toInt
-      db_pool.connect(CONFIG('db_addr), db_threads)
+      //db_pool.connect(CONFIG('db_addr), db_threads)
 
       existing.foreach { node =>
         val query_name = (node \ "@name").text
@@ -126,7 +125,7 @@ object SQLTap{
       }
 
       //PreparedQueryCache.shutdown
-      db_pool.shutdown
+      //db_pool.shutdown
     }
 
     if (non_existing.nonEmpty) {

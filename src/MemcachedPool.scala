@@ -6,7 +6,7 @@
 // the License at: http://opensource.org/licenses/MIT
 
 package com.paulasmuth.sqltap
-
+/*
 import java.util.concurrent._
 import net.spy.memcached.MemcachedClient
 import net.spy.memcached.AddrUtil
@@ -31,3 +31,4 @@ class MemcachedPool extends ThreadLocal[MemcachedClient] {
   }
 
 }
+*/

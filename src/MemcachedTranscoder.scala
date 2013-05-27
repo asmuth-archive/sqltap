@@ -6,7 +6,7 @@
 // the License at: http://opensource.org/licenses/MIT
 
 package com.paulasmuth.sqltap
-
+/*
 import net.spy.memcached.transcoders.Transcoder
 import net.spy.memcached.CachedData
 import java.io.ByteArrayInputStream
@@ -64,3 +64,4 @@ class MemcachedTranscoder extends Transcoder[String] {
   }
 
 }
+*/
