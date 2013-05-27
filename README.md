@@ -68,20 +68,11 @@ Instructions
 #### relation.countAll{}
 ...
 
-#### relation.execute{}
-...
 
 XML Schema
 ----------
 
 here be dragons
-
-
-Prepared Queries
-----------------
-
-here be dragons
-
 
 
 Configuration

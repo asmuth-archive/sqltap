@@ -16,18 +16,15 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > http request router
 //   > http response writer
 //   > callback http connection on any exception (never leave it hanging)
-//   > prepared query instruction
-//   > prepared query relation :)
-//   > multi raw sql mode
+//   > multiple queries with ";" + HTTP POST
 //   > findWhere
+//   > generic query cache instead of prepared queries ?q=...&ttl=3360
 //   > memcached proto + pool
-//   > prepared query caching
-//   > prepared query autoexpiration
 //   > stats
-//   > version based expiration for product listviews
 //   > optimize record class (use hashmap...)
 //   > use proper linkedlists instead of listbuffers all over the place
 //   > parser refactoring
+//   > multi raw sql mode
 
 class Worker() extends Thread {
 
