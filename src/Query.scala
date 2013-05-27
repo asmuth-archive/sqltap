@@ -9,16 +9,18 @@ package com.paulasmuth.sqltap
 
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
-class Request(qry_str: String) extends Instruction {
+class Query(qry_str: String) extends Instruction {
   val query_string = qry_str
   val name = "phi"
 
   private var etime = List[Long]()
-  private var callback : ReadyCallback[Request] = null
+  private var callback : ReadyCallback[Query] = null
 
   def execute(worker: Worker) : Unit = {
     if (finished)
       return
+
+    println("TRY MEMCACHE SINGLE", query_string)
 
     etime = etime :+ System.nanoTime
     // FIXPAUL: this should be a static method!
@@ -47,7 +49,7 @@ class Request(qry_str: String) extends Instruction {
       callback.ready(this)
   }
 
-  def attach(_callback: ReadyCallback[Request]) =
+  def attach(_callback: ReadyCallback[Query]) =
     callback = _callback
 
   def qtime : List[Double] =

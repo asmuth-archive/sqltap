@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer}
 
-class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[Request] {
+class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[Query] {
 
   private val HTTP_STATE_INIT  = 1
   private val HTTP_STATE_CLOSE = 2
@@ -60,10 +60,15 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       parser.http_headers)
 
     // STUB
-      val qry_str = "product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}"
-      val req = new Request(qry_str)
-      req.attach(this)
-      req.execute(worker)
+      /*val qry_str = "product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}"*/
+
+      val ttl = 30
+
+      //val queries = List(
+        new Query("user.findOne(1){email,username}").execute(worker)
+       // new Request("user.findOne(2){email,username}"))
+
+      //QueryCache.execute(queries, ttl)
     //EOF STUB
   }
 
@@ -91,7 +96,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     println("HTTP_ERROR", code, message)
   }
 
-  def ready(req: Request) = {
+  def ready(query: Query) = {
     println("HTTP REQUEST READY!")
     close
   }

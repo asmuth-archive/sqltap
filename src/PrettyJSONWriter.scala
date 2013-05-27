@@ -15,13 +15,13 @@ class PrettyJSONWriter {
   private val buf = new StringBuffer
 
   def write(head: Instruction) : StringBuffer = {
-    buf.append("[\n")
+    // buf.append("[\n")
 
     val ins = new PhiInstruction()
     ins.next += head
     next(ins, 0)
 
-    buf.append("\n]")
+    // buf.append("\n]")
 
     println("!!!!!!!!!!!!!!!!!!!!!JSON!!!!!!!!!!!!!!!!!!!!!!!!")
     println(buf)
