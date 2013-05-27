@@ -12,7 +12,7 @@ import java.nio.{ByteBuffer}
 class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   val queries = List(
-    new Query("user.findOne(1){email,username}"),
+    new Query("user.findOne(1){email,username}x"),
     new Query("user.findOne(2){email,username}"))
 
   var remaining = 2

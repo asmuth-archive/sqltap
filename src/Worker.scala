@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > memcached proto + pool
 //   > timeouts
 //   > stats
+//   > write json without quadruple buffering
 //   > check for leaks
 //   > optimize record class (use hashmap...)
 //   > use proper linkedlists instead of listbuffers all over the place

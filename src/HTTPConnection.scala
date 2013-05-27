@@ -114,10 +114,6 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     }
   }
 
-  private def http_error(code: Int, message: String) : Unit = {
-    println("HTTP_ERROR", code, message)
-  }
-
   def ready(request: Request) = {
     val http_buf = new HTTPWriter(buf)
     buf.clear
@@ -126,11 +122,29 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.write_content_length(request.resp_len)
     http_buf.write_default_headers()
     http_buf.finish_headers()
-    println(buf.position)
+
     request.write(buf)
-    println(buf.position)
     buf.flip
 
+    flush()
+  }
+
+  private def http_error(code: Int, message: String) : Unit = {
+    val http_buf = new HTTPWriter(buf)
+    buf.clear
+
+    http_buf.write_status(code)
+    http_buf.write_default_headers()
+    http_buf.finish_headers()
+
+    val json_buf = new JSONWriter(buf)
+    json_buf.write_error(message)
+    buf.flip
+
+    flush()
+  }
+
+  private def flush() = {
     state = HTTP_STATE_FLUSH
     last_event.interestOps(SelectionKey.OP_WRITE)
   }
