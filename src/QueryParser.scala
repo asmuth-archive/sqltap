@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.ListBuffer
 
 // FIXPAUL this should be a singleton, not a class (avoid gc...)
-class PlainRequestParser(req: Request, qry_str: String) {
+class QueryParser(req: Request, qry_str: String) {
 
   val stack = req.stack
   var scope = 'root

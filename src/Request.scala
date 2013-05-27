@@ -17,7 +17,7 @@ class Request(_worker: Worker, callback: ReadyCallback[Request]) {
     etime = etime :+ System.nanoTime
 
     // FIXPAUL: this should be a static method!
-    (new PlainRequestParser(this, qry_str)).run
+    (new QueryParser(this, qry_str)).run
 
     etime = etime :+ System.nanoTime
 
