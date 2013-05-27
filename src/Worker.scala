@@ -21,7 +21,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > findWhere
 //   > generic query cache instead of prepared queries ?q=...&ttl=3360
 //   > memcached proto + pool
+//   > timeouts
 //   > stats
+//   > check for leaks
 //   > optimize record class (use hashmap...)
 //   > use proper linkedlists instead of listbuffers all over the place
 //   > parser refactoring

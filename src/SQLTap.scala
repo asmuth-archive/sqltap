@@ -25,9 +25,7 @@ object SQLTap{
   )
 
   val manifest = HashMap[String,ResourceManifest]()
-  val prepared_queries = HashMap[String,PreparedQuery]()
-
-  var debug   = false
+  var debug    = false
 
 
   def main(args: Array[String]) : Unit = {
@@ -71,9 +69,6 @@ object SQLTap{
       else if ((args(n) == "-h") || (args(n) == "--help"))
         return usage(true)
 
-      else if ((args(n) == "--preheat") && args.size > n + 1)
-        { CONFIG += (('preheat_src, args(n+1))); n += 2 }
-
       else {
         println("error: invalid option: " + args(n) + "\n")
         return usage(false)
@@ -87,13 +82,10 @@ object SQLTap{
     DEFAULTS.foreach(d =>
       if (CONFIG contains d._1 unary_!) CONFIG += d )
 
-    CONFIG.get('preheat_src) match {
-      case Some(_) => preheat
-      case None => boot
-    }
+    boot()
   }
 
-  def boot = try {
+  def boot() = try {
     load_config
 
     val workers  = (1 to CONFIG('threads).toInt).map(n => new Worker).toList
@@ -104,43 +96,6 @@ object SQLTap{
   } catch {
     case e: Exception => exception(e, true)
   }
-
-  def preheat = try {
-    load_config
-
-    val xml = scala.xml.XML.loadFile(CONFIG('preheat_src))
-
-    val (existing, non_existing) = (xml \ "prepared_query").partition { node =>
-      prepared_queries.get((node \ "@name").text).isDefined
-    }
-
-    if (existing.nonEmpty) {
-      val db_threads = CONFIG('db_threads).toInt
-      //db_pool.connect(CONFIG('db_addr), db_threads)
-
-      existing.foreach { node =>
-        val query_name = (node \ "@name").text
-        val ids = (node \ "id").map(_.text.toInt).toList
-        val query = prepared_queries(query_name)
-
-        println("prepared query: " + query_name + "\nnumber of ids: " + ids.length)
-
-       // PreparedQueryCache.execute(query, ids, NullOutputStream, true)
-      }
-
-      //PreparedQueryCache.shutdown
-      //db_pool.shutdown
-    }
-
-    if (non_existing.nonEmpty) {
-      println("missing prepared queries")
-      non_existing.map( node => ( node \ "@name" ).text).foreach(println)
-    }
-
-  } catch {
-    case e: Exception => exception(e, true)
-  }
-
 
   def load_config = {
     SQLTap.log("sqltapd " + VERSION + " booting...")
@@ -156,33 +111,19 @@ object SQLTap{
 
     for (source <- sources){
       val xml = scala.xml.XML.loadString(source)
-
       var resources = List[scala.xml.Node]()
-      var prepared  = List[scala.xml.Node]()
 
       if (xml.head.label == "resource")
         resources = List(xml.head)
 
-      else if (xml.head.label == "prepared_query")
-        prepared = List(xml.head)
-
-      else {
+      else
         resources = (xml \ "resource").toList
-        prepared = (xml \ "prepared_query").toList
-      }
 
       for (elem <- resources) {
         val resource = new ResourceManifest(elem)
         log_debug("Loaded resource: " + resource.name)
         manifest += ((resource.name, resource))
       }
-
-      for (elem <- prepared) {
-        val pquery = new PreparedQuery(elem)
-        log_debug("Loaded prepared_query: " + pquery.name)
-        prepared_queries += ((pquery.name, pquery))
-      }
-
     }
   }
 

@@ -118,19 +118,17 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     println("HTTP_ERROR", code, message)
   }
 
-  private def http_headers() : Unit = {
-    buf.put(("Server: SQLTap v" + SQLTap.VERSION + "\r\n").getBytes)
-    buf.put(("Content-Type: application/json; charset=utf-8\r\n").getBytes)
-    buf.put(("Content-Length: " + content_length + "\r\n").getBytes)
-    buf.put("\r\n".getBytes)
-  }
-
   def ready(request: Request) = {
+    val http_buf = new HTTPWriter(buf)
     buf.clear
-    buf.put(("HTTP 200 OK\r\n").getBytes)
-    content_length = request.resp_len
-    http_headers()
+
+    http_buf.write_status(200)
+    http_buf.write_content_length(request.resp_len)
+    http_buf.write_default_headers()
+    http_buf.finish_headers()
+    println(buf.position)
     request.write(buf)
+    println(buf.position)
     buf.flip
 
     state = HTTP_STATE_FLUSH

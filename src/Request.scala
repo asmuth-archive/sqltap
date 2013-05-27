@@ -16,7 +16,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
     new Query("user.findOne(2){email,username}"))
 
   var remaining = 2
-  var resp_len  = 4
+  var resp_len  = 6
 
   def execute(worker: Worker) : Unit = {
     queries.foreach(_.attach(this))
@@ -44,7 +44,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
         buf.put(",\n".getBytes)
     }
 
-    buf.put("\n]".getBytes)
+    buf.put("\n]\r\n".getBytes)
   }
 
 }
