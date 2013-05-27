@@ -13,8 +13,6 @@ class Query(qry_str: String) extends Instruction {
   val query_string = qry_str
   val name = "root"
 
-  var json : Array[Byte] = null
-
   private var etime = List[Long]()
   private var callback : ReadyCallback[Query] = null
 
@@ -41,9 +39,6 @@ class Query(qry_str: String) extends Instruction {
 
     for (ins <- next)
       all_finished = (finished & ins.finished)
-
-    // FIXPAUL: this should be a static method!
-    (new PrettyJSONWriter).write(this)
 
     etime = etime :+ System.nanoTime
 

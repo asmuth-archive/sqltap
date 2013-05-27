@@ -23,6 +23,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var state = HTTP_STATE_INIT
   private var content_length : Int = 0
   private var last_event : SelectionKey = null
+  private var keepalive : Boolean = false
 
   println("new http connection opened")
 
@@ -63,7 +64,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     if (buf.remaining == 0) {
       buf.clear
       state = HTTP_STATE_WAIT
-      keepalive()
+      close() // FIXPAUL: implement keepalive
     }
   }
 
@@ -74,10 +75,6 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     println("connection closed")
     state = HTTP_STATE_CLOSE
     sock.close()
-  }
-
-  def keepalive() : Unit = {
-    close // FIXPAUL: implement keepalive
   }
 
   private def execute() : Unit = {
@@ -119,11 +116,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     buf.clear
 
     http_buf.write_status(200)
-    http_buf.write_content_length(request.resp_len)
+    http_buf.write_content_length(request.buffer.limit)
     http_buf.write_default_headers()
     http_buf.finish_headers()
-
-    request.write(buf)
+    buf.put(request.buffer) // FIXPAUL
     buf.flip
 
     flush()
@@ -137,10 +133,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.write_default_headers()
     http_buf.finish_headers()
 
-    val json_buf = new JSONWriter(buf)
+    val json_buf = new PrettyJSONWriter(buf)
     json_buf.write_error(message)
     buf.flip
 
+    keepalive = false
     flush()
   }
 

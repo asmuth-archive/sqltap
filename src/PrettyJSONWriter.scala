@@ -7,23 +7,22 @@
 
 package com.paulasmuth.sqltap
 
-// FIXPAUL this should be a singleton...
-class PrettyJSONWriter {
+import java.nio.{ByteBuffer}
+
+// FIXPAUL refactor this shit...
+class PrettyJSONWriter(buf: ByteBuffer) {
 
   private val INDENT = "  "
   private var ind = 1
-  private var buf = new StringBuffer()
 
-  def write(head: Query) : Unit = {
-    next(head, 0)
-    head.json = buf.toString.getBytes
-  }
+  def write_query(head: Query) : Unit =
+    next_instruction(head, 0)
 
-  private def next(cur: Instruction, index: Int) : Unit = {
+  private def next_instruction(cur: Instruction, index: Int) : Unit = {
     var scope : String = null
 
     if (index != 0)
-      buf.append(",\n")
+      append(",\n")
 
     if (cur.name == "phi" || cur.name == "root")
       { write("{\n"); scope = "}"; ind += 1; }
@@ -51,12 +50,12 @@ class PrettyJSONWriter {
           json(cur.record.resource.name))
 
         for ((field, ind) <- cur.record.fields.zipWithIndex) {
-          buf.append(",\n")
+          append(",\n")
           write(json(field) + ": " + json(cur.record.data(ind)))
         }
 
         if (cur.next.length > 0)
-          buf.append(",\n")
+          append(",\n")
       }
     }
 
@@ -65,18 +64,36 @@ class PrettyJSONWriter {
 
     //else
     for ((nxt, nxt_ind) <- cur.next.zipWithIndex)
-      next(nxt, nxt_ind)
+      next_instruction(nxt, nxt_ind)
 
     if (scope != null)
-      { buf.append("\n"); ind -= 1; write(scope) }
+      { append("\n"); ind -= 1; write(scope) }
 
   }
+
+  def write_error(error: String) = {
+    buf.put("{ \"status\": \"error\", \"error\": \"".getBytes)
+    buf.put(JSONHelper.escape(error).getBytes)
+    buf.put("\" }\n".getBytes)
+  }
+
+  def write_comma() : Unit =
+    append(",\n")
+
+  def write_array_begin() : Unit =
+    append("[\n")
+
+  def write_array_end() : Unit =
+    append("\n]\r\n")
 
   private def json(str: String) : String =
     if (str == null) "null" else
       "\"" + JSONHelper.escape(str) + "\""
 
   private def write(str: String) : Unit =
-    if (str != null) buf.append((INDENT * ind) + str)
+    if (str != null) append((INDENT * ind) + str)
+
+  private def append(str: String) : Unit =
+    buf.put(str.getBytes)
 
 }

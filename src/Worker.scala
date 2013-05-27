@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
 //   > http request router
-//   > HTTPWriter
 //   > keepalive
 //   > callback http connection on any exception (never leave it hanging)
 //   > multiple queries with findSome(id, id, id){..} + ";"
@@ -23,10 +22,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > memcached proto + pool
 //   > timeouts
 //   > stats
-//   > write json without quadruple buffering
 //   > check for leaks
 //   > optimize record class (use hashmap...)
 //   > use proper linkedlists instead of listbuffers all over the place
+//   > json writer refactoring
 //   > parser refactoring
 //   > multi raw sql mode
 
