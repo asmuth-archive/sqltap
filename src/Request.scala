@@ -7,29 +7,51 @@
 
 package com.paulasmuth.sqltap
 
-class Request(_worker: Worker, callback: ReadyCallback[Request]) {
-/*
-  val stack  = new InstructionStack()
-  var etime  = List[Long]()
-  val worker = _worker
+import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
-  def run_query(qry_str: String) : Request = {
+class Request(qry_str: String) extends Instruction {
+  val query_string = qry_str
+  val name = "phi"
+
+  private var etime = List[Long]()
+  private var callback : ReadyCallback[Request] = null
+
+  def execute(worker: Worker) : Unit = {
+    if (finished)
+      return
+
     etime = etime :+ System.nanoTime
-
-    val head = new RootInstruction(qry_str)
-    head.execute(worker)
-
-    this
-  }
-
-  def ready() : Unit = {
     // FIXPAUL: this should be a static method!
-    (new PrettyJSONWriter).write(stack.head)
+    (new QueryParser(this)).run
+
+    etime = etime :+ System.nanoTime
+    finished = true
+    execute_next(worker)
+  }
+
+  override def unroll() : Unit = {
+    var all_finished = finished
+
+    if (all_finished == false)
+      return
+
+    for (ins <- next)
+      all_finished = (finished & ins.finished)
+
+    // FIXPAUL: this should be a static method!
+    (new PrettyJSONWriter).write(this)
+
     etime = etime :+ System.nanoTime
 
-    callback.ready(this)
-
-    SQLTap.log_debug("Request finished: " + qtime.toString)
+    if (callback != null)
+      callback.ready(this)
   }
-*/
+
+  def attach(_callback: ReadyCallback[Request]) =
+    callback = _callback
+
+  def qtime : List[Double] =
+    if (etime.size < 2) List[Double]() else
+      etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
+
 }

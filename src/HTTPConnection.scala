@@ -61,7 +61,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     // STUB
       val qry_str = "product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}"
-      val req = new RootInstruction(qry_str)
+      val req = new Request(qry_str)
+      req.attach(this)
       req.execute(worker)
     //EOF STUB
   }
