@@ -14,9 +14,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private val HTTP_STATE_INIT  = 1
   private val HTTP_STATE_EXEC  = 2
-  private val HTTP_STATE_FLUSH = 3
-  private val HTTP_STATE_WAIT  = 4
-  private val HTTP_STATE_CLOSE = 5
+  private val HTTP_STATE_HEAD  = 3
+  private val HTTP_STATE_BODY  = 4
+  private val HTTP_STATE_WAIT  = 5
+  private val HTTP_STATE_CLOSE = 6
 
   private val buf = ByteBuffer.allocate(4096) // FIXPAUL
   private val parser = new HTTPParser()
@@ -24,6 +25,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var content_length : Int = 0
   private var last_event : SelectionKey = null
   private var keepalive : Boolean = false
+  private var resp_buf : ByteBuffer = null
 
   println("new http connection opened")
 
@@ -52,8 +54,16 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   def write(event: SelectionKey) : Unit = {
+    var remaining = 0
+
     try {
-      sock.write(buf)
+      if (state == HTTP_STATE_BODY) {
+        sock.write(resp_buf)
+        remaining = resp_buf.remaining
+      } else {
+        sock.write(buf)
+        remaining = buf.remaining
+      }
     } catch {
       case e: Exception => {
         SQLTap.error("[HTTP] conn error: " + e.toString, false)
@@ -61,10 +71,16 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       }
     }
 
-    if (buf.remaining == 0) {
-      buf.clear
-      state = HTTP_STATE_WAIT
-      close() // FIXPAUL: implement keepalive
+    if (remaining == 0) {
+      if (state == HTTP_STATE_HEAD && resp_buf != null) {
+        buf.clear
+        state = HTTP_STATE_BODY
+        write(event)
+      } else {
+        resp_buf = null
+        state = HTTP_STATE_WAIT
+        close() // FIXPAUL: implement keepalive
+      }
     }
   }
 
@@ -119,9 +135,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.write_content_length(request.buffer.limit)
     http_buf.write_default_headers()
     http_buf.finish_headers()
-    buf.put(request.buffer) // FIXPAUL
     buf.flip
 
+    resp_buf = request.buffer
     flush()
   }
 
@@ -142,7 +158,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   private def flush() = {
-    state = HTTP_STATE_FLUSH
+    state = HTTP_STATE_HEAD
     last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
