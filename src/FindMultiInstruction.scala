@@ -13,18 +13,21 @@ import scala.collection.mutable.{ListBuffer}
 class FindMultiInstruction extends SQLInstruction {
 
   val name = "findMulti"
+  var worker : Worker = null
 
   var conditions : String = null
   var order      : String = null
   var limit      : String = null
   var offset     : String = null
 
-  def execute() : Unit = {
+  def execute(_worker: Worker) : Unit = {
+    worker = _worker
+
     if (fields.length == 0)
       fields += record.resource.id_field
 
-    if (prev == null) {
-      execute_query(
+    if (prev.prev == null) {
+      execute_query(worker,
         SQLBuilder.select(
           relation.resource, null, 0, fields.toList,
           conditions, order, limit, offset))
@@ -37,7 +40,7 @@ class FindMultiInstruction extends SQLInstruction {
       else
         conditions += " AND " + relation.join_cond
 
-      execute_query(
+      execute_query(worker,
         SQLBuilder.select(
           relation.resource, relation.join_field, record.id,
           fields.toList, conditions, order, limit, offset))
@@ -72,7 +75,7 @@ class FindMultiInstruction extends SQLInstruction {
     next = instructions
 
     if (execute_)
-      execute_next
+      execute_next(worker)
 
     unroll()
   }

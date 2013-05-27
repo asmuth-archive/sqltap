@@ -10,9 +10,9 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.ListBuffer
 
 // FIXPAUL this should be a singleton, not a class (avoid gc...)
-class QueryParser(req: Request, qry_str: String) {
+class QueryParser(root: RootInstruction) {
 
-  val stack = req.stack
+  val stack  = new InstructionStack()
   var scope = 'root
   var depth = 0
 
@@ -30,12 +30,12 @@ class QueryParser(req: Request, qry_str: String) {
   val t_fall = """\*([\},].*)""".r
 
   def run() : Unit = {
-    if (qry_str == null)
+    if (root.query_string == null)
       throw new ParseException("no query string")
 
-    SQLTap.log_debug("Request: " + qry_str)
-
-    parse(qry_str)
+    parse(root.query_string)
+    stack.head.prev = root
+    root.next += stack.head
 
     if (depth != 0)
       throw new ParseException("unbalanced braces")
@@ -107,17 +107,14 @@ class QueryParser(req: Request, qry_str: String) {
     }
   }
 
-  private def push_down = {
+  private def push_down() = {
     val ins = InstructionFactory.make(args)
-    ins.request = req
-
     stack.push_down(ins)
-
     args.clear
     depth += 1
   }
 
-  private def pop = {
+  private def pop() = {
     if (stack.length != 1)
       stack.pop()
 

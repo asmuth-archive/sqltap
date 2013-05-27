@@ -18,7 +18,6 @@ trait Instruction {
   var fields        = ListBuffer[String]()
   var relation      : ResourceRelation = null
   var record        : Record = null
-  var request       : Request = null
   var args          : ListBuffer[String] = null
 
   var resource_name : String = null
@@ -28,7 +27,7 @@ trait Instruction {
   var finished = false
 
   val name : String
-  def execute() : Unit
+  def execute(worker: Worker) : Unit
 
   def prepare() : Unit = {
     if (prev == null)
@@ -42,15 +41,10 @@ trait Instruction {
       throw new ExecutionException("relation not found: " + resource_name)
   }
 
-  def execute_next() : Unit = {
+  def execute_next(worker: Worker) : Unit = {
     for (ins <- next)
       if (ins.running == false)
-        ins.execute()
-  }
-
-  def inspect(lvl: Int) : Unit = {
-    SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
-      if (fields.size > 0) fields.mkString(", ") else "none") + "]")
+        ins.execute(worker: Worker)
   }
 
   def unroll() : Unit = {
@@ -65,8 +59,14 @@ trait Instruction {
     if (all_finished)
       if (prev != null)
         prev.unroll()
-      else
-        request.ready()
+  }
+
+  def inspect(lvl: Int = 0) : Unit = {
+    SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
+      if (fields.size > 0) fields.mkString(", ") else "none") + "]")
+
+    for (ins <- next)
+      ins.inspect(lvl+1)
   }
 
 }

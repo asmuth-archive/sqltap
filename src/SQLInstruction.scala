@@ -11,10 +11,10 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
 trait SQLInstruction extends Instruction with ReadyCallback[SQLQuery] {
 
-  def execute_query(qry_str: String) : Unit = {
+  def execute_query(worker: Worker, qry_str: String) : Unit = {
     val qry = new SQLQuery(qry_str)
     qry.attach(this)
-    request.worker.sql_pool.execute(qry)
+    worker.sql_pool.execute(qry)
     running = true
   }
 

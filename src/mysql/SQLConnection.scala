@@ -54,6 +54,7 @@ class SQLConnection(pool: SQLConnectionPool) {
 
   def connect() : Unit = {
     val addr = new InetSocketAddress(hostname, port)
+    println(addr)
     sock.connect(addr)
     state = SQL_STATE_SYN
 

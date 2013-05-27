@@ -60,8 +60,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       parser.http_headers)
 
     // STUB
-      (new Request(worker, this)).run_query("product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}")
-      //(new Request("user.findOne(13008){products.countAll{}}", worker)).run()
+      val qry_str = "product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}"
+      val req = new RootInstruction(qry_str)
+      req.execute(worker)
     //EOF STUB
   }
 

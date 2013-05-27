@@ -1,4 +1,3 @@
-
 // This file is part of the "SQLTap" project
 //   (c) 2011-2013 Paul Asmuth <paul@paulasmuth.com>
 //
@@ -13,5 +12,8 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 class PhiInstruction extends Instruction {
   finished = true
   val name = "phi"
-  def execute() : Unit = execute_next
+
+  def execute(worker: Worker) : Unit =
+    execute_next(worker)
+
 }

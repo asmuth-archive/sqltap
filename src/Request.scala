@@ -8,7 +8,7 @@
 package com.paulasmuth.sqltap
 
 class Request(_worker: Worker, callback: ReadyCallback[Request]) {
-
+/*
   val stack  = new InstructionStack()
   var etime  = List[Long]()
   val worker = _worker
@@ -16,18 +16,8 @@ class Request(_worker: Worker, callback: ReadyCallback[Request]) {
   def run_query(qry_str: String) : Request = {
     etime = etime :+ System.nanoTime
 
-    // FIXPAUL: this should be a static method!
-    (new QueryParser(this, qry_str)).run
-
-    etime = etime :+ System.nanoTime
-
-    if (SQLTap.debug) {
-      SQLTap.log_debug("Request:")
-      stack.inspect()
-    }
-
-    stack.head.execute()
-    etime = etime :+ System.nanoTime
+    val head = new RootInstruction(qry_str)
+    head.execute(worker)
 
     this
   }
@@ -41,9 +31,5 @@ class Request(_worker: Worker, callback: ReadyCallback[Request]) {
 
     SQLTap.log_debug("Request finished: " + qtime.toString)
   }
-
-  def qtime : List[Double] =
-    if (etime.size < 2) List[Double]() else
-      etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
-
+*/
 }

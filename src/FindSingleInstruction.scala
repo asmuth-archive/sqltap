@@ -12,13 +12,16 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 class FindSingleInstruction extends SQLInstruction {
 
   val name = "findSingle"
+  var worker : Worker = null
 
   var conditions : String = null
   var order      : String = null
 
-  def execute() : Unit = {
+  def execute(_worker: Worker) : Unit = {
     var join_field : String = null
     var join_id    : Int    = 0
+
+    worker = _worker
 
     if (fields.length == 0)
       fields += record.resource.id_field
@@ -43,13 +46,13 @@ class FindSingleInstruction extends SQLInstruction {
     }
 
     if (join_field != null)
-      execute_query(
+      execute_query(worker,
         SQLBuilder.select(
           relation.resource, join_field, join_id, fields.toList, 
           conditions, order, null, null))
 
     if (running == true)
-      execute_next()
+      execute_next(worker)
   }
 
   def ready(query: SQLQuery) : Unit = {
@@ -60,7 +63,7 @@ class FindSingleInstruction extends SQLInstruction {
     else
       record.load(query.columns, query.rows(0))
 
-    execute_next()
+    execute_next(worker)
     unroll()
   }
 

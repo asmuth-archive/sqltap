@@ -14,14 +14,14 @@ class CountInstruction extends SQLInstruction {
 
   val name = "count"
 
-  def execute() : Unit = {
+  def execute(worker: Worker) : Unit = {
     if (prev == null)
       throw new ExecutionException("count is not supported on root resources")
 
     else if (relation.join_foreign == true && prev.record.has_id) {
       record.set_id(prev.record.id)
 
-      execute_query(
+      execute_query(worker,
         SQLBuilder.count(relation.resource,
           relation.join_field, record.id, relation.join_cond))
     }
