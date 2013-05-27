@@ -60,13 +60,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       parser.http_headers)
 
     // STUB
-    val req = new Request("user.findOne(1){username,email,shop.findOne{title},products.findAll(5){*,images.findAll{id}}}", worker)
-    req.run()
-    //for (n <- (1 to 30)) worker.sql_pool.execute(
-    //  new mysql.SQLQuery("select id, username from users where id = 1 order by id desc;"))
+      (new Request("product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}", worker)).run()
+      (new Request("user.findOne(13008){products.countAll{}}", worker)).run()
     //EOF STUB
-
-    //new mysql.SQLQuery("select id, username from users where id < 2000000 order by created_at DESC limit 1;"))
   }
 
   def error(e: Throwable) : Unit = e match {

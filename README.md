@@ -38,36 +38,38 @@ Instructions
 ------------
 
 
-#### resource.findOne(id)
+#### resource.findOne(id){...}
 ...
 
-#### relation.findOne
+#### relation.findOne{...}
 ...
 
-#### relation.findOneWhere("condition")
+#### relation.findOneWhere("condition"){...}
 ...
 
-#### relation.findAll
+#### relation.findAll{...}
 ...
 
-#### relation.findAll(limit)
+#### relation.findAll(limit){...}
 ...
 
-#### relation.findAll(limit, offset)
+#### relation.findAll(limit, offset){...}
 ...
 
-#### relation.findAllWhere("condition")
+#### relation.findAllWhere("condition"){...}
 ...
 
-#### relation.findAllWhere("condition", limit)
+#### relation.findAllWhere("condition", limit){...}
 ...
 
-#### relation.findAllWhere("condition", limit, offset)
+#### relation.findAllWhere("condition", limit, offset){...}
 ...
 
-#### relation.countAll
+#### relation.countAll{}
 ...
 
+#### relation.execute{}
+...
 
 XML Schema
 ----------

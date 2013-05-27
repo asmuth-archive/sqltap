@@ -54,7 +54,7 @@ object InstructionFactory {
       }
 
       case "countAll" => {
-        ins = new FindSingleInstruction()
+        ins = new CountInstruction()
       }
 
       case _ =>

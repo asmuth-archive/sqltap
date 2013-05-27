@@ -14,7 +14,6 @@ class PlainRequestParser(req: Request) {
   val stack = req.stack
   var scope = 'root
   var depth = 0
-  var funcb = 0
 
   var args  = new ListBuffer[String]()
 
@@ -40,9 +39,6 @@ class PlainRequestParser(req: Request) {
     if (depth != 0)
       throw new ParseException("unbalanced braces")
 
-    if (funcb != 0)
-      throw new ParseException("instruction missing {}-body")
-
   }
 
 
@@ -61,7 +57,7 @@ class PlainRequestParser(req: Request) {
         { scope = 'root; parse(tail) }
 
       case t_cbrs(tail: String) =>
-        { push_down; parse(tail); funcb -= 1 }
+        { push_down; parse(tail) }
 
       case t_cbre(tail: String) =>
         { pop; parse(tail) }
@@ -83,7 +79,7 @@ class PlainRequestParser(req: Request) {
         { args += arg; parse(tail) }
 
       case t_func(name: String, tail: String) =>
-        { args += name; parse(tail); if (name != "countAll") funcb += 1 }
+        { args += name; parse(tail) }
 
       case _ => done = false
     }
