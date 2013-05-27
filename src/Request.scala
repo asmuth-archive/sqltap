@@ -7,6 +7,8 @@
 
 package com.paulasmuth.sqltap
 
+import java.nio.{ByteBuffer}
+
 class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   val queries = List(
@@ -22,10 +24,22 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   def ready(query: Query) : Unit = {
     remaining -= 1
-    println(query.json)
 
     if (remaining == 0)
       callback.ready(this)
+  }
+
+  def write(buf: ByteBuffer) = {
+    buf.put("[\n".getBytes)
+
+    for (ind <- (0 until queries.length)) {
+      buf.put(queries(ind).json.toString.getBytes)
+
+      if (ind < queries.length - 1)
+        buf.put(",\n".getBytes)
+    }
+
+    buf.put("\n]".getBytes)
   }
 
 }

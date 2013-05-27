@@ -97,7 +97,12 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   def ready(request: Request) = {
     println("HTTP REQUEST READY!")
-    close
+    buf.clear
+    request.write(buf)
+    buf.flip
+
+    println(new String(buf.array, 0, buf.limit))
+    //close
   }
 
 }
