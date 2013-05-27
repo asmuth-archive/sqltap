@@ -16,6 +16,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
     new Query("user.findOne(2){email,username}"))
 
   var remaining = 2
+  var resp_len  = 4
 
   def execute(worker: Worker) : Unit = {
     queries.foreach(_.attach(this))
@@ -25,15 +26,19 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
   def ready(query: Query) : Unit = {
     remaining -= 1
 
+    resp_len += query.json.length
+
     if (remaining == 0)
       callback.ready(this)
+    else
+      resp_len += 2
   }
 
   def write(buf: ByteBuffer) = {
     buf.put("[\n".getBytes)
 
     for (ind <- (0 until queries.length)) {
-      buf.put(queries(ind).json.toString.getBytes)
+      buf.put(queries(ind).json)
 
       if (ind < queries.length - 1)
         buf.put(",\n".getBytes)

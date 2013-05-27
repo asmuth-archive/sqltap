@@ -13,17 +13,24 @@ import java.nio.{ByteBuffer}
 class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[Request] {
 
   private val HTTP_STATE_INIT  = 1
-  private val HTTP_STATE_CLOSE = 2
+  private val HTTP_STATE_EXEC  = 2
+  private val HTTP_STATE_FLUSH = 3
+  private val HTTP_STATE_WAIT  = 4
+  private val HTTP_STATE_CLOSE = 5
 
   private val buf = ByteBuffer.allocate(4096) // FIXPAUL
   private val parser = new HTTPParser()
   private var state = HTTP_STATE_INIT
+  private var content_length : Int = 0
+  private var last_event : SelectionKey = null
 
   println("new http connection opened")
 
   def read(event: SelectionKey) : Unit = {
     var ready = false
     val chunk = sock.read(buf)
+
+    last_event = event
 
     if (chunk <= 0) {
       close()
@@ -43,6 +50,23 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     }
   }
 
+  def write(event: SelectionKey) : Unit = {
+    try {
+      sock.write(buf)
+    } catch {
+      case e: Exception => {
+        SQLTap.error("[HTTP] conn error: " + e.toString, false)
+        return close()
+      }
+    }
+
+    if (buf.remaining == 0) {
+      buf.clear
+      state = HTTP_STATE_WAIT
+      keepalive()
+    }
+  }
+
   def close() : Unit = {
     if (state == HTTP_STATE_CLOSE)
       return
@@ -50,6 +74,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     println("connection closed")
     state = HTTP_STATE_CLOSE
     sock.close()
+  }
+
+  def keepalive() : Unit = {
+    close // FIXPAUL: implement keepalive
   }
 
   private def execute() : Unit = {
@@ -60,15 +88,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       parser.http_headers)
 
     // STUB
-      /*val qry_str = "product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}"*/
+    (new Request(this)).execute(worker)
 
-      (new Request(this)).execute(worker)
-      //val ttl = 30
-      //val queries = List(
-       // new Request("user.findOne(2){email,username}"))
-
-      //QueryCache.execute(queries, ttl)
-    //EOF STUB
+    state = HTTP_STATE_EXEC
+    last_event.interestOps(0)
   }
 
   def error(e: Throwable) : Unit = e match {
@@ -95,14 +118,23 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     println("HTTP_ERROR", code, message)
   }
 
+  private def http_headers() : Unit = {
+    buf.put(("Server: SQLTap v" + SQLTap.VERSION + "\r\n").getBytes)
+    buf.put(("Content-Type: application/json; charset=utf-8\r\n").getBytes)
+    buf.put(("Content-Length: " + content_length + "\r\n").getBytes)
+    buf.put("\r\n".getBytes)
+  }
+
   def ready(request: Request) = {
-    println("HTTP REQUEST READY!")
     buf.clear
+    buf.put(("HTTP 200 OK\r\n").getBytes)
+    content_length = request.resp_len
+    http_headers()
     request.write(buf)
     buf.flip
 
-    println(new String(buf.array, 0, buf.limit))
-    //close
+    state = HTTP_STATE_FLUSH
+    last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
 }

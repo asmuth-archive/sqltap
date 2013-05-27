@@ -12,15 +12,11 @@ class PrettyJSONWriter {
 
   private val INDENT = "  "
   private var ind = 1
-  private var buf : StringBuffer = null
+  private var buf = new StringBuffer()
 
   def write(head: Query) : Unit = {
-    // buf.append("[\n")
-
-    buf = head.json
     next(head, 0)
-
-    // buf.append("\n]")
+    head.json = buf.toString.getBytes
   }
 
   private def next(cur: Instruction, index: Int) : Unit = {

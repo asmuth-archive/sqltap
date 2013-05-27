@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
 //   > http request router
-//   > http response writer
+//   > HTTPWriter
+//   > keepalive
 //   > callback http connection on any exception (never leave it hanging)
 //   > multiple queries with findSome(id, id, id){..} + ";"
 //   > findWhere
@@ -33,7 +34,7 @@ class Worker() extends Thread {
   val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
 
   override def run : Unit = while (true) {
-    //println("select...")
+    println("select...")
     loop.select()
 
     while (!queue.isEmpty)
@@ -50,6 +51,9 @@ class Worker() extends Thread {
 
           if (event.isReadable)
             conn.read(event)
+
+          if (event.isWritable)
+            conn.write(event)
 
         } catch {
           case e: Exception => conn.error(e)
