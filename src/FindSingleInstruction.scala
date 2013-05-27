@@ -29,7 +29,7 @@ class FindSingleInstruction extends SQLInstruction {
       join_id = record.id
     }
 
-    else if (relation.join_foreign == false && prev.ready) {
+    else if (relation.join_foreign == false && prev.finished) {
       join_field = relation.resource.id_field
       join_id = prev.record.get(relation.join_field).toInt
       record.set_id(join_id)
@@ -47,16 +47,21 @@ class FindSingleInstruction extends SQLInstruction {
           conditions, order, null, null))
 
     if (running == true)
-      execute_next
+      execute_next()
   }
 
   def ready(query: SQLQuery) : Unit = {
+    finished = true
+
+    println("FIISHINST"); inspect(3);
+
     if (query.rows.length == 0)
       throw new NotFoundException(this)
     else
       record.load(query.columns, query.rows(0))
 
-    execute_next
+    execute_next()
+    unroll()
   }
 
 }

@@ -16,7 +16,6 @@ object InstructionFactory {
     var cpy = make(src.args)
     cpy.fields = src.fields.clone()
     cpy.relation = src.relation
-    cpy.request = src.request
     cpy.args = src.args
     cpy.record = new Record(src.relation.resource)
     cpy

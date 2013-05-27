@@ -47,6 +47,7 @@ class FindMultiInstruction extends SQLInstruction {
 
   def ready(query: SQLQuery) : Unit = {
     var execute_ = true
+    finished = true
 
     if (query.rows.length == 0)
       next = new ListBuffer[Instruction]()
@@ -70,6 +71,8 @@ class FindMultiInstruction extends SQLInstruction {
 
     if (execute_)
       execute_next
+
+    unroll()
   }
 
 }

@@ -15,11 +15,6 @@ class Request(_req_str: String, _worker: Worker) {
   val req_str = _req_str
   val worker  = _worker
 
-  //var ready = false
-  var resp_status : Int = 200
-  var resp_data : String = null
-
-
   def run() : Request = {
     etime = etime :+ System.nanoTime
 
@@ -36,10 +31,15 @@ class Request(_req_str: String, _worker: Worker) {
     stack.head.execute()
     etime = etime :+ System.nanoTime
 
-    //writer.run(this)
+    this
+  }
+
+  def ready() : Unit = {
+    // FIXPAUL: this should be a static method!
+    //(new PrettyJSONWriter).run(this)
     etime = etime :+ System.nanoTime
 
-    this
+    SQLTap.log_debug("Request finished: " + qtime.toString)
   }
 
   def qtime : List[Double] =

@@ -61,7 +61,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
     // STUB
       (new Request("product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}", worker)).run()
-      (new Request("user.findOne(13008){products.countAll{}}", worker)).run()
+      //(new Request("user.findOne(13008){products.countAll{}}", worker)).run()
     //EOF STUB
   }
 

@@ -29,10 +29,14 @@ class CountInstruction extends SQLInstruction {
   }
 
   def ready(query: SQLQuery) : Unit = {
+    finished = true
+
     if (query.rows.length == 0)
       throw new NotFoundException(this)
     else
       record.set("__count", query.rows.head.head)
+
+    unroll()
   }
 
 }

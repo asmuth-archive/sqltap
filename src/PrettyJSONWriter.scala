@@ -21,7 +21,6 @@ class PrettyJSONWriter extends RequestVisitor {
     //  next(req.stack.root, ind)
 
     buf.append("\n]")
-    req.resp_data = buf.toString
   }
 
   private def next(cur: Instruction, index: Int) : Unit = {/*

@@ -14,8 +14,6 @@ trait Instruction {
 
   var next          = ListBuffer[Instruction]()
   var prev          : Instruction = null
-  var running       = false
-  var ready         = false
 
   var fields        = ListBuffer[String]()
   var relation      : ResourceRelation = null
@@ -25,6 +23,9 @@ trait Instruction {
 
   var resource_name : String = null
   var record_id     : String = null
+
+  var running  = false
+  var finished = false
 
   def execute() : Unit
 
@@ -49,6 +50,22 @@ trait Instruction {
   def inspect(lvl: Int) : Unit = {
     SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
       if (fields.size > 0) fields.mkString(", ") else "none") + "]")
+  }
+
+  def unroll() : Unit = {
+    var all_finished = finished
+
+    if (all_finished == false)
+      return
+
+    for (ins <- next)
+      all_finished = (finished & ins.finished)
+
+    if (all_finished)
+      if (prev != null)
+        prev.unroll()
+      else
+        request.ready()
   }
 
 }
