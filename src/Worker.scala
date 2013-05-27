@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 // TODO
 //   > http request router
 //   > http response writer
-//   > multiRequest
 //   > callback http connection on any exception (never leave it hanging)
 //   > multiple queries with findSome(id, id, id){..} + ";"
 //   > findWhere

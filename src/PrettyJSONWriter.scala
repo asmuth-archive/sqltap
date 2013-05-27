@@ -12,20 +12,15 @@ class PrettyJSONWriter {
 
   private val INDENT = "  "
   private var ind = 1
-  private val buf = new StringBuffer
+  private var buf : StringBuffer = null
 
-  def write(head: Instruction) : StringBuffer = {
+  def write(head: Query) : Unit = {
     // buf.append("[\n")
 
-    val ins = new PhiInstruction()
-    ins.next += head
-    next(ins, 0)
+    buf = head.json
+    next(head, 0)
 
     // buf.append("\n]")
-
-    println("!!!!!!!!!!!!!!!!!!!!!JSON!!!!!!!!!!!!!!!!!!!!!!!!")
-    println(buf)
-    return buf
   }
 
   private def next(cur: Instruction, index: Int) : Unit = {
@@ -34,7 +29,7 @@ class PrettyJSONWriter {
     if (index != 0)
       buf.append(",\n")
 
-    if (cur.name == "phi")
+    if (cur.name == "phi" || cur.name == "root")
       { write("{\n"); scope = "}"; ind += 1; }
 
     if (cur.name == "findMulti") {
@@ -69,12 +64,12 @@ class PrettyJSONWriter {
       }
     }
 
-    if (cur.name == "phi" && cur.prev == null)
-      next(cur.next(index), index)
+    //if (cur.name == "phi" && cur.prev == null)
+    //  next(cur.next(index), index)
 
-    else
-      for ((nxt, nxt_ind) <- cur.next.zipWithIndex)
-        next(nxt, nxt_ind)
+    //else
+    for ((nxt, nxt_ind) <- cur.next.zipWithIndex)
+      next(nxt, nxt_ind)
 
     if (scope != null)
       { buf.append("\n"); ind -= 1; write(scope) }

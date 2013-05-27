@@ -22,6 +22,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   def ready(query: Query) : Unit = {
     remaining -= 1
+    println(query.json)
 
     if (remaining == 0)
       callback.ready(this)
