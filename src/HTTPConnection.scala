@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer}
 
-class HTTPConnection(sock: SocketChannel, worker: Worker) {
+class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[Request] {
 
   private val HTTP_STATE_INIT  = 1
   private val HTTP_STATE_CLOSE = 2
@@ -60,7 +60,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
       parser.http_headers)
 
     // STUB
-      (new Request("product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}", worker)).run()
+      (new Request(worker, this)).run_query("product.findOne(35975305){id,slug,user_id,milli_units_per_item,unit,cents,currency,first_published_at,channel_id,mailable_in_option,user.findOne{id,country,shop.findOne{id,subdomain,auto_confirm_enabled_at},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}},translations_only_title.findAll{language,attribute,text},standard_images.findAll{id,filename,synced,imageable_type,imageable_id}}")
       //(new Request("user.findOne(13008){products.countAll{}}", worker)).run()
     //EOF STUB
   }
@@ -87,6 +87,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) {
 
   private def http_error(code: Int, message: String) : Unit = {
     println("HTTP_ERROR", code, message)
+  }
+
+  def ready(req: Request) = {
+    println("HTTP REQUEST READY!")
+    close
   }
 
 }

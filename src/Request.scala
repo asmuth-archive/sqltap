@@ -7,19 +7,17 @@
 
 package com.paulasmuth.sqltap
 
-class Request(_req_str: String, _worker: Worker) {
+class Request(_worker: Worker, callback: ReadyCallback[Request]) {
 
-  val stack = new InstructionStack()
-  var etime = List[Long]()
+  val stack  = new InstructionStack()
+  var etime  = List[Long]()
+  val worker = _worker
 
-  val req_str = _req_str
-  val worker  = _worker
-
-  def run() : Request = {
+  def run_query(qry_str: String) : Request = {
     etime = etime :+ System.nanoTime
 
     // FIXPAUL: this should be a static method!
-    (new PlainRequestParser(this)).run
+    (new PlainRequestParser(this, qry_str)).run
 
     etime = etime :+ System.nanoTime
 
@@ -38,6 +36,8 @@ class Request(_req_str: String, _worker: Worker) {
     // FIXPAUL: this should be a static method!
     //(new PrettyJSONWriter).run(this)
     etime = etime :+ System.nanoTime
+
+    callback.ready(this)
 
     SQLTap.log_debug("Request finished: " + qtime.toString)
   }

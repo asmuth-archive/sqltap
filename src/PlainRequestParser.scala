@@ -9,7 +9,8 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.ListBuffer
 
-class PlainRequestParser(req: Request) {
+// FIXPAUL this should be a singleton, not a class (avoid gc...)
+class PlainRequestParser(req: Request, qry_str: String) {
 
   val stack = req.stack
   var scope = 'root
@@ -29,12 +30,12 @@ class PlainRequestParser(req: Request) {
   val t_fall = """\*([\},].*)""".r
 
   def run() : Unit = {
-    if (req.req_str == null)
+    if (qry_str == null)
       throw new ParseException("no query string")
 
-    SQLTap.log_debug("Request: " + req.req_str)
+    SQLTap.log_debug("Request: " + qry_str)
 
-    parse(req.req_str)
+    parse(qry_str)
 
     if (depth != 0)
       throw new ParseException("unbalanced braces")

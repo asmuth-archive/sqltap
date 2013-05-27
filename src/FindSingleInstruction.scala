@@ -53,8 +53,6 @@ class FindSingleInstruction extends SQLInstruction {
   def ready(query: SQLQuery) : Unit = {
     finished = true
 
-    println("FIISHINST"); inspect(3);
-
     if (query.rows.length == 0)
       throw new NotFoundException(this)
     else
