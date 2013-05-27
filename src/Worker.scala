@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > http request router
 //   > http response writer
 //   > callback http connection on any exception (never leave it hanging)
-//   > multiple queries with ";" + HTTP POST
+//   > multiple queries with findIn(id, id, id){..} (string gsub..)
 //   > findWhere
 //   > generic query cache instead of prepared queries ?q=...&ttl=3360
 //   > memcached proto + pool
