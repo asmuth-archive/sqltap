@@ -15,10 +15,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
 // TODO
 //   > http request router
 //   > http response writer
+//   > callback http connection on any exception (never leave it hanging)
+//   > prepared query instruction
 //   > prepared query relation :)
 //   > multi raw sql mode
 //   > findWhere
-//   > prepared query instruction
 //   > memcached proto + pool
 //   > prepared query caching
 //   > prepared query autoexpiration
