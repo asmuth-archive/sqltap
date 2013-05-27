@@ -12,6 +12,8 @@ import scala.collection.mutable.{ListBuffer}
 
 class CountInstruction extends SQLInstruction {
 
+  val name = "count"
+
   def execute() : Unit = {
     if (prev == null)
       throw new ExecutionException("count is not supported on root resources")

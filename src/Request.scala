@@ -34,7 +34,7 @@ class Request(_worker: Worker, callback: ReadyCallback[Request]) {
 
   def ready() : Unit = {
     // FIXPAUL: this should be a static method!
-    //(new PrettyJSONWriter).run(this)
+    (new PrettyJSONWriter).write(stack.head)
     etime = etime :+ System.nanoTime
 
     callback.ready(this)

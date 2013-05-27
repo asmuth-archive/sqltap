@@ -12,5 +12,6 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
 class PhiInstruction extends Instruction {
   finished = true
+  val name = "phi"
   def execute() : Unit = execute_next
 }

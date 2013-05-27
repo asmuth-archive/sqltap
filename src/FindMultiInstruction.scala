@@ -12,6 +12,8 @@ import scala.collection.mutable.{ListBuffer}
 
 class FindMultiInstruction extends SQLInstruction {
 
+  val name = "findMulti"
+
   var conditions : String = null
   var order      : String = null
   var limit      : String = null

@@ -27,6 +27,7 @@ trait Instruction {
   var running  = false
   var finished = false
 
+  val name : String
   def execute() : Unit
 
   def prepare() : Unit = {

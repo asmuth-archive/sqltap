@@ -7,29 +7,34 @@
 
 package com.paulasmuth.sqltap
 
-class PrettyJSONWriter extends RequestVisitor {
+// FIXPAUL this should be a singleton...
+class PrettyJSONWriter {
 
-  val INDENT = "  "
-  var ind = 1
+  private val INDENT = "  "
+  private var ind = 1
+  private val buf = new StringBuffer
 
-  val buf = new StringBuffer
-
-  def run : Unit = {
+  def write(head: Instruction) : StringBuffer = {
     buf.append("[\n")
 
-    //for (ind <- (0 until req.stack.root.next.length))
-    //  next(req.stack.root, ind)
+    val ins = new PhiInstruction()
+    ins.next += head
+    next(ins, 0)
 
     buf.append("\n]")
+
+    println("!!!!!!!!!!!!!!!!!!!!!JSON!!!!!!!!!!!!!!!!!!!!!!!!")
+    println(buf)
+    return buf
   }
 
-  private def next(cur: Instruction, index: Int) : Unit = {/*
+  private def next(cur: Instruction, index: Int) : Unit = {
     var scope : String = null
 
     if (index != 0)
       buf.append(",\n")
 
-    if (cur.name == "execute")
+    if (cur.name == "phi")
       { write("{\n"); scope = "}"; ind += 1; }
 
     if (cur.name == "findMulti") {
@@ -40,7 +45,7 @@ class PrettyJSONWriter extends RequestVisitor {
         scope = "]"; ind += 1
       }
 
-    } else if (cur.name == "countMulti") {
+    } else if (cur.name == "count") {
       write(json(cur.relation.output_name) + ": ")
       write(cur.record.get("__count"))
 
@@ -64,7 +69,7 @@ class PrettyJSONWriter extends RequestVisitor {
       }
     }
 
-    if (cur.name == "execute" && cur.prev == null)
+    if (cur.name == "phi" && cur.prev == null)
       next(cur.next(index), index)
 
     else
@@ -74,7 +79,7 @@ class PrettyJSONWriter extends RequestVisitor {
     if (scope != null)
       { buf.append("\n"); ind -= 1; write(scope) }
 
-  */}
+  }
 
   private def json(str: String) : String =
     if (str == null) "null" else

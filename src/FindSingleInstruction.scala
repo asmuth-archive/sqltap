@@ -11,6 +11,8 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
 class FindSingleInstruction extends SQLInstruction {
 
+  val name = "findSingle"
+
   var conditions : String = null
   var order      : String = null
 
