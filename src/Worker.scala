@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 // TODO
 //   > http request router
 //   > keepalive
-//   > multiple queries with ";" / [1,2,3]
+//   > multiple queries with ";" / ?repeat
 //   > generic query cache instead of prepared queries ?q=...&ttl=3360
 //   > callback http connection on any exception (never leave it hanging)
 //   > memcached proto + pool
