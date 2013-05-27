@@ -33,7 +33,7 @@ class HTTPWriter(buf: ByteBuffer) {
   }
 
   def write_default_headers() : Unit = {
-    write_header("Server", "SQLTap v" + SQLTap.VERSION)
+    write_header("Server", "SQLTap " + SQLTap.VERSION)
     write_header("Content-Type", "application/json; charset=utf-8")
   }
 
