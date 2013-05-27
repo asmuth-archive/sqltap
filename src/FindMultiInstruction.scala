@@ -26,7 +26,7 @@ class FindMultiInstruction extends SQLInstruction {
     if (fields.length == 0)
       fields += record.resource.id_field
 
-    if (prev.prev == null) {
+    if (prev.prev.name == "root") {
       execute_query(worker,
         SQLBuilder.select(
           relation.resource, null, 0, fields.toList,

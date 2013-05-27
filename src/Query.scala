@@ -11,7 +11,7 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
 class Query(qry_str: String) extends Instruction {
   val query_string = qry_str
-  val name = "phi"
+  val name = "root"
 
   private var etime = List[Long]()
   private var callback : ReadyCallback[Query] = null
