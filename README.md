@@ -90,6 +90,23 @@ You need java and sbt to build SQLTap:
 
 
 
+Sending Multiple Queries
+------------------------
+
+you can send multiple queries seperated by semicolon (`;`):
+
+    user.findOne(1){*};user.findOne(2){*}
+
+you can repeat a single queries n times using this syntax...
+e.g.
+
+    [1,2,3]user.findOne($){*}
+
+is the same as:
+
+    user.findOne(1){*};user.findOne(2){*};user.findOne(3){*}
+
+
 License
 -------
 
