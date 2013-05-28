@@ -69,7 +69,7 @@ class PrettyJSONWriter(buf: ByteBuffer) {
 
   def write_error(error: String) = {
     buf.put("{ \"status\": \"error\", \"error\": \"".getBytes)
-    buf.put(JSONHelper.escape(error).getBytes)
+    buf.put(JSONHelper.escape(error).getBytes("UTF-8"))
     buf.put("\" }\n".getBytes)
   }
 
@@ -90,6 +90,6 @@ class PrettyJSONWriter(buf: ByteBuffer) {
     if (str != null) append((INDENT * ind) + str)
 
   private def append(str: String) : Unit =
-    buf.put(str.getBytes)
+    buf.put(str.getBytes("UTF-8"))
 
 }

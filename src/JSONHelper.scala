@@ -7,6 +7,9 @@
 
 package com.paulasmuth.sqltap
 
+
+// this needs to be refactored... ~paul
+
 object JSONHelper {
 
   val unprintableChars = (List.range(0,9) ++ List.range(13,28) ++ List(127)).map(c => c.toChar.toString) // control chars, key codes, and DEL
