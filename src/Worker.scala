@@ -13,9 +13,7 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
-//   > http request router
 //   > keepalive
-//   > multiple queries with ";" / ?repeat
 //   > generic query cache instead of prepared queries ?q=...&ttl=3360
 //   > callback http connection on any exception (never leave it hanging)
 //   > memcached proto + pool
@@ -36,7 +34,6 @@ class Worker() extends Thread {
   val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
 
   override def run : Unit = while (true) {
-    println("select...")
     loop.select()
 
     while (!queue.isEmpty)
@@ -54,7 +51,7 @@ class Worker() extends Thread {
           if (event.isReadable)
             conn.read(event)
 
-          if (event.isWritable)
+          if (event.isValid && event.isWritable)
             conn.write(event)
 
         } catch {

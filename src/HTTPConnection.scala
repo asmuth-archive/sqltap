@@ -19,7 +19,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private val HTTP_STATE_WAIT  = 5
   private val HTTP_STATE_CLOSE = 6
 
-  private val buf = ByteBuffer.allocate(4096) // FIXPAUL
+  private val buf = ByteBuffer.allocate(4096)
   private val parser = new HTTPParser()
   private var state = HTTP_STATE_INIT
   private var last_event : SelectionKey = null
@@ -138,6 +138,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private def execute() : Unit = {
     val route = parser.uri_parts
 
+    if (parser.http_version == "1.1")
+      keepalive = true
+
     if (route.length == 1 && route.head == "ping")
       execute_ping()
 
@@ -188,6 +191,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     keepalive = false
     last_event.interestOps(SelectionKey.OP_READ)
+    buf.clear()
     parser.reset()
   }
 
