@@ -20,6 +20,8 @@ object SQLTap{
 
   var DEFAULTS = HashMap[Symbol, String](
     'http_port     -> "8080",
+    'db_timeout    -> "5000",
+    'http_timeout  -> "5000",
     'memcached_ttl -> "3600",
     'threads       -> "4"
   )

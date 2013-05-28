@@ -7,7 +7,15 @@
 
 package com.paulasmuth.sqltap
 
-class Timeout(timeout: Long, callback: TimeoutCallback) {
-  val expires = (System.nanoTime / 1000000) + timeout
+class Timeout(_ms: Long, callback: TimeoutCallback) extends Comparable[Timeout] {
+  val ms = _ms
+  val expires = (System.nanoTime / 1000000) + ms
+
+  def compareTo(o: Timeout) = {
+    ms.compareTo(o.ms)
+  }
+
+  def fire() =
+    callback.timeout()
 
 }

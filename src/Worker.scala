@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 // TODO
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > findWhere
-//   > timeouts!!! (put timeouts on sql query in queue + http requests in general)
 //   > stats
 //   > check for leaks
 //   > optimize record class (use hashmap...)
@@ -26,12 +25,15 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class Worker() extends Thread {
 
+  private val TICK = 50
+
   val queue    = new ConcurrentLinkedQueue[SocketChannel]()
   val loop     = SelectorProvider.provider().openSelector()
   val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
 
   override def run : Unit = while (true) {
-    loop.select()
+    loop.select(TICK)
+    TimeoutScheduler.run()
 
     while (!queue.isEmpty)
       accept()

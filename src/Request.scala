@@ -12,7 +12,7 @@ import scala.collection.mutable.{ListBuffer}
 
 class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
-  val buffer = ByteBuffer.allocate(32768*10)
+  val buffer = ByteBuffer.allocate(32768)
   val json_stream = new PrettyJSONWriter(buffer)
   var latch : Int = 0
   var ttl   : Int = 0
@@ -55,8 +55,10 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
   }
 
   def error(err: Throwable) : Unit = {
-    // FIXPAUL: kill all running queries
     val exception = new ExecutionException(err.toString)
+
+    // FIXPAUL: kill all running queries
+    SQLTap.exception(err, false)
 
     if (callback != null)
       callback.error(this, exception)

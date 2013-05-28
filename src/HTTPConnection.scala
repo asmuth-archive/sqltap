@@ -134,7 +134,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     flush()
   }
 
-  private def flush() = {
+  private def flush() : Unit = {
+    if (state == HTTP_STATE_CLOSE)
+      return
+
     state = HTTP_STATE_HEAD
     last_event.interestOps(SelectionKey.OP_WRITE)
   }

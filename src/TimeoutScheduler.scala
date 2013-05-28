@@ -9,24 +9,35 @@ package com.paulasmuth.sqltap
 
 import java.util.{PriorityQueue}
 
-class LocalTimeoutScheduler extends ThreadLocal[TimeoutScheduler]
+object TimeoutScheduler {
 
-class TimeoutScheduler {
-
-  private val timeouts = new PriorityQueue[Timeout]()
+  private val timeouts = new ThreadLocal[PriorityQueue[Timeout]]{
+    override def initialValue() = new PriorityQueue[Timeout]()
+  }
 
   def schedule(millisecs: Long, callback: TimeoutCallback) : Timeout = {
     val timeout = new Timeout(millisecs, callback)
-    timeouts.add(timeout)
+    timeouts.get().add(timeout)
     timeout
   }
 
   def remove(timeout: Timeout) : Unit = {
-    timeouts.remove(timeout)
+    timeouts.get().remove(timeout)
   }
 
-  def run() = {
-    println("RUN TIMEOUTS", timeouts)
+  def run() : Unit = {
+    val iter = timeouts.get().iterator()
+    val now = System.nanoTime() / 1000000
+
+    while (iter.hasNext()) {
+      val timeout = iter.next()
+
+      if (timeout.expires > now)
+        return
+
+      iter.remove()
+      timeout.fire()
+    }
   }
 
 }

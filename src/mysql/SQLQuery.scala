@@ -7,10 +7,10 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,ReadyCallback,ExecutionException,Timeout,LocalTimeoutScheduler}
+import com.paulasmuth.sqltap._
 import scala.collection.mutable.ListBuffer
 
-class SQLQuery(query_str: String) {
+class SQLQuery(query_str: String) extends TimeoutCallback {
 
   val query    : String = query_str
   var columns  = new ListBuffer[String]()
@@ -18,6 +18,7 @@ class SQLQuery(query_str: String) {
   var num_cols : Int  = 0
   var qtime    : Long = 0
   var callback : ReadyCallback[SQLQuery] = null
+  var timer    : Timeout = null
 
   private var tik : Long = 0
   private var tok : Long = 0
@@ -26,6 +27,9 @@ class SQLQuery(query_str: String) {
     tik = System.nanoTime
 
     SQLTap.log_debug("Execute: " + query)
+
+    timer = TimeoutScheduler.schedule(
+      SQLTap.CONFIG('db_timeout).toInt, this)
   }
 
   def ready() : Unit = {
@@ -44,6 +48,15 @@ class SQLQuery(query_str: String) {
 
     if (callback != null)
       callback.error(this, err)
+  }
+
+  def timeout() : Unit = {
+    // FIXPAUL: this should actually kill the query in mysql
+    if (callback != null)
+      callback.error(this, new TimeoutException(
+        "sql query timed out after " + timer.ms + "ms: " + query))
+
+    callback = null
   }
 
   def attach(_callback: ReadyCallback[SQLQuery]) : Unit =

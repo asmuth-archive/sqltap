@@ -19,6 +19,10 @@ class TemporaryException(msg: String) extends Exception {
   override def toString = msg
 }
 
+class TimeoutException(msg: String) extends Exception {
+  override def toString = msg
+}
+
 class NotFoundException(cur: Instruction = null) extends Exception {
   override def toString =
     if (cur == null)
