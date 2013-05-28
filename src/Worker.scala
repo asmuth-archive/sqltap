@@ -15,11 +15,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
 // TODO
 //   > http request router
 //   > keepalive
-//   > callback http connection on any exception (never leave it hanging)
-//   > multiple queries with findSome(id, id, id){..} + ";"
-//   > findWhere
+//   > multiple queries with ";" / ?repeat
 //   > generic query cache instead of prepared queries ?q=...&ttl=3360
+//   > callback http connection on any exception (never leave it hanging)
 //   > memcached proto + pool
+//   > findWhere
 //   > timeouts
 //   > stats
 //   > check for leaks

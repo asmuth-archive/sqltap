@@ -23,15 +23,15 @@ Usage
 
 retrieve user record id#2342 with all fields:
 
-    /query?user.findOne(2342){*}
+    /query?q=user.findOne(2342){*}
 
 retrieve user record id#2342 with fields: username and email):
 
-    /query?user.findOne(2342){username,email}
+    /query?q=user.findOne(2342){username,email}
 
 retrieve user record with id#2342 with all orders and all fields::
 
-    /query?user.findOne(2342){*,orders.findAll{*}}
+    /query?q=user.findOne(2342){*,orders.findAll{*}}
 
 
 Instructions
@@ -88,6 +88,22 @@ You need java and sbt to build SQLTap:
 
     ./build jar
 
+
+
+Sending Multiple Queries
+------------------------
+
+you can send multiple queries seperated by semicolon (`;`):
+
+    /query?q=user.findOne(1){*};user.findOne(2){*}
+
+you can repeat a single queries n times using this syntax...
+
+    /query?q=user.findOne($){*}&repeat=1,2,3
+
+is the same as:
+
+    /query?q=user.findOne(1){*};user.findOne(2){*};user.findOne(3){*}
 
 
 License
