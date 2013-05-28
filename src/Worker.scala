@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > findWhere
 //   > stats
 //   > check for leaks
+
+// BACKLOG
 //   > optimize record class (use hashmap...)
 //   > use proper linkedlists instead of listbuffers all over the place
 //   > json writer refactoring
