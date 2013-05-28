@@ -12,13 +12,14 @@ import scala.collection.mutable.{ListBuffer}
 
 class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
-  val buffer = ByteBuffer.allocate(32768)
+  val buffer = ByteBuffer.allocate(32768*10)
   val json_stream = new PrettyJSONWriter(buffer)
   var latch : Int = 0
   var ttl   : Int = 0
   val queries = new ListBuffer[String]()
+  var failed = false
 
-  def execute(worker: Worker) : Unit = {
+  def execute(worker: Worker) : Unit = try {
     latch = queries.length
     json_stream.write_array_begin()
 
@@ -27,9 +28,14 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
       query.attach(this)
       query.execute(worker)
     }
+  } catch {
+    case e: Exception => error(e)
   }
 
-  def ready(query: Query) : Unit = {
+  def ready(query: Query) : Unit = try {
+    if (failed)
+      return
+
     json_stream.write_query(query)
     latch -= 1
 
@@ -40,6 +46,20 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
       buffer.flip()
       callback.ready(this)
     }
+  } catch {
+    case e: Exception => error(e)
+  }
+
+  def error(query: Query, err: Throwable) : Unit = {
+    error(err)
+  }
+
+  def error(err: Throwable) : Unit = {
+    // FIXPAUL: kill all running queries
+    val exception = new ExecutionException(err.toString)
+
+    if (callback != null)
+      callback.error(this, exception)
   }
 
   def add_param(param: String) = {

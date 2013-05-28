@@ -25,6 +25,7 @@ trait Instruction {
 
   var running  = false
   var finished = false
+  var latch = 0
 
   val name : String
   def execute(worker: Worker) : Unit
@@ -48,22 +49,18 @@ trait Instruction {
   }
 
   def unroll() : Unit = {
-    var all_finished = finished
+    latch += 1
 
-    if (all_finished == false)
+    if (latch < 1 + next.length)
       return
 
-    for (ins <- next)
-      all_finished = (finished & ins.finished)
-
-    if (all_finished)
-      if (prev != null)
-        prev.unroll()
+    if (prev != null)
+      prev.unroll()
   }
 
   def inspect(lvl: Int = 0) : Unit = {
-    SQLTap.log_debug((" " * (lvl*2)) + "> resource: " + resource_name + ", fields: [" + (
-      if (fields.size > 0) fields.mkString(", ") else "none") + "]")
+    SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: [" +
+      (if (args != null && args.size > 0) args.mkString(", ") else "none") + "]")
 
     for (ins <- next)
       ins.inspect(lvl+1)

@@ -56,14 +56,14 @@ class FindSingleInstruction extends SQLInstruction {
   }
 
   def ready(query: SQLQuery) : Unit = {
-    finished = true
-
     if (query.rows.length == 0)
       throw new NotFoundException(this)
     else
       record.load(query.columns, query.rows(0))
 
+    finished = true
     execute_next(worker)
+
     unroll()
   }
 

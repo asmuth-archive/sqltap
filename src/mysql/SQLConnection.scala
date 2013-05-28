@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap}
+import com.paulasmuth.sqltap.{SQLTap,ExecutionException}
 import scala.collection.mutable.{ListBuffer}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
@@ -80,7 +80,7 @@ class SQLConnection(pool: SQLConnectionPool) {
     } catch {
       case e: ConnectException => {
         SQLTap.error("[SQL] connection failed: " + e.toString, false)
-        return close()
+        return close(e)
       }
     }
 
@@ -92,7 +92,7 @@ class SQLConnection(pool: SQLConnectionPool) {
 
     if (chunk <= 0) {
       SQLTap.error("[SQL] read end of file ", false)
-      close()
+      close(new ExecutionException("sql connection closed"))
       return
     }
 
@@ -106,7 +106,8 @@ class SQLConnection(pool: SQLConnectionPool) {
 
         if (cur_len == SQL_MAX_PKT_LEN) {
           SQLTap.error("[SQL] packets > 16mb are currently not supported", false)
-          return close()
+          return close(new ExecutionException(
+            "sql packets > 16mb are currently not supported"))
         }
       }
 
@@ -128,7 +129,7 @@ class SQLConnection(pool: SQLConnectionPool) {
       } catch {
         case e: SQLProtocolError => {
           SQLTap.error("[SQL] protocol error: " + e.toString, false)
-          return close()
+          return close(e)
         }
       }
 
@@ -143,7 +144,7 @@ class SQLConnection(pool: SQLConnectionPool) {
     } catch {
       case e: Exception => {
         SQLTap.error("[SQL] conn error: " + e.toString, false)
-        return close()
+        return close(e)
       }
     }
 
@@ -153,9 +154,12 @@ class SQLConnection(pool: SQLConnectionPool) {
     }
   }
 
-  def close() : Unit = {
+  def close(err: Throwable = null) : Unit = {
     if (state == SQL_STATE_CLOSE)
       return
+
+    if (cur_qry != null)
+      cur_qry.error(err)
 
     state = SQL_STATE_CLOSE
     pool.close(this)
@@ -274,7 +278,8 @@ class SQLConnection(pool: SQLConnectionPool) {
 
     SQLTap.error("[SQL] error (" + err_code + "): " + err_msg, false)
 
-    close()
+    close(new ExecutionException(
+      "SQL error (" + err_code + "): " + err_msg))
   }
 
   private def idle(event: SelectionKey) : Unit = {

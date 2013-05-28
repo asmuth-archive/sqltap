@@ -101,7 +101,11 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     }
   }
 
-  def ready(request: Request) = {
+  def error(request: Request, err: Throwable) : Unit = {
+    error(err)
+  }
+
+  def ready(request: Request) : Unit = {
     val http_buf = new HTTPWriter(buf)
     buf.clear
 

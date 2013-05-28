@@ -18,4 +18,16 @@ trait SQLInstruction extends Instruction with ReadyCallback[SQLQuery] {
     running = true
   }
 
+  def error(qry: SQLQuery, err: Throwable) = {
+    var cur = prev
+
+    while (cur != null) {
+      cur match {
+        case q: Query => q.error(err)
+        case _ => ()
+      }
+      cur = cur.prev
+    }
+  }
+
 }

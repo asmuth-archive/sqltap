@@ -15,6 +15,7 @@ class Query(qry_str: String) extends Instruction {
 
   private var etime = List[Long]()
   private var callback : ReadyCallback[Query] = null
+  private var failed = false
 
   def execute(worker: Worker) : Unit = {
     if (finished)
@@ -29,18 +30,21 @@ class Query(qry_str: String) extends Instruction {
   }
 
   override def unroll() : Unit = {
-    var all_finished = finished
-
-    if (all_finished == false)
+    if (failed)
       return
-
-    for (ins <- next)
-      all_finished = (finished & ins.finished)
 
     etime = etime :+ System.nanoTime
 
     if (callback != null)
       callback.ready(this)
+  }
+
+  def error(err: Throwable) : Unit = {
+    // FIXPAUL: kill all running connections
+    failed = true
+
+    if (callback != null)
+      callback.error(this, err)
   }
 
   def attach(_callback: ReadyCallback[Query]) =

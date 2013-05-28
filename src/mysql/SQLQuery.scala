@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,ReadyCallback}
+import com.paulasmuth.sqltap.{SQLTap,ReadyCallback,ExecutionException}
 import scala.collection.mutable.ListBuffer
 
 class SQLQuery(query_str: String) {
@@ -36,6 +36,14 @@ class SQLQuery(query_str: String) {
     qtime = tok - tik
 
     SQLTap.log_debug("Finished (" + (qtime / 1000000.0) + "ms): " + query)
+  }
+
+  def error(err: Throwable) : Unit = {
+    val error = if (err != null) err else
+      new ExecutionException("error while executing SQL query")
+
+    if (callback != null)
+      callback.error(this, err)
   }
 
   def attach(_callback: ReadyCallback[SQLQuery]) : Unit =

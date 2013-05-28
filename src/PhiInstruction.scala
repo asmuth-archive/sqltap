@@ -10,10 +10,12 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
 class PhiInstruction extends Instruction {
-  finished = true
+  finished = false
   val name = "phi"
 
-  def execute(worker: Worker) : Unit =
+  def execute(worker: Worker) : Unit = {
     execute_next(worker)
+    unroll()
+  }
 
 }

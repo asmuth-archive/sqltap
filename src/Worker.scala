@@ -71,7 +71,7 @@ class Worker() extends Thread {
           case e: Exception => {
             SQLTap.error("[SQL] exception: " + e.toString, false)
             SQLTap.exception(e, false)
-            conn.close
+            conn.close(e)
           }
         }
       }

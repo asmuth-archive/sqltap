@@ -9,4 +9,5 @@ package com.paulasmuth.sqltap
 
 trait ReadyCallback[T] {
   def ready(caller: T) : Unit
+  def error(caller: T, err: Throwable) : Unit
 }
