@@ -13,10 +13,9 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
-//   > callback http connection on any exception (never leave it hanging)
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > findWhere
-//   > timeouts
+//   > timeouts!!! (put timeouts on sql query in queue + http requests in general)
 //   > stats
 //   > check for leaks
 //   > optimize record class (use hashmap...)

@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,ReadyCallback,ExecutionException}
+import com.paulasmuth.sqltap.{SQLTap,ReadyCallback,ExecutionException,Timeout,LocalTimeoutScheduler}
 import scala.collection.mutable.ListBuffer
 
 class SQLQuery(query_str: String) {
