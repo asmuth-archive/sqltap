@@ -27,6 +27,9 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
     queries.foreach(_.execute(worker))
   }
 
+  def add_param(param: String) =
+    println("PARAM", param)
+
   def ready(query: Query) : Unit = {
     json_stream.write_query(query)
     latch -= 1

@@ -137,20 +137,15 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def execute() : Unit = {
     val route = parser.uri_parts
-    println(route)
 
-    if (route.length == 0)
-      http_error(404, "not found")
-
-    else if (route.head == "ping")
+    if (route.length == 1 && route.head == "ping")
       execute_ping()
 
-    else {
-      state = HTTP_STATE_EXEC
-      last_event.interestOps(0)
+    else if (route.length >= 1 && route.head == "query")
+      execute_request(route.tail)
 
-      println(route)
-    }
+    else
+      http_error(404, "not found")
   }
 
   private def execute_ping() : Unit = {
@@ -166,6 +161,17 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     buf.flip
 
     flush()
+  }
+
+  private def execute_request(params: List[String]) : Unit = {
+    val req = new Request(this)
+
+    for (param <- params)
+      req.add_param(param)
+
+    state = HTTP_STATE_EXEC
+    last_event.interestOps(0)
+    req.execute(worker)
   }
 
   def close() : Unit = {

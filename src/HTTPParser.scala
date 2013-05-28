@@ -136,7 +136,7 @@ class HTTPParser {
     while (cur >= 0) {
       val c = http_uri.charAt(cur)
 
-      if (c == '/' || c == '?' || c == '&' || c == ';') {
+      if (c == '/' || c == '?' || c == '&') {
         if (cur + 1 != pos)
           http_uri.substring(cur + 1, pos) +=: ret
 

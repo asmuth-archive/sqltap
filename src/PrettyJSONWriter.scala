@@ -59,10 +59,6 @@ class PrettyJSONWriter(buf: ByteBuffer) {
       }
     }
 
-    //if (cur.name == "phi" && cur.prev == null)
-    //  next(cur.next(index), index)
-
-    //else
     for ((nxt, nxt_ind) <- cur.next.zipWithIndex)
       next_instruction(nxt, nxt_ind)
 
