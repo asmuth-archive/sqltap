@@ -13,10 +13,8 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
-//   > keepalive
-//   > generic query cache instead of prepared queries ?q=...&ttl=3360
 //   > callback http connection on any exception (never leave it hanging)
-//   > memcached proto + pool
+//   > memcached proto + pool + generic query cache w/ ttl
 //   > findWhere
 //   > timeouts
 //   > stats
