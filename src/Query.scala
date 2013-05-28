@@ -20,11 +20,8 @@ class Query(qry_str: String) extends Instruction {
     if (finished)
       return
 
-    println("TRY MEMCACHE SINGLE", query_string)
-
     etime = etime :+ System.nanoTime
-    // FIXPAUL: this should be a static method!
-    (new QueryParser(this)).run
+    (new QueryParser(this)).run // FIXPAUL: this should be a static method!
 
     etime = etime :+ System.nanoTime
     finished = true

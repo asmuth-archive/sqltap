@@ -99,7 +99,7 @@ you can send multiple queries seperated by semicolon (`;`):
 
 you can repeat a single queries n times using this syntax...
 
-    /query?q=user.findOne($){*}&repeat=1,2,3
+    /query?q=user.findOne($){*}&for=1,2,3
 
 is the same as:
 

@@ -8,27 +8,26 @@
 package com.paulasmuth.sqltap
 
 import java.nio.{ByteBuffer}
+import scala.collection.mutable.{ListBuffer}
 
 class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   val buffer = ByteBuffer.allocate(32768)
   val json_stream = new PrettyJSONWriter(buffer)
   var latch : Int = 0
+  var ttl   : Int = 0
+  val queries = new ListBuffer[String]()
 
   def execute(worker: Worker) : Unit = {
-    // STUB
-    val queries = List(
-      new Query("user.findOne(1){email,username}"),
-      new Query("user.findOne(2){email,username}"))
-
     latch = queries.length
     json_stream.write_array_begin()
-    queries.foreach(_.attach(this))
-    queries.foreach(_.execute(worker))
-  }
 
-  def add_param(param: String) =
-    println("PARAM", param)
+    for (qry_str <- queries) {
+      val query = new Query(qry_str)
+      query.attach(this)
+      query.execute(worker)
+    }
+  }
 
   def ready(query: Query) : Unit = {
     json_stream.write_query(query)
@@ -41,6 +40,25 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
       buffer.flip()
       callback.ready(this)
     }
+  }
+
+  def add_param(param: String) = {
+    if (param.substring(0, 2) == "q=")
+      for (qry <- param.substring(2).split(";"))
+        qry +=: queries
+
+    else if (param.substring(0, 4) == "ttl=")
+      ttl = param.substring(4).toInt
+
+    else if (param.substring(0, 4) == "for=") {
+      val qry = queries.remove(0)
+
+      for (rep <- param.substring(4).split(","))
+        qry.replace("$", rep) +=: queries
+    }
+
+    else
+      throw new ParseException("unknown parameter: " + param)
   }
 
 }
