@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer}
 
-class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[Request] {
+class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[Request] with TimeoutCallback {
 
   private val HTTP_STATE_INIT  = 1
   private val HTTP_STATE_EXEC  = 2
@@ -25,6 +25,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var last_event : SelectionKey = null
   private var keepalive : Boolean = false
   private var resp_buf : ByteBuffer = null
+
+  private var timer : Timeout = TimeoutScheduler.schedule(
+      SQLTap.CONFIG('http_timeout).toInt, this)
 
   def read(event: SelectionKey) : Unit = {
     var ready = false
@@ -105,6 +108,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     error(err)
   }
 
+  def timeout() : Unit = {
+    error(new ExecutionException("execution expired"))
+  }
+
   def ready(request: Request) : Unit = {
     val http_buf = new HTTPWriter(buf)
     buf.clear
@@ -139,7 +146,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       return
 
     state = HTTP_STATE_HEAD
-    last_event.interestOps(SelectionKey.OP_WRITE)
+
+    if (last_event != null)
+      last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
   private def execute() : Unit = {
@@ -188,6 +197,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     if (state == HTTP_STATE_CLOSE)
       return
 
+    timer.cancel()
     state = HTTP_STATE_CLOSE
     sock.close()
   }
@@ -200,6 +210,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     last_event.interestOps(SelectionKey.OP_READ)
     buf.clear()
     parser.reset()
+    timer.reset()
   }
 
 }

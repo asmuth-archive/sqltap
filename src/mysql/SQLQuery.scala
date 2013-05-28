@@ -33,6 +33,8 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
   }
 
   def ready() : Unit = {
+    timer.cancel()
+
     if (callback != null)
       callback.ready(this)
 

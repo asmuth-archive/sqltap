@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
 //   > memcached proto + pool + generic query cache w/ ttl
+//   > max mysql query response size (kill after that)
 //   > findWhere
 //   > stats
 //   > check for leaks
@@ -33,7 +34,15 @@ class Worker() extends Thread {
 
   override def run : Unit = while (true) {
     loop.select(TICK)
-    TimeoutScheduler.run()
+
+    try {
+      TimeoutScheduler.run()
+    } catch {
+      case e: Exception => {
+        SQLTap.error("exception while running timeouts", false)
+        SQLTap.exception(e, false)
+      }
+    }
 
     while (!queue.isEmpty)
       accept()

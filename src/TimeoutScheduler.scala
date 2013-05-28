@@ -17,12 +17,16 @@ object TimeoutScheduler {
 
   def schedule(millisecs: Long, callback: TimeoutCallback) : Timeout = {
     val timeout = new Timeout(millisecs, callback)
-    timeouts.get().add(timeout)
+    add(timeout)
     timeout
   }
 
   def remove(timeout: Timeout) : Unit = {
     timeouts.get().remove(timeout)
+  }
+
+  def add(timeout: Timeout) : Unit = {
+    timeouts.get().add(timeout)
   }
 
   def run() : Unit = {

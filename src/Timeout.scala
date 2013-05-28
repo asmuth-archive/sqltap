@@ -9,13 +9,30 @@ package com.paulasmuth.sqltap
 
 class Timeout(_ms: Long, callback: TimeoutCallback) extends Comparable[Timeout] {
   val ms = _ms
-  val expires = (System.nanoTime / 1000000) + ms
+  var expires : Long = 0
 
-  def compareTo(o: Timeout) = {
+  set_expire
+
+  def compareTo(o: Timeout) : Int = {
     ms.compareTo(o.ms)
   }
 
-  def fire() =
+  def fire() : Unit = {
     callback.timeout()
+  }
+
+  def cancel() : Unit = {
+    TimeoutScheduler.remove(this)
+  }
+
+  def reset() : Unit = {
+    TimeoutScheduler.remove(this)
+    set_expire()
+    TimeoutScheduler.add(this)
+  }
+
+  private def set_expire() : Unit = {
+    expires = (System.nanoTime / 1000000) + ms
+  }
 
 }
