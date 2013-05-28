@@ -22,12 +22,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private val buf = ByteBuffer.allocate(4096) // FIXPAUL
   private val parser = new HTTPParser()
   private var state = HTTP_STATE_INIT
-  private var content_length : Int = 0
   private var last_event : SelectionKey = null
   private var keepalive : Boolean = false
   private var resp_buf : ByteBuffer = null
-
-  println("new http connection opened")
 
   def read(event: SelectionKey) : Unit = {
     var ready = false
@@ -48,8 +45,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     if (ready) {
       event.interestOps(0)
-      execute()
       buf.clear
+      execute()
     }
   }
 
@@ -79,32 +76,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       } else {
         resp_buf = null
         state = HTTP_STATE_WAIT
-        close() // FIXPAUL: implement keepalive
+        finish()
       }
     }
-  }
-
-  def close() : Unit = {
-    if (state == HTTP_STATE_CLOSE)
-      return
-
-    println("connection closed")
-    state = HTTP_STATE_CLOSE
-    sock.close()
-  }
-
-  private def execute() : Unit = {
-    println("request: ",
-      parser.http_version,
-      parser.http_method,
-      parser.http_uri,
-      parser.http_headers)
-
-    // STUB
-    (new Request(this)).execute(worker)
-
-    state = HTTP_STATE_EXEC
-    last_event.interestOps(0)
   }
 
   def error(e: Throwable) : Unit = e match {
@@ -143,13 +117,12 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def http_error(code: Int, message: String) : Unit = {
     val http_buf = new HTTPWriter(buf)
+    val json_buf = new PrettyJSONWriter(buf)
     buf.clear
 
     http_buf.write_status(code)
     http_buf.write_default_headers()
     http_buf.finish_headers()
-
-    val json_buf = new PrettyJSONWriter(buf)
     json_buf.write_error(message)
     buf.flip
 
@@ -160,6 +133,56 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private def flush() = {
     state = HTTP_STATE_HEAD
     last_event.interestOps(SelectionKey.OP_WRITE)
+  }
+
+  private def execute() : Unit = {
+    val route = parser.uri_parts
+    println(route)
+
+    if (route.length == 0)
+      http_error(404, "not found")
+
+    else if (route.head == "ping")
+      execute_ping()
+
+    else {
+      state = HTTP_STATE_EXEC
+      last_event.interestOps(0)
+
+      println(route)
+    }
+  }
+
+  private def execute_ping() : Unit = {
+    val http_buf = new HTTPWriter(buf)
+    buf.clear
+
+    http_buf.write_status(200)
+    http_buf.write_content_length(6)
+    http_buf.write_default_headers()
+    http_buf.finish_headers()
+
+    buf.put("pong\r\n".getBytes)
+    buf.flip
+
+    flush()
+  }
+
+  def close() : Unit = {
+    if (state == HTTP_STATE_CLOSE)
+      return
+
+    state = HTTP_STATE_CLOSE
+    sock.close()
+  }
+
+  def finish() : Unit = {
+    if (!keepalive)
+      return close()
+
+    keepalive = false
+    last_event.interestOps(SelectionKey.OP_READ)
+    parser.reset()
   }
 
 }

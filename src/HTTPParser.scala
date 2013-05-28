@@ -9,6 +9,7 @@ package com.paulasmuth.sqltap
 
 import java.nio.ByteBuffer
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.ListBuffer
 
 class HTTPParseError extends Exception
 
@@ -117,7 +118,7 @@ class HTTPParser {
     new String(buf, start, end - start, "UTF-8")
   }
 
-  def reset : Unit =  {
+  def reset() : Unit =  {
     http_headers.clear
     pos          = 0
     token        = 0
@@ -125,6 +126,27 @@ class HTTPParser {
     http_method  = null
     http_uri     = null
     http_version = null
+  }
+
+  def uri_parts() : List[String] = {
+    var pos = http_uri.length
+    var cur = pos - 1
+    var ret = new ListBuffer[String]()
+
+    while (cur >= 0) {
+      val c = http_uri.charAt(cur)
+
+      if (c == '/' || c == '?' || c == '&' || c == ';') {
+        if (cur + 1 != pos)
+          http_uri.substring(cur + 1, pos) +=: ret
+
+        pos = cur
+      }
+
+      cur -= 1
+    }
+
+    return ret.toList
   }
 
 }
