@@ -34,6 +34,7 @@ class SQLConnection(pool: SQLConnectionPool) {
 
   // max packet length: 16mb
   private val SQL_MAX_PKT_LEN    = 16777215
+  private val SQL_MAX_RESULT_LEN = 16777215
   private val SQL_WRITE_BUF_LEN  = 4096
   private val SQL_READ_BUF_LEN   = 65535
 
@@ -50,6 +51,7 @@ class SQLConnection(pool: SQLConnectionPool) {
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
+  private var cur_len_cumul : Int = 0
   private var cur_qry : SQLQuery = null
 
   def connect() : Unit = {
@@ -223,6 +225,11 @@ class SQLConnection(pool: SQLConnectionPool) {
     case SQL_STATE_QROW => {
       var cur = 0
       var row = new ListBuffer[String]
+      cur_len_cumul += pkt.size
+
+      if (cur_len_cumul > SQL_MAX_RESULT_LEN)
+        throw new SQLProtocolError("result too large (max is " +
+          cur_len_cumul.toString + " bytes)")
 
       while (cur < pkt.size) {
         if ((pkt(cur) & 0x000000ff) == 0xfb) {
