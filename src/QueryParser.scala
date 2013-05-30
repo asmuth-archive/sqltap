@@ -114,7 +114,10 @@ object QueryParser {
 
           case PARSER_STATE_BODY => {
             state = PARSER_STATE_NEXT
-            stack.push_down(InstructionFactory.make(args))
+
+            stack.push_down(
+              InstructionFactory.make(clean_args(args)))
+
             args.clear
             pos = cur + 1
           }
@@ -122,7 +125,10 @@ object QueryParser {
           case PARSER_STATE_CMD => {
             state = PARSER_STATE_NEXT
             args += qry.substring(pos, cur)
-            stack.push_down(InstructionFactory.make(args))
+
+            stack.push_down(
+              InstructionFactory.make(clean_args(args)))
+
             args.clear
             pos = cur + 1
           }
@@ -150,6 +156,20 @@ object QueryParser {
 
       cur += 1
     }
+  }
+
+  private def clean_args(args: ListBuffer[String]) : ListBuffer[String] = {
+    for (ind <- (0 until args.length)) {
+
+      if (args(ind).charAt(args(ind).length - 1) == '"')
+        args(ind) = args(ind).substring(0, args(ind).length - 1)
+
+      if (args(ind).charAt(0) == '"')
+        args(ind) = args(ind).substring(1)
+
+    }
+
+    args
   }
 
 }
