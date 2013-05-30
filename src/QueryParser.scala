@@ -9,22 +9,7 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.ListBuffer
 
-// FIXPAUL this is shit... rewrite to a proper state machine w/o regex
 object QueryParser {
-
-  //var scope = 'root
-  //var depth = 0
-
-  /*val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
-  val t_sfld = """^([0-9a-z_\-]+)([,\}].*)""".r // fixpaul
-  val t_sarg = """^([^,\)]+)(.*)""".r
-  val t_func = """^(findOne|findAllWhere|findAll|countAll)\.?(.*)""".r
-  val t_rbrs = """^\((.*)""".r
-  val t_rbre = """^\)(.*)""".r
-  val t_cbrs = """^\{(.*)""".r
-  val t_cbre = """^\}(.*)""".r
-  val t_ssep = """^,(.*)""".r
-  val t_fall = """\*([\},].*)""".r*/
 
   private val PARSER_STATE_NEXT   = 1
   private val PARSER_STATE_CMD    = 2
