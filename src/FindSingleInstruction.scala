@@ -18,7 +18,6 @@ class FindSingleInstruction extends SQLInstruction {
   var order      : String = null
 
   def execute(_worker: Worker) : Unit = {
-    inspect(0)
     var join_field : String = null
     var join_id    : Int    = 0
 
@@ -44,6 +43,10 @@ class FindSingleInstruction extends SQLInstruction {
     else if (relation.join_foreign == true && prev.record.has_id) {
       join_field = relation.join_field
       join_id = prev.record.id
+    }
+
+    else if (prev.finished) {
+      throw new ExecutionException("deadlock detected")
     }
 
     if (join_field != null)

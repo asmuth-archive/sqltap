@@ -46,6 +46,10 @@ class FindMultiInstruction extends SQLInstruction {
           fields.toList, conditions, order, limit, offset))
     }
 
+    else if (prev.finished) {
+      throw new ExecutionException("deadlock detected")
+    }
+
     else if (relation.join_foreign == false)
       throw new ParseException("findMulti on a non-foreign relation")
   }
