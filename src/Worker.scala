@@ -14,18 +14,15 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
 //   > auto-resize request buffer on overflow
-//   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > retry sqlquery on temp. error (conn closed / EOF)
+//   > better error messages for invalid query strings
 //   > stats
 //   > check for leaks
-
-// BACKLOG
+//   > fetch service "default" fetched fields
 //   > optimize record class (use hashmap...)
-//   > use proper linkedlists instead of listbuffers all over the place
-//   > json writer refactoring
-//   > parser refactoring
-//   > multi raw sql mode
+//   > json writer + helper refactoring
+//   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
 
 class Worker() extends Thread {
 

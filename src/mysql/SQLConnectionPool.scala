@@ -17,7 +17,7 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
   val loop : Selector = _loop
 
   var max_connections = 10
-  var max_queue_len   = 100
+  var max_queue_len   = 250
 
   private val connections      = new ListBuffer[SQLConnection]()
   private val connections_idle = new ListBuffer[SQLConnection]()
