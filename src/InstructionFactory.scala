@@ -55,7 +55,6 @@ object InstructionFactory {
       case "findAllWhere" => {
         ins = new FindMultiInstruction()
 
-        println(args)
         if (args.length < 3)
           throw new ParseException("findAllWhere requires at least one argument")
 
