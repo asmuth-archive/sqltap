@@ -13,11 +13,11 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
+//   > auto-resize request buffer on overflow
+//   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > stats
 //   > check for leaks
-//   > auto-resize request buffer on overflow
-//   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
 
 // BACKLOG
 //   > optimize record class (use hashmap...)

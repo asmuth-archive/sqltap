@@ -39,34 +39,53 @@ Instructions
 
 
 ##### resource.findOne(id){...}
-...
-
 ##### relation.findOne{...}
-...
 
-##### relation.findOneWhere("condition"){...}
-...
+example: find user 1234 with all fields
+
+    user.find(1234){*}
+
+example: find user 1234 with fields username and email:
+
+    user.find(1234){username,email}
+
+example find user 1234 with her shop title:
+
+    user.find(1234){shop.findOne{title}}
+
 
 ##### relation.findAll{...}
-...
-
 ##### relation.findAll(limit){...}
-...
-
 ##### relation.findAll(limit, offset){...}
-...
+
+example: find a user and all her product-ids
+
+    user.findOne(1){products.findAll{id}}
+
+example: find the first 10 products with all fields:
+
+    products.findAll(10){*}
+
 
 ##### relation.findAllWhere("condition"){...}
-...
-
 ##### relation.findAllWhere("condition", limit){...}
-...
-
 ##### relation.findAllWhere("condition", limit, offset){...}
-...
+
+findAllWhere is DANGEROUS: you must not construct a findAllWhere query from user supplied
+data unless sanatizing it first (it allows for sql injection...)
+
+example (find the first 10 valid products):
+
+    products.findAllWhere("", 10){*}
+
+
 
 ##### relation.countAll{}
-...
+
+example: count the number of products user #1234 has
+
+    user.findOne(1234){products.countAll{}}
+
 
 
 XML Schema

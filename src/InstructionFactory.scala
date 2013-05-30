@@ -49,7 +49,20 @@ object InstructionFactory {
         ins = new FindMultiInstruction()
 
         if (args.length >= 3)
-          ins.asInstanceOf[FindMultiInstruction].limit  = args(2)
+          ins.asInstanceOf[FindMultiInstruction].limit = args(2)
+      }
+
+      case "findAllWhere" => {
+        ins = new FindMultiInstruction()
+
+        println(args)
+        if (args.length < 3)
+          throw new ParseException("findAllWhere requires at least one argument")
+
+        ins.asInstanceOf[FindMultiInstruction].conditions = args(2)
+
+        if (args.length > 3)
+          ins.asInstanceOf[FindMultiInstruction].limit = args(3)
       }
 
       case "countAll" => {
