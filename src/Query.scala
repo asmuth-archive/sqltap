@@ -18,14 +18,19 @@ class Query(qry_str: String) extends Instruction {
   private var failed = false
 
   def execute(worker: Worker) : Unit = {
-    if (finished)
-      return
+    etime = etime :+ System.nanoTime
+
+    //try {
+      QueryParser.parse(this)
+    //} catch {
+    //  e: Exception => throw new ExecutionException(
+    //    "error while parsing query: " + e.toString)
+    //}
+
+    if (SQLTap.debug)
+      inspect(0)
 
     etime = etime :+ System.nanoTime
-    (new QueryParser(this)).run // FIXPAUL: this should be a static method!
-
-    etime = etime :+ System.nanoTime
-    finished = true
     execute_next(worker)
   }
 
@@ -53,5 +58,7 @@ class Query(qry_str: String) extends Instruction {
   def qtime : List[Double] =
     if (etime.size < 2) List[Double]() else
       etime.sliding(2).map(x=>(x(1)-x(0))/1000000.0).toList
+
+  override def prepare() : Unit = ()
 
 }

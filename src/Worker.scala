@@ -14,10 +14,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
 //   > memcached proto + pool + generic query cache w/ ttl
-//   > max mysql query response size (kill after that)
-//   > findWhere
 //   > stats
 //   > check for leaks
+//   > auto-resize request buffer on overflow
+//   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
 
 // BACKLOG
 //   > optimize record class (use hashmap...)

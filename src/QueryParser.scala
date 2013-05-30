@@ -9,116 +9,147 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.ListBuffer
 
-// FIXPAUL this should be a singleton, not a class (avoid gc...)
-class QueryParser(root: Query) {
+// FIXPAUL this is shit... rewrite to a proper state machine w/o regex
+object QueryParser {
 
-  val stack  = new InstructionStack()
-  var scope = 'root
-  var depth = 0
+  //var scope = 'root
+  //var depth = 0
 
-  var args  = new ListBuffer[String]()
-
-  val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
+  /*val t_rsrc = """^([0-9a-z_\-]+)\.(.*)""".r // fixpaul
   val t_sfld = """^([0-9a-z_\-]+)([,\}].*)""".r // fixpaul
   val t_sarg = """^([^,\)]+)(.*)""".r
-  val t_func = """^(findOne|findSome|findAll|countAll)\.?(.*)""".r
+  val t_func = """^(findOne|findAllWhere|findAll|countAll)\.?(.*)""".r
   val t_rbrs = """^\((.*)""".r
   val t_rbre = """^\)(.*)""".r
   val t_cbrs = """^\{(.*)""".r
   val t_cbre = """^\}(.*)""".r
   val t_ssep = """^,(.*)""".r
-  val t_fall = """\*([\},].*)""".r
+  val t_fall = """\*([\},].*)""".r*/
 
-  def run() : Unit = {
-    if (root.query_string == null)
+  private val PARSER_STATE_NEXT   = 1
+  private val PARSER_STATE_CMD    = 2
+  private val PARSER_STATE_ARG    = 3
+  private val PARSER_STATE_ARGSTR = 4
+  private val PARSER_STATE_BODY   = 5
+
+  def parse(query: Query) : Unit = {
+    val stack = new InstructionStack()
+    var args  = new ListBuffer[String]()
+    var state = PARSER_STATE_NEXT
+    val qry   = query.query_string
+
+    if (qry == null)
       throw new ParseException("no query string")
 
-    parse(root.query_string)
-    stack.head.prev = root
-    root.next += stack.head
+    stack.push_down(query)
 
-    if (depth != 0)
-      throw new ParseException("unbalanced braces")
+    var cur = 0
+    var len = qry.length
+    var pos = 0
 
-  }
+    while (cur < len) {
+      qry.charAt(cur) match {
+
+        case '.' => state match {
+
+          case PARSER_STATE_NEXT => {
+            args += qry.substring(pos, cur)
+            state = PARSER_STATE_CMD
+            pos = cur + 1
+          }
+
+        }
+
+        case '(' => state match {
+
+          case PARSER_STATE_CMD => {
+            args += qry.substring(pos, cur)
+            state = PARSER_STATE_ARG
+            pos = cur + 1
+          }
+
+        }
+
+        case ',' => state match {
+
+          case PARSER_STATE_ARG => {
+            args += qry.substring(pos, cur)
+            state = PARSER_STATE_ARG
+            pos = cur + 1
+          }
+
+          case PARSER_STATE_NEXT => {
+            if (cur != pos)
+              stack.push_field(qry.substring(pos, cur))
+
+            state = PARSER_STATE_NEXT
+            pos = cur + 1
+          }
+
+        }
+
+        case ')' => state match {
+
+          case PARSER_STATE_ARG => {
+            args += qry.substring(pos, cur)
+            state = PARSER_STATE_BODY
+            pos = cur + 1
+          }
+
+        }
+
+        case '"' => state match {
+
+          case PARSER_STATE_ARG => {
+            state = PARSER_STATE_ARGSTR
+          }
+
+          case PARSER_STATE_ARGSTR => {
+            state = PARSER_STATE_ARG
+          }
+
+        }
+
+        case '{' => state match {
+
+          case PARSER_STATE_BODY => {
+            state = PARSER_STATE_NEXT
+            stack.push_down(InstructionFactory.make(args))
+            args.clear
+            pos = cur + 1
+          }
+
+          case PARSER_STATE_CMD => {
+            state = PARSER_STATE_NEXT
+            args += qry.substring(pos, cur)
+            stack.push_down(InstructionFactory.make(args))
+            args.clear
+            pos = cur + 1
+          }
+
+        }
+
+        case '}' => state match {
+
+          case PARSER_STATE_NEXT => {
+            state = PARSER_STATE_NEXT
+
+            if (cur != pos)
+              stack.push_field(qry.substring(pos, cur))
+
+            stack.pop()
+            pos = cur + 1
+          }
+
+        }
 
 
-  private def parse(next: String) : Unit = {
-    var done = true
+        case _ => ()
 
-    if (next == "")
-      return
+      }
 
-    next match {
-
-      case t_rbrs(tail: String) =>
-        { scope = 'arg; parse(tail) }
-
-      case t_rbre(tail: String) =>
-        { scope = 'root; parse(tail) }
-
-      case t_cbrs(tail: String) =>
-        { push_down; parse(tail) }
-
-      case t_cbre(tail: String) =>
-        { pop; parse(tail) }
-
-      case t_ssep(tail: String) =>
-        { parse(tail) }
-
-      case _ => done = false
+      cur += 1
     }
-
-    if (done)
-      return
-    else
-      done = true
-
-    next match {
-
-      case t_rsrc(arg: String, tail: String) =>
-        { args += arg; parse(tail) }
-
-      case t_func(name: String, tail: String) =>
-        { args += name; parse(tail) }
-
-      case _ => done = false
-    }
-
-    if (done)
-      return
-
-    next match {
-
-      case t_fall(tail: String) =>
-        { stack.push_field("*"); parse(tail) }
-
-      case t_sfld(name: String, tail: String) =>
-        { stack.push_field(name); parse(tail) }
-
-      case t_sarg(arg: String, tail: String) =>
-        if (scope == 'arg)
-          { args += arg; parse(tail) }
-        else
-          throw new ParseException("unexpected token: " + arg)
-
-      case _ => println("nomatch: " + next)
-
-    }
-  }
-
-  private def push_down() = {
-    val ins = InstructionFactory.make(args)
-    stack.push_down(ins)
-    args.clear
-    depth += 1
-  }
-
-  private def pop() = {
-    if (stack.length != 1)
-      stack.pop()
-
-    depth -= 1
   }
 
 }

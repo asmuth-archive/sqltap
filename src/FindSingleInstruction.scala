@@ -18,6 +18,7 @@ class FindSingleInstruction extends SQLInstruction {
   var order      : String = null
 
   def execute(_worker: Worker) : Unit = {
+    inspect(0)
     var join_field : String = null
     var join_id    : Int    = 0
 
