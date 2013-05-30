@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > auto-resize request buffer on overflow
 //   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
 //   > memcached proto + pool + generic query cache w/ ttl
+//   > retry sqlquery on temp. error (conn closed / EOF)
 //   > stats
 //   > check for leaks
 
