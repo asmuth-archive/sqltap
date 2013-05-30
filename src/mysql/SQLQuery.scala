@@ -48,6 +48,9 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
     val error = if (err != null) err else
       new ExecutionException("error while executing SQL query")
 
+    if (timer != null)
+      timer.cancel()
+
     if (callback != null)
       callback.error(this, err)
   }
