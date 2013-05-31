@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-class Watchdog(base: Acceptor) {
+class Watchdog(base: Server) {
 
   val max_error_rate = 0.3
 

@@ -13,7 +13,7 @@ import java.nio.channels.{ServerSocketChannel,SelectionKey}
 import java.nio.channels.spi.SelectorProvider
 import scala.collection.mutable.{ListBuffer}
 
-class Acceptor(num_workers : Int) {
+class Server(num_workers : Int) {
 
   private val TICK = 100
   var workers = new ListBuffer[Worker]()
@@ -32,7 +32,7 @@ class Acceptor(num_workers : Int) {
       for (n <- (0 until (num_workers - workers.length)))
         start_worker()
 
-      loop.select(100)
+      loop.select(TICK)
 
       try {
         watchdog.run()

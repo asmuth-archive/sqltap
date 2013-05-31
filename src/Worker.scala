@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > catch all exceptions in acceptor thread and exit with fatal
 //   > stats
 //   > check for leaks
-//   > rename acceptor
 //   > fetch service "default" fetched fields
 //   > optimize record class (use hashmap...)
 //   > json writer + helper refactoring
