@@ -52,6 +52,10 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
     }
   }
 
+  def busy() : Boolean = {
+    connections_idle.length == 0
+  }
+
   def close(connection: SQLConnection) : Unit = {
     connections      -= connection
     connections_idle -= connection

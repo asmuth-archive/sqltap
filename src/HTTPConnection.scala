@@ -192,8 +192,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   private def execute_request(params: List[String]) : Unit = {
-    timer.start()
+    if (worker.sql_pool.busy())
+      return http_error(503, "no sql connection available")
 
+    timer.start()
     val req = new Request(this)
 
     for (param <- params)

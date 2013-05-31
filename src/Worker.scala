@@ -13,16 +13,14 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // TODO
-//   > auto-resize request buffer on overflow
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > retry sqlquery on temp. error (conn closed / EOF)
-//   > better error messages for invalid query strings
 //   > http connection idle timeout
 //   > watchdog + critial logging
 //   > fetch: unhandeled exceptions as critical warning
 //   > limit max number of requests per http keepalive session
 //   > limit max number of entries in the conn queue
-//   > fast exit with an http error if sql_queue size == max
+//   > better error messages for invalid query strings
 //   > stats
 //   > check for leaks
 //   > fetch service "default" fetched fields
