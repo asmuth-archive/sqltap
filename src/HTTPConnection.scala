@@ -31,14 +31,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   def read(event: SelectionKey) : Unit = {
     var ready = false
+    var eof   = false
     val chunk = sock.read(buf)
 
     last_event = event
-
-    if (chunk <= 0) {
-      close()
-      return
-    }
 
     try {
       ready = parser.read(buf)
