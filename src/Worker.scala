@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
 //   > http connection idle timeout
+//   > json escaping
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > retry sqlquery on temp. error (conn closed / EOF)
 //   > log levels (info, warning, error, critical, fatal)
@@ -23,7 +24,6 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > catch all exceptions in server thread and exit with fatal
 //   > check for leaks
 //   > relation default order, fetch service "default" fetched fields
-//   > PrettyJSONWriter + JSONHelper refactoring
 //   > run statistics in own thread
 
 class Worker() extends Thread {

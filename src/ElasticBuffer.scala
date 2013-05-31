@@ -13,10 +13,24 @@ class ElasticBuffer(initial_capa: Int) extends AbstractWrappedBuffer {
 
   private var buffer : ByteBuffer = ByteBuffer.allocate(initial_capa)
 
+  def write(data: Byte) = {
+    resize(1)
+    buffer.put(data)
+  }
+
   def write(data: Array[Byte]) = {
-    if (data.size > buffer.remaining) {
+    resize(data.length)
+    buffer.put(data)
+  }
+
+  def retrieve() : ByteBuffer = {
+    buffer
+  }
+
+  private def resize(next_size: Int) : Unit = {
+    if (next_size > buffer.remaining) {
       val new_capa = math.max(
-        buffer.position + data.size,
+        buffer.position + next_size,
         buffer.capacity * 2
       )
 
@@ -26,12 +40,6 @@ class ElasticBuffer(initial_capa: Int) extends AbstractWrappedBuffer {
       new_buffer.put(buffer)
       buffer = new_buffer
     }
-
-    buffer.put(data)
-  }
-
-  def retrieve() : ByteBuffer = {
-    buffer
   }
 
 }

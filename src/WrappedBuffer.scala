@@ -11,12 +11,17 @@ import java.nio.{ByteBuffer}
 
 trait AbstractWrappedBuffer {
   def write(data: Array[Byte]) : Unit
+  def write(data: Byte) : Unit
   def retrieve() : ByteBuffer
 }
 
 class WrappedBuffer(buf: ByteBuffer) extends AbstractWrappedBuffer {
 
   def write(data: Array[Byte]) : Unit = {
+    buf.put(data)
+  }
+
+  def write(data: Byte) : Unit = {
     buf.put(data)
   }
 

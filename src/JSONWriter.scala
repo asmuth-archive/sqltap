@@ -40,7 +40,7 @@ class JSONWriter(buf: AbstractWrappedBuffer) {
       write("null")
     } else {
       write("\"")
-      write(JSONHelper.escape(str)) 
+      write_escaped(str)
       write("\"")
     }
   }
@@ -55,7 +55,7 @@ class JSONWriter(buf: AbstractWrappedBuffer) {
     write_object_begin()
     write_tuple("status", "error")
     write_comma()
-    write_tuple("error", JSONHelper.escape(error))
+    write_tuple("error", error)
     write_object_end()
   }
 
@@ -74,6 +74,13 @@ class JSONWriter(buf: AbstractWrappedBuffer) {
     }
 
     write_object_end()
+  }
+
+  // FIXPAUL: escape...
+  def write_escaped(str: String) {
+    for (byte <- str.getBytes("UTF-8")) {
+      buf.write(byte)
+    }
   }
 
   def write_query(head: Query) : Unit = {
