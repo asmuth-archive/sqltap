@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 import java.nio.{ByteBuffer}
 
-class PrettyJSONWriter(buf: AbstractWrappedBuffer) {
+class JSONWriter(buf: AbstractWrappedBuffer) {
 
   private def write(str: String) : Unit = {
     buf.write(str.getBytes("UTF-8"))

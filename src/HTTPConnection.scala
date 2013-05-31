@@ -137,7 +137,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def http_error(code: Int, message: String) : Unit = {
     val http_buf = new HTTPWriter(buf)
-    val json_buf = new PrettyJSONWriter(new WrappedBuffer(buf))
+    val json_buf = new JSONWriter(new WrappedBuffer(buf))
 
     buf.clear
     json_buf.write_error(message)
@@ -221,7 +221,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def execute_stats() : Unit = {
     val http_buf = new HTTPWriter(buf)
-    val json_buf = new PrettyJSONWriter(new WrappedBuffer(buf))
+    val json_buf = new JSONWriter(new WrappedBuffer(buf))
     val stats = Statistics.get()
 
     buf.clear

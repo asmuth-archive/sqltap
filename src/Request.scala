@@ -13,7 +13,7 @@ import scala.collection.mutable.{ListBuffer}
 class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   val buffer = new ElasticBuffer(65536)
-  val json_stream = new PrettyJSONWriter(buffer)
+  val json_stream = new JSONWriter(buffer)
   var latch : Int = 0
   var ttl   : Int = 0
   val queries = new ListBuffer[String]()
