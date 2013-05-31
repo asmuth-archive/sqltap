@@ -16,13 +16,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > retry sqlquery on temp. error (conn closed / EOF)
 //   > http connection idle timeout
-//   > watchdog + critial logging
+//   > log levels (info, warning, error, critical, fatal)
 //   > fetch: unhandeled exceptions as critical warning
 //   > limit max number of requests per http keepalive session
 //   > limit max number of entries in the conn queue
 //   > better error messages for invalid query strings
 //   > stats
 //   > check for leaks
+//   > rename acceptor
 //   > fetch service "default" fetched fields
 //   > optimize record class (use hashmap...)
 //   > json writer + helper refactoring

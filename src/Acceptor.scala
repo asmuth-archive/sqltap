@@ -14,18 +14,31 @@ import java.nio.channels.spi.SelectorProvider
 
 class Acceptor(workers: List[Worker]) {
 
-  val loop = SelectorProvider.provider().openSelector()
-  val ssock = ServerSocketChannel.open()
-  ssock.configureBlocking(false)
+  private val TICK = 100
 
-  var seq = 0
+  private val watchdog = new Watchdog(workers)
+  private var seq      = 0
+  private val loop     = SelectorProvider.provider().openSelector()
+  private val ssock    = ServerSocketChannel.open()
 
   def run(port: Int) : Unit = {
+    ssock.configureBlocking(false)
     ssock.socket().bind(new InetSocketAddress("0.0.0.0", port))
     ssock.register(loop, SelectionKey.OP_ACCEPT)
 
     while (true) {
-      loop.select()
+      loop.select(100)
+
+      try {
+        watchdog.run()
+      } catch {
+        case e: Exception => {
+          SQLTap.error(
+            "error running watchdog: " + e.toString, false)
+          SQLTap.exception(e, false)
+        }
+      }
+
       val events = loop.selectedKeys().iterator()
 
       while (events.hasNext) {
