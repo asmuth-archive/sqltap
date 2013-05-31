@@ -30,6 +30,8 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
 
     timer = TimeoutScheduler.schedule(
       SQLTap.CONFIG('db_timeout).toInt, this)
+
+    timer.start()
   }
 
   def ready() : Unit = {

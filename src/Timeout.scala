@@ -11,10 +11,13 @@ class Timeout(_ms: Long, callback: TimeoutCallback) extends Comparable[Timeout] 
   val ms = _ms
   var expires : Long = 0
 
-  set_expire
-
   def compareTo(o: Timeout) : Int = {
     ms.compareTo(o.ms)
+  }
+
+  def start() : Unit = {
+    set_expire()
+    TimeoutScheduler.add(this)
   }
 
   def fire() : Unit = {

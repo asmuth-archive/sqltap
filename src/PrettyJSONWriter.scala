@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import java.nio.{ByteBuffer}
 
 // FIXPAUL refactor this shit...
-class PrettyJSONWriter(buf: ByteBuffer) {
+class PrettyJSONWriter(buf: AbstractWrappedBuffer) {
 
   private val INDENT = "  "
   private var ind = 1
@@ -68,9 +68,9 @@ class PrettyJSONWriter(buf: ByteBuffer) {
   }
 
   def write_error(error: String) = {
-    buf.put("{ \"status\": \"error\", \"error\": \"".getBytes)
-    buf.put(JSONHelper.escape(error).getBytes("UTF-8"))
-    buf.put("\" }\n".getBytes)
+    append("{ \"status\": \"error\", \"error\": \"")
+    append(JSONHelper.escape(error))
+    append("\" }\n")
   }
 
   def write_comma() : Unit =
@@ -90,6 +90,6 @@ class PrettyJSONWriter(buf: ByteBuffer) {
     if (str != null) append((INDENT * ind) + str)
 
   private def append(str: String) : Unit =
-    buf.put(str.getBytes("UTF-8"))
+    buf.write(str.getBytes("UTF-8"))
 
 }

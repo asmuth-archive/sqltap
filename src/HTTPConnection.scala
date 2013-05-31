@@ -104,6 +104,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   def error(request: Request, err: Throwable) : Unit = {
+    timer.cancel()
     error(err)
   }
 
@@ -112,25 +113,35 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   def ready(request: Request) : Unit = {
+    timer.cancel()
+
     val http_buf = new HTTPWriter(buf)
     buf.clear
 
+    resp_buf = request.buffer.retrieve()
+    resp_buf.flip()
+
     http_buf.write_status(200)
-    http_buf.write_content_length(request.buffer.limit)
+    http_buf.write_content_length(resp_buf.remaining())
     http_buf.write_default_headers()
     http_buf.finish_headers()
-    buf.flip
+    buf.flip()
 
-    resp_buf = request.buffer
     flush()
   }
 
   private def http_error(code: Int, message: String) : Unit = {
     val http_buf = new HTTPWriter(buf)
-    val json_buf = new PrettyJSONWriter(buf)
+    val json_buf = new PrettyJSONWriter(new WrappedBuffer(buf))
+
+    buf.clear
+    json_buf.write_error(message)
+
+    val resp_len = buf.position
     buf.clear
 
     http_buf.write_status(code)
+    http_buf.write_content_length(resp_len)
     http_buf.write_default_headers()
     http_buf.finish_headers()
     json_buf.write_error(message)
@@ -181,6 +192,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   private def execute_request(params: List[String]) : Unit = {
+    timer.start()
+
     val req = new Request(this)
 
     for (param <- params)
@@ -208,7 +221,6 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     last_event.interestOps(SelectionKey.OP_READ)
     buf.clear()
     parser.reset()
-    timer.reset()
   }
 
 }

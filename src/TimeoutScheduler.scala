@@ -17,7 +17,6 @@ object TimeoutScheduler {
 
   def schedule(millisecs: Long, callback: TimeoutCallback) : Timeout = {
     val timeout = new Timeout(millisecs, callback)
-    add(timeout)
     timeout
   }
 
