@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-class Watchdog(workers: List[Worker]) {
+class Watchdog(base: Acceptor) {
 
   val max_error_rate = 0.3
 
@@ -22,7 +22,7 @@ class Watchdog(workers: List[Worker]) {
 
     last_check = now
 
-    for (worker <- workers)
+    for (worker <- base.workers)
       check(worker)
   }
 
@@ -34,8 +34,8 @@ class Watchdog(workers: List[Worker]) {
       return
 
     if (success < 1) {
-      kill(worker, "no successful request in the last" +
-        check_every + " ms, but had " + queued + " queued")
+      kill(worker, "no successful request in the last " +
+        check_every + "ms, but had " + queued + " queued")
       return
     }
 
@@ -55,6 +55,8 @@ class Watchdog(workers: List[Worker]) {
 
   def kill(worker: Worker, reason: String) : Unit = {
     SQLTap.error("[WATCHDOG] killing worker: " + reason, false)
+    worker.kill()
+    base.workers -= worker
   }
 
 }

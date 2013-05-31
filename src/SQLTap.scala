@@ -90,11 +90,9 @@ object SQLTap{
   def boot() = try {
     load_config
 
-    val workers  = (1 to CONFIG('threads).toInt).map(n => new Worker).toList
-    val acceptor = new Acceptor(workers)
-
-    workers.map(_.start())
+    val acceptor = new Acceptor(CONFIG('threads).toInt)
     acceptor.run(CONFIG('http_port).toInt)
+
   } catch {
     case e: Exception => exception(e, true)
   }

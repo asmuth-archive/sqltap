@@ -11,12 +11,14 @@ import java.nio.{ByteBuffer}
 import java.net.{InetSocketAddress}
 import java.nio.channels.{ServerSocketChannel,SelectionKey}
 import java.nio.channels.spi.SelectorProvider
+import scala.collection.mutable.{ListBuffer}
 
-class Acceptor(workers: List[Worker]) {
+class Acceptor(num_workers : Int) {
 
   private val TICK = 100
+  var workers = new ListBuffer[Worker]()
 
-  private val watchdog = new Watchdog(workers)
+  private val watchdog = new Watchdog(this)
   private var seq      = 0
   private val loop     = SelectorProvider.provider().openSelector()
   private val ssock    = ServerSocketChannel.open()
@@ -27,6 +29,9 @@ class Acceptor(workers: List[Worker]) {
     ssock.register(loop, SelectionKey.OP_ACCEPT)
 
     while (true) {
+      for (n <- (0 until (num_workers - workers.length)))
+        start_worker()
+
       loop.select(100)
 
       try {
@@ -60,6 +65,12 @@ class Acceptor(workers: List[Worker]) {
       workers(seq).loop.wakeup()
       workers(seq).requests_queued.incrementAndGet()
     }
+  }
+
+  private def start_worker() : Unit = {
+    val worker = new Worker()
+    worker.start()
+    workers += worker
   }
 
 }

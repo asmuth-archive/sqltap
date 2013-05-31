@@ -35,6 +35,8 @@ class Worker() extends Thread {
 
   private val TICK = 50
 
+  @volatile var running = true
+
   var requests_queued  = new AtomicInteger()
   var requests_success = new AtomicInteger()
 
@@ -42,7 +44,14 @@ class Worker() extends Thread {
   val loop     = SelectorProvider.provider().openSelector()
   val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
 
+  SQLTap.log("worker starting...")
+
   override def run : Unit = while (true) {
+    if (!running) {
+      SQLTap.log("worker exiting...")
+      return
+    }
+
     loop.select(TICK)
 
     try {
@@ -109,6 +118,10 @@ class Worker() extends Thread {
     conn
       .register(loop, SelectionKey.OP_READ)
       .attach(new HTTPConnection(conn, this))
+  }
+
+  def kill() : Unit = {
+    running = false
   }
 
 }
