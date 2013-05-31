@@ -172,11 +172,14 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     if (parser.http_version == "1.1")
       keepalive = true
 
-    if (route.length == 1 && route.head == "ping")
+    if (route.length >= 1 && route.head == "query")
+      execute_request(route.tail)
+
+    else if (route.length == 1 && route.head == "ping")
       execute_ping()
 
-    else if (route.length >= 1 && route.head == "query")
-      execute_request(route.tail)
+    else if (route.length == 1 && route.head == "stats")
+      execute_stats()
 
     else
       http_error(404, "not found")
@@ -214,6 +217,29 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     state = HTTP_STATE_EXEC
     last_event.interestOps(0)
     req.execute(worker)
+  }
+
+  private def execute_stats() : Unit = {
+    val http_buf = new HTTPWriter(buf)
+    val json_buf = new PrettyJSONWriter(new WrappedBuffer(buf))
+    val stats = Statistics.get()
+
+    buf.clear
+    json_buf.write_map(stats)
+
+    val resp_len = buf.position
+    buf.clear
+
+    http_buf.write_status(200)
+    http_buf.write_content_length(resp_len)
+    http_buf.write_default_headers()
+    http_buf.finish_headers()
+    json_buf.write_map(stats)
+
+    buf.flip
+
+    worker.requests_success.incrementAndGet()
+    flush()
   }
 
   def close() : Unit = {
