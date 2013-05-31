@@ -36,6 +36,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     last_event = event
 
+    if (chunk <= 0)
+      close()
+
     try {
       ready = parser.read(buf)
     } catch {
@@ -96,7 +99,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     case e: Exception => {
       SQLTap.error("[HTTP] exception: " + e.toString, false)
       SQLTap.exception(e, false)
-      close
+      close()
     }
   }
 
@@ -133,7 +136,6 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     json_buf.write_error(message)
     buf.flip
 
-    keepalive = false
     flush()
   }
 
