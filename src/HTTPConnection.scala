@@ -29,6 +29,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var timer : Timeout = TimeoutScheduler.schedule(
       SQLTap.CONFIG('http_timeout).toInt, this)
 
+  private var seq = 0
+
   def read(event: SelectionKey) : Unit = {
     var ready = false
     var eof   = false
@@ -127,6 +129,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.finish_headers()
     buf.flip()
 
+    worker.requests_success.incrementAndGet()
     flush()
   }
 
@@ -162,6 +165,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def execute() : Unit = {
     val route = parser.uri_parts
+    seq += 1
 
     if (parser.http_version == "1.1")
       keepalive = true
@@ -188,10 +192,14 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     buf.put("pong\r\n".getBytes)
     buf.flip
 
+    worker.requests_success.incrementAndGet()
     flush()
   }
 
   private def execute_request(params: List[String]) : Unit = {
+    if (seq > 1)
+      worker.requests_queued.incrementAndGet()
+
     if (worker.sql_pool.busy())
       return http_error(503, "no sql connection available")
 

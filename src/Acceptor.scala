@@ -33,8 +33,7 @@ class Acceptor(workers: List[Worker]) {
         watchdog.run()
       } catch {
         case e: Exception => {
-          SQLTap.error(
-            "error running watchdog: " + e.toString, false)
+          SQLTap.error("error running watchdog: " + e.toString, false)
           SQLTap.exception(e, false)
         }
       }
@@ -59,6 +58,7 @@ class Acceptor(workers: List[Worker]) {
 
       workers(seq).queue.add(conn)
       workers(seq).loop.wakeup()
+      workers(seq).requests_queued.incrementAndGet()
     }
   }
 

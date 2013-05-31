@@ -10,7 +10,8 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery,SQLConnectionPool}
 import java.nio.channels.{ServerSocketChannel,SelectionKey,SocketChannel}
 import java.nio.channels.spi.SelectorProvider
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue}
+import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
 //   > memcached proto + pool + generic query cache w/ ttl
@@ -21,6 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 //   > limit max number of requests per http keepalive session
 //   > limit max number of entries in the conn queue
 //   > better error messages for invalid query strings
+//   > catch all exceptions in acceptor thread and exit with fatal
 //   > stats
 //   > check for leaks
 //   > rename acceptor
@@ -32,6 +34,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class Worker() extends Thread {
 
   private val TICK = 50
+
+  var requests_queued  = new AtomicInteger()
+  var requests_success = new AtomicInteger()
 
   val queue    = new ConcurrentLinkedQueue[SocketChannel]()
   val loop     = SelectorProvider.provider().openSelector()
