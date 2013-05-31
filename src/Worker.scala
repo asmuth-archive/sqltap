@@ -14,21 +14,17 @@ import java.util.concurrent.{ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
+//   > http connection idle timeout
+//   > stats
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > retry sqlquery on temp. error (conn closed / EOF)
-//   > http connection idle timeout
 //   > log levels (info, warning, error, critical, fatal)
-//   > fetch: unhandeled exceptions as critical warning
-//   > limit max number of requests per http keepalive session
 //   > limit max number of entries in the conn queue
 //   > better error messages for invalid query strings
-//   > catch all exceptions in acceptor thread and exit with fatal
-//   > stats
+//   > catch all exceptions in server thread and exit with fatal
 //   > check for leaks
-//   > fetch service "default" fetched fields
-//   > optimize record class (use hashmap...)
-//   > json writer + helper refactoring
-//   > test ByteBuffer.allocate vs ByteBuffer.allocateDirect
+//   > relation default order, fetch service "default" fetched fields
+//   > PrettyJSONWriter + JSONHelper refactoring
 
 class Worker() extends Thread {
 
