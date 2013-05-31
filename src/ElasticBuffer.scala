@@ -20,7 +20,6 @@ class ElasticBuffer(initial_capa: Int) extends AbstractWrappedBuffer {
         buffer.capacity * 2
       )
 
-      println("RESIZE", buffer.capacity, new_capa)
       val new_buffer = ByteBuffer.allocate(new_capa)
 
       buffer.flip()
