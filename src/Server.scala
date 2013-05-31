@@ -15,7 +15,7 @@ import scala.collection.mutable.{ListBuffer}
 
 class Server(num_workers : Int) {
 
-  private val TICK = 100
+  private val TICK = 500
   var workers = new ListBuffer[Worker]()
 
   private val watchdog = new Watchdog(this)
@@ -29,6 +29,8 @@ class Server(num_workers : Int) {
     ssock.register(loop, SelectionKey.OP_ACCEPT)
 
     while (true) {
+      Statistics.update()
+
       for (n <- (0 until (num_workers - workers.length)))
         start_worker()
 
@@ -64,6 +66,8 @@ class Server(num_workers : Int) {
       workers(seq).queue.add(conn)
       workers(seq).loop.wakeup()
       workers(seq).requests_queued.incrementAndGet()
+
+      Statistics.incr_connections()
     }
   }
 

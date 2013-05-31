@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > check for leaks
 //   > relation default order, fetch service "default" fetched fields
 //   > PrettyJSONWriter + JSONHelper refactoring
+//   > run statistics in own thread
 
 class Worker() extends Thread {
 

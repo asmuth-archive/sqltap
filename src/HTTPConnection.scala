@@ -130,6 +130,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     buf.flip()
 
     worker.requests_success.incrementAndGet()
+    Statistics.incr_requests()
+
     flush()
   }
 
