@@ -47,9 +47,14 @@ class Server(num_workers : Int) {
 
       val events = loop.selectedKeys().iterator()
 
-      while (events.hasNext) {
-        next(events.next())
-        events.remove()
+      if (workers.size > 0) {
+        while (events.hasNext) {
+          next(events.next())
+          events.remove()
+        }
+      } else {
+        SQLTap.log("[CRITICAL] no workers available, sleeping for 500ms")
+        Thread.sleep(500)
       }
     }
   }

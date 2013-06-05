@@ -169,7 +169,7 @@ object SQLTap{
     error(ex.toString, false)
 
     for (line <- ex.getStackTrace)
-      log_debug(line.toString)
+      log(line.toString)
 
     if (fatal)
       System.exit(1)
