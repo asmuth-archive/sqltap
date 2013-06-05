@@ -10,18 +10,21 @@ package com.paulasmuth.sqltap
 import java.util.concurrent.atomic.{AtomicInteger}
 import java.text.{DecimalFormat}
 
-class DeltaStatistic extends Statistic {
+class MeanStatistic extends Statistic {
 
-  private val bucket = new AtomicInteger()
+  private val sum = new AtomicInteger()
+  private val count = new AtomicInteger()
   private var value : Double = 0.0
   private val format = new DecimalFormat("0.00")
 
   def incr(delta: Double) : Unit= {
-    bucket.getAndAdd(delta.toInt)
+    sum.getAndAdd(delta.toInt * 100)
+    count.incrementAndGet()
   }
 
   def decr(delta: Double) : Unit = {
-    bucket.getAndAdd(delta.toInt * -1)
+    sum.getAndAdd(delta.toInt * 100)
+    count.decrementAndGet()
   }
 
   def get() : String = {
@@ -29,7 +32,12 @@ class DeltaStatistic extends Statistic {
   }
 
   def flush(f: Double) : Unit = {
-    value = bucket.getAndSet(0) / f
+    val c = count.get()
+
+    if (c == 0)
+      value = 0.0
+    else
+      value = sum.get() / c / 100.0
   }
 
 }

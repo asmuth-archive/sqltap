@@ -7,11 +7,6 @@
 
 package com.paulasmuth.sqltap
 
-// TODO
-//  > mean sql query time/sec
-//  > mean http query time/sec
-//  > mean memcache query time/sec
-
 object Statistics {
 
   private val stats = Map[Symbol, Statistic](
@@ -21,9 +16,11 @@ object Statistics {
     'http_bytes_per_second    -> new DeltaStatistic,
     'http_errors_total        -> new IntegralStatistic,
     'http_errors_per_second   -> new DeltaStatistic,
+    'http_request_time_mean   -> new MeanStatistic,
     'sql_connections_open     -> new IntegralStatistic,
     'sql_requests_total       -> new IntegralStatistic,
-    'sql_requests_per_second  -> new DeltaStatistic
+    'sql_requests_per_second  -> new DeltaStatistic,
+    'sql_request_time_mean    -> new MeanStatistic
   )
 
   private var last_update = System.nanoTime
@@ -47,7 +44,6 @@ object Statistics {
           val time = System.nanoTime - last_update
           stats.foreach(_._2.flush(time / 1000000000.0))
           last_update = System.nanoTime
-          println(get())
           Thread.sleep(1000)
         }
       }

@@ -26,6 +26,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var keepalive : Boolean = false
   private var resp_buf : ByteBuffer = null
 
+  private var stime : Long = 0
+
   private var timer : Timeout = TimeoutScheduler.schedule(
       SQLTap.CONFIG('http_timeout).toInt, this)
 
@@ -171,6 +173,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def execute() : Unit = {
     val route = parser.uri_parts
+    stime = System.nanoTime
     seq += 1
 
     if (parser.http_version == "1.1")
@@ -260,6 +263,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   def finish() : Unit = {
+    Statistics.incr('http_request_time_mean,
+      (System.nanoTime - stime) / 1000000.0)
+
     if (!keepalive)
       return close()
 

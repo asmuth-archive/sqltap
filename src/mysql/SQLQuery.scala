@@ -43,6 +43,7 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
     tok = System.nanoTime
     qtime = tok - tik
 
+    Statistics.incr('sql_request_time_mean, qtime / 1000000.0)
     SQLTap.log_debug("Finished (" + (qtime / 1000000.0) + "ms): " + query)
   }
 
