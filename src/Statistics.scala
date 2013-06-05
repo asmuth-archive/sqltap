@@ -7,8 +7,6 @@
 
 package com.paulasmuth.sqltap
 
-import java.util.concurrent.atomic.{AtomicInteger}
-
 // TODO
 //  > errors/sec
 //  > kbytes/sec
@@ -22,50 +20,41 @@ import java.util.concurrent.atomic.{AtomicInteger}
 
 object Statistics {
 
-  @volatile private var s_connections_total : Long = 0
-  @volatile private var s_connections_sec : Double = 0
-  @volatile private var s_requests_total : Long = 0
-  @volatile private var s_requests_sec : Double = 0
-
-  private val requests = new AtomicInteger
-  private val connections = new AtomicInteger
+  private val stats = Map[Symbol, Statistic](
+    'http_connections_open    -> new IntegralStatistic,
+    'http_requests_total      -> new IntegralStatistic,
+    'http_requests_per_second -> new IntegralStatistic,
+    'sql_connections_open     -> new IntegralStatistic,
+    'sql_requests_total       -> new IntegralStatistic,
+    'sql_requests_per_second  -> new IntegralStatistic
+  )
 
   private var last_update = System.nanoTime
 
-  def incr_connections() : Unit = {
-    connections.incrementAndGet()
+  def incr(key: Symbol, value: Double = 1.0) : Unit = {
+    stats(key).incr(value)
   }
 
-  def incr_requests() : Unit = {
-    requests.incrementAndGet()
+  def decr(key: Symbol, value: Double = 1.0) : Unit = {
+    stats(key).incr(value)
   }
 
   def get() : Map[String, String] = {
-    Map(
-      "connections_total" -> s_connections_total.toString,
-      "connections_sec"   -> s_connections_sec.toString,
-      "requests_total" -> s_requests_total.toString,
-      "requests_sec"   -> s_requests_sec.toString
-    )
+    stats.map { s => ((s._1.name, s._2.get())) }
   }
 
-  def update() : Unit = {
-    val time = (System.nanoTime - last_update) / 1000000L
+  def update_async() : Unit = {
+    val thread = (new Thread {
+      override def run() : Unit = {
+        while (true) {
+          stats.foreach(_._2.flush())
+          println(get())
+          Thread.sleep(1000)
+        }
+      }
+    })
 
-    if (time < 1000)
-      return
-
-    last_update = System.nanoTime
-
-    val _connections = connections.getAndSet(0)
-    s_connections_total += _connections
-    s_connections_sec = _connections / (time / 1000.0)
-
-    val _requests = requests.getAndSet(0)
-    s_requests_total += _requests
-    s_requests_sec = _requests / (time / 1000.0)
-
-    println(time, get())
+    thread.start()
   }
 
 }

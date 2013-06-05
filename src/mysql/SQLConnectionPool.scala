@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,TemporaryException}
+import com.paulasmuth.sqltap.{SQLTap,TemporaryException,Statistics}
 import java.nio.channels.{Selector}
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
@@ -50,6 +50,9 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
       if (conn != null)
         conn.execute(queue.remove(0))
     }
+
+    Statistics.incr('sql_requests_total)
+    Statistics.incr('sql_requests_per_second)
   }
 
   def busy() : Boolean = {

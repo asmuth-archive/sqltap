@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,ExecutionException}
+import com.paulasmuth.sqltap.{SQLTap,ExecutionException,Statistics}
 import scala.collection.mutable.{ListBuffer}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
@@ -55,6 +55,8 @@ class SQLConnection(pool: SQLConnectionPool) {
   private var cur_qry : SQLQuery = null
 
   def connect() : Unit = {
+    Statistics.incr('sql_connections_open)
+
     val addr = new InetSocketAddress(hostname, port)
     sock.connect(addr)
     state = SQL_STATE_SYN
@@ -166,6 +168,7 @@ class SQLConnection(pool: SQLConnectionPool) {
     state = SQL_STATE_CLOSE
     pool.close(this)
     sock.close()
+    Statistics.decr('sql_connections_open)
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {

@@ -20,10 +20,8 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > log levels (info, warning, error, critical, fatal)
 //   > limit max number of entries in the conn queue
 //   > better error messages for invalid query strings
-//   > catch all exceptions in server thread and exit with fatal
 //   > check for leaks
 //   > relation default order, fetch service "default" fetched fields
-//   > run statistics in own thread
 
 class Worker() extends Thread {
 

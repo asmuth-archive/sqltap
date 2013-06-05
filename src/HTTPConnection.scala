@@ -130,8 +130,6 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     buf.flip()
 
     worker.requests_success.incrementAndGet()
-    Statistics.incr_requests()
-
     flush()
   }
 
@@ -183,6 +181,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     else
       http_error(404, "not found")
+
+    Statistics.incr('http_requests_total)
+    Statistics.incr('http_requests_per_second)
   }
 
   private def execute_ping() : Unit = {
@@ -249,6 +250,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     timer.cancel()
     state = HTTP_STATE_CLOSE
     sock.close()
+    Statistics.decr('http_connections_open)
   }
 
   def finish() : Unit = {

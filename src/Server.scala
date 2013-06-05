@@ -29,8 +29,6 @@ class Server(num_workers : Int) {
     ssock.register(loop, SelectionKey.OP_ACCEPT)
 
     while (true) {
-      Statistics.update()
-
       for (n <- (0 until (num_workers - workers.length)))
         start_worker()
 
@@ -72,7 +70,7 @@ class Server(num_workers : Int) {
       workers(seq).loop.wakeup()
       workers(seq).requests_queued.incrementAndGet()
 
-      Statistics.incr_connections()
+      Statistics.incr('http_connections_open)
     }
   }
 

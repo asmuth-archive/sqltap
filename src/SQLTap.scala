@@ -87,8 +87,9 @@ object SQLTap{
     boot()
   }
 
-  def boot() = try {
-    load_config
+  def boot() : Unit = try {
+    Statistics.update_async()
+    load_config()
 
     (new Server(CONFIG('threads).toInt))
       .run(CONFIG('http_port).toInt)
@@ -97,7 +98,7 @@ object SQLTap{
     case e: Exception => exception(e, true)
   }
 
-  def load_config = {
+  def load_config() : Unit = {
     SQLTap.log("sqltapd " + VERSION + " booting...")
 
     val cfg_base = new File(CONFIG('config_base))
