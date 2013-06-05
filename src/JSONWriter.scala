@@ -76,10 +76,17 @@ class JSONWriter(buf: AbstractWrappedBuffer) {
     write_object_end()
   }
 
-  // FIXPAUL: escape...
   def write_escaped(str: String) {
     for (byte <- str.getBytes("UTF-8")) {
-      buf.write(byte)
+      val b = byte & 0x000000ff
+
+      if (b == 0xA) {
+        buf.write(Array(0x5C.toByte, 0x6E.toByte))
+      } else if (b == 0x22) {
+        buf.write(Array(0x5C.toByte, 0x22.toByte))
+      } else if ((b == 0) || ((b >= 0x20) && (b != 0x5C))) {
+        buf.write(byte)
+      }
     }
   }
 
