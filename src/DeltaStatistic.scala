@@ -9,24 +9,25 @@ package com.paulasmuth.sqltap
 
 import java.util.concurrent.atomic.{AtomicInteger}
 
-class IntegralStatistic extends Statistic {
+class DeltaStatistic extends Statistic {
 
-  private val value = new AtomicInteger()
+  private val bucket = new AtomicInteger()
+  private var value : Double = 0.0
 
   def incr(delta: Double) : Unit= {
-    value.getAndAdd(delta.toInt)
+    bucket.getAndAdd(delta.toInt)
   }
 
   def decr(delta: Double) : Unit = {
-    value.getAndAdd(delta.toInt * -1)
+    bucket.getAndAdd(delta.toInt * -1)
   }
 
   def get() : String = {
-    value.get().toString
+    value.toString
   }
 
   def flush(f: Double) : Unit = {
-    // do nothing
+    value = bucket.getAndSet(0) / f
   }
 
 }

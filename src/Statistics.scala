@@ -23,10 +23,10 @@ object Statistics {
   private val stats = Map[Symbol, Statistic](
     'http_connections_open    -> new IntegralStatistic,
     'http_requests_total      -> new IntegralStatistic,
-    'http_requests_per_second -> new IntegralStatistic,
+    'http_requests_per_second -> new DeltaStatistic,
     'sql_connections_open     -> new IntegralStatistic,
     'sql_requests_total       -> new IntegralStatistic,
-    'sql_requests_per_second  -> new IntegralStatistic
+    'sql_requests_per_second  -> new DeltaStatistic
   )
 
   private var last_update = System.nanoTime
@@ -47,7 +47,9 @@ object Statistics {
     val thread = (new Thread {
       override def run() : Unit = {
         while (true) {
-          stats.foreach(_._2.flush())
+          val time = System.nanoTime - last_update
+          stats.foreach(_._2.flush(time / 1000000000.0))
+          last_update = System.nanoTime
           println(get())
           Thread.sleep(1000)
         }
