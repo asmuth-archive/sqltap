@@ -129,6 +129,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.finish_headers()
     buf.flip()
 
+    Statistics.incr('http_bytes_per_second,
+      buf.limit + resp_buf.limit)
+
     worker.requests_success.incrementAndGet()
     flush()
   }
@@ -149,6 +152,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.finish_headers()
     json_buf.write_error(message)
     buf.flip
+
+    Statistics.incr('http_errors_total)
+    Statistics.incr('http_errors_per_second)
 
     flush()
   }

@@ -8,12 +8,6 @@
 package com.paulasmuth.sqltap
 
 // TODO
-//  > errors/sec
-//  > kbytes/sec
-//  > sql queries/sec
-//  > number of sql connections
-//  > memcache gets/sec
-//  > memcache hit rate/sec
 //  > mean sql query time/sec
 //  > mean http query time/sec
 //  > mean memcache query time/sec
@@ -24,6 +18,9 @@ object Statistics {
     'http_connections_open    -> new IntegralStatistic,
     'http_requests_total      -> new IntegralStatistic,
     'http_requests_per_second -> new DeltaStatistic,
+    'http_bytes_per_second    -> new DeltaStatistic,
+    'http_errors_total        -> new IntegralStatistic,
+    'http_errors_per_second   -> new DeltaStatistic,
     'sql_connections_open     -> new IntegralStatistic,
     'sql_requests_total       -> new IntegralStatistic,
     'sql_requests_per_second  -> new DeltaStatistic
