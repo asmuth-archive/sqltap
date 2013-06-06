@@ -61,8 +61,8 @@ implemented, but turn out to be a bottleneck as the data set grows.
 
 Some of the modern web frameworks encourage you to use an ORM for database access. This often
 results in bad code where requests to the sql database are scattered all over the code and
-someties even the templates. In these codebases it can get really hard to predict the runtime
-of a method/template and wether it will block.
+sometimes even the templates. In these codebases it can get really hard to predict the runtime
+of a method/template and whether it will block.
 
 Take as an example a helper method that renders one entry in a navigation menu. For each entry
 the helper calls something like "entry.translation" which in turn issues a request to the
