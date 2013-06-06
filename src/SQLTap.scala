@@ -20,16 +20,16 @@ object SQLTap{
 
   var DEFAULTS = HashMap[Symbol, String](
     'http_port            -> "8080",
-    'db_timeout           -> "5000",
     'http_request_timeout -> "5000",
     'http_idle_timeout    -> "5000",
-    'memcached_ttl        -> "3600",
+    'sql_timeout          -> "5000",
+    'sql_queue_max_len    -> "1000",
+    'sql_max_connections  -> "75",
     'threads              -> "4"
   )
 
   val manifest = HashMap[String,ResourceManifest]()
   var debug    = false
-
 
   def main(args: Array[String]) : Unit = {
     var n = 0

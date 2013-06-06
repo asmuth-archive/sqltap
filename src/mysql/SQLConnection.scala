@@ -169,6 +169,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
       cur_qry.error(err)
 
     state = SQL_STATE_CLOSE
+    heartbeat.cancel()
     pool.close(this)
     sock.close()
     Statistics.decr('sql_connections_open)

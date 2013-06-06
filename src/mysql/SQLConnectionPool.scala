@@ -16,8 +16,8 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
 
   val loop : Selector = _loop
 
-  var max_connections = 10
-  var max_queue_len   = 250
+  var max_connections = SQLTap.CONFIG('sql_max_connections).toInt
+  var max_queue_len   = SQLTap.CONFIG('sql_queue_max_len).toInt
 
   private val connections      = new ListBuffer[SQLConnection]()
   private val connections_idle = new ListBuffer[SQLConnection]()
@@ -33,7 +33,7 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
       if (queue.length >= max_queue_len)
         throw new TemporaryException("sql queue is full")
 
-      queue += query
+      query +=: queue
     } else {
       connection.execute(query)
     }
@@ -60,7 +60,7 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
   }
 
   def busy() : Boolean = {
-    connections_idle.length == 0
+    queue.length >= max_queue_len
   }
 
   def close(connection: SQLConnection) : Unit = {

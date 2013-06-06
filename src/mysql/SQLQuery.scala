@@ -29,7 +29,7 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
     SQLTap.log_debug("Execute: " + query)
 
     timer = TimeoutScheduler.schedule(
-      SQLTap.CONFIG('db_timeout).toInt, this)
+      SQLTap.CONFIG('sql_timeout).toInt, this)
 
     timer.start()
   }
