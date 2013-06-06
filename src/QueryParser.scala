@@ -43,6 +43,8 @@ object QueryParser {
             pos = cur + 1
           }
 
+          case PARSER_STATE_ARGSTR => ()
+
         }
 
         case '(' => state match {
@@ -52,6 +54,8 @@ object QueryParser {
             state = PARSER_STATE_ARG
             pos = cur + 1
           }
+
+          case PARSER_STATE_ARGSTR => ()
 
         }
 
@@ -71,6 +75,8 @@ object QueryParser {
             pos = cur + 1
           }
 
+          case PARSER_STATE_ARGSTR => ()
+
         }
 
         case ')' => state match {
@@ -80,6 +86,8 @@ object QueryParser {
             state = PARSER_STATE_BODY
             pos = cur + 1
           }
+
+          case PARSER_STATE_ARGSTR => ()
 
         }
 
@@ -118,6 +126,8 @@ object QueryParser {
             pos = cur + 1
           }
 
+          case PARSER_STATE_ARGSTR => ()
+
         }
 
         case '}' => state match {
@@ -134,6 +144,7 @@ object QueryParser {
 
         }
 
+        case PARSER_STATE_ARGSTR => ()
 
         case _ => ()
 
