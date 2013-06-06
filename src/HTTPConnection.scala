@@ -29,9 +29,14 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var stime : Long = 0
 
   private var timer : Timeout = TimeoutScheduler.schedule(
-      SQLTap.CONFIG('http_timeout).toInt, this)
+      SQLTap.CONFIG('http_request_timeout).toInt, this)
+
+  private var idle_timer : Timeout = TimeoutScheduler.schedule(
+      SQLTap.CONFIG('http_idle_timeout).toInt, this)
 
   private var seq = 0
+
+  idle_timer.start()
 
   def read(event: SelectionKey) : Unit = {
     var ready = false
@@ -113,7 +118,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   def timeout() : Unit = {
-    error(new ExecutionException("execution expired"))
+    if (state == HTTP_STATE_EXEC)
+      error(new ExecutionException("execution expired"))
+    else
+      close()
   }
 
   def ready(request: Request) : Unit = {
@@ -173,6 +181,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
   private def execute() : Unit = {
     val route = parser.uri_parts
+
+    idle_timer.cancel()
     stime = System.nanoTime
     seq += 1
 
@@ -269,8 +279,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     if (!keepalive)
       return close()
 
+    state = HTTP_STATE_INIT
     keepalive = false
     last_event.interestOps(SelectionKey.OP_READ)
+    idle_timer.reset()
     buf.clear()
     parser.reset()
   }

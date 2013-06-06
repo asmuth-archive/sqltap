@@ -19,11 +19,12 @@ object SQLTap{
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
-    'http_port     -> "8080",
-    'db_timeout    -> "5000",
-    'http_timeout  -> "5000",
-    'memcached_ttl -> "3600",
-    'threads       -> "4"
+    'http_port            -> "8080",
+    'db_timeout           -> "5000",
+    'http_request_timeout -> "5000",
+    'http_idle_timeout    -> "5000",
+    'memcached_ttl        -> "3600",
+    'threads              -> "4"
   )
 
   val manifest = HashMap[String,ResourceManifest]()

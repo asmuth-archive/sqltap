@@ -14,7 +14,6 @@ import java.util.concurrent.{ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
-//   > http connection idle timeout
 //   > memcached proto + pool + generic query cache w/ ttl
 //   > retry sqlquery on temp. error (conn closed / EOF)
 //   > log levels (info, warning, error, critical, fatal)
