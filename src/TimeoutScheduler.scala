@@ -8,6 +8,7 @@
 package com.paulasmuth.sqltap
 
 import java.util.{PriorityQueue}
+import scala.collection.mutable.ListBuffer
 
 object TimeoutScheduler {
 
@@ -31,6 +32,7 @@ object TimeoutScheduler {
   def run() : Unit = {
     val iter = timeouts.get().iterator()
     val now = System.nanoTime() / 1000000
+    val fired = new ListBuffer[Timeout]()
 
     while (iter.hasNext()) {
       val timeout = iter.next()
@@ -39,8 +41,11 @@ object TimeoutScheduler {
         return
 
       iter.remove()
-      timeout.fire()
+      fired += timeout
     }
+
+    for (timeout <- fired)
+      timeout.fire()
   }
 
 }
