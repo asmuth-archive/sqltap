@@ -15,7 +15,7 @@ import scala.collection.mutable.HashMap;
 
 object SQLTap{
 
-  val VERSION = "v0.3.1"
+  val VERSION = "v0.3.2"
   val CONFIG  = HashMap[Symbol,String]()
 
   var DEFAULTS = HashMap[Symbol, String](
