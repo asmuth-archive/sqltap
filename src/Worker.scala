@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
 //   > memcached proto + pool + generic query cache w/ ttl
-//   > retry sqlquery on temp. error (conn closed / EOF)
 //   > log levels (info, warning, error, critical, fatal)
 //   > limit max number of entries in the conn queue
 //   > better error messages for invalid query strings

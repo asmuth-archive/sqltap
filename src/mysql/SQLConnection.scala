@@ -31,6 +31,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
   private val SQL_STATE_QCOL    = 7
   private val SQL_STATE_QROW    = 8
   private val SQL_STATE_CLOSE   = 9
+  private val SQL_STATE_PING    = 10
 
   // max packet length: 16mb
   private val SQL_MAX_PKT_LEN    = 16777215
@@ -173,9 +174,19 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     Statistics.decr('sql_connections_open)
   }
 
-  def timeout() : Unit = {
-    println("sql timeout...")
+  def timeout() : Unit = try {
+    state = SQL_STATE_PING
+    cur_seq = -1
+
+    write_packet(new PingPacket)
+    last_event.interestOps(SelectionKey.OP_WRITE)
+
     heartbeat.reset()
+  } catch {
+    case e: Exception => {
+      SQLTap.error("[SQL] error running timeout: " + e, false)
+      close(e)
+    }
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
@@ -271,6 +282,10 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
 
     case SQL_STATE_SINIT => {
       SQLTap.log_debug("[SQL] connection ready")
+      idle(event)
+    }
+
+    case SQL_STATE_PING => {
       idle(event)
     }
 
@@ -382,6 +397,5 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     cur_seq += 1
     write_buf.flip
   }
-
 
 }
