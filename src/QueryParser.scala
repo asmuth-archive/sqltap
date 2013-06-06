@@ -35,6 +35,14 @@ object QueryParser {
     while (cur < len) {
       qry.charAt(cur) match {
 
+        case ' ' => state match {
+
+          case PARSER_STATE_ARGSTR => ()
+
+          case _ => pos = cur + 1
+
+        }
+
         case '.' => state match {
 
           case PARSER_STATE_NEXT => {
