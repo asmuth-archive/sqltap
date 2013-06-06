@@ -14,11 +14,10 @@ import java.util.concurrent.{ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
-//   > memcached proto + pool + generic query cache w/ ttl
 //   > log levels (info, warning, error, critical, fatal)
 //   > limit max number of entries in the conn queue
+/7   > user.findAll(1){id,shop.findOne{id}} kills the worker
 //   > better error messages for invalid query strings
-//   > check for leaks
 //   > relation default order, fetch service "default" fetched fields
 
 class Worker() extends Thread {
