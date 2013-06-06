@@ -7,13 +7,13 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,ExecutionException,Statistics}
+import com.paulasmuth.sqltap.{SQLTap,ExecutionException,Statistics,TimeoutScheduler,TimeoutCallback}
 import scala.collection.mutable.{ListBuffer}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
 
-class SQLConnection(pool: SQLConnectionPool) {
+class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
 
   var hostname  : String  = "127.0.0.1"
   var port      : Int     = 3306
@@ -48,6 +48,7 @@ class SQLConnection(pool: SQLConnectionPool) {
 
   private var last_event : SelectionKey = null
   private var initial_handshake : HandshakePacket = null
+  private var heartbeat = TimeoutScheduler.schedule(5000, this)
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
@@ -70,6 +71,7 @@ class SQLConnection(pool: SQLConnectionPool) {
     if (state != SQL_STATE_IDLE)
       throw new SQLProtocolError("connection busy")
 
+    heartbeat.cancel()
     cur_qry = query
     write_query(query.query)
     state = SQL_STATE_QINIT
@@ -169,6 +171,11 @@ class SQLConnection(pool: SQLConnectionPool) {
     pool.close(this)
     sock.close()
     Statistics.decr('sql_connections_open)
+  }
+
+  def timeout() : Unit = {
+    println("sql timeout...")
+    heartbeat.reset()
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
@@ -298,6 +305,7 @@ class SQLConnection(pool: SQLConnectionPool) {
     last_event = event
     cur_seq = 0
     pool.ready(this)
+    heartbeat.start()
   }
 
   private def authenticate() : Unit = state match {
