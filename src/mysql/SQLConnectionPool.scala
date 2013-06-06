@@ -55,6 +55,10 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
     Statistics.incr('sql_requests_per_second)
   }
 
+  def busy(connection: SQLConnection) : Unit = {
+    connections_idle -= connection
+  }
+
   def busy() : Boolean = {
     connections_idle.length == 0
   }

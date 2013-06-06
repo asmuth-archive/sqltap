@@ -181,6 +181,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     write_packet(new PingPacket)
     last_event.interestOps(SelectionKey.OP_WRITE)
 
+    pool.busy(this)
     heartbeat.reset()
   } catch {
     case e: Exception => {
