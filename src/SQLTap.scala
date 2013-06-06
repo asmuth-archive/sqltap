@@ -20,11 +20,11 @@ object SQLTap{
 
   var DEFAULTS = HashMap[Symbol, String](
     'http_port            -> "8080",
-    'http_request_timeout -> "5000",
+    'http_request_timeout -> "2500",
     'http_idle_timeout    -> "5000",
-    'sql_timeout          -> "5000",
-    'sql_queue_max_len    -> "1000",
-    'sql_max_connections  -> "75",
+    'sql_timeout          -> "1000",
+    'sql_queue_max_len    -> "75",
+    'sql_max_connections  -> "25",
     'threads              -> "4"
   )
 
@@ -53,6 +53,12 @@ object SQLTap{
 
       else if (args(n) == "--mysql-database")
         { CONFIG += (('mysql_db, args(n+1))); n += 2 }
+
+      else if (args(n) == "--mysql-queuelen")
+        { CONFIG += (('sql_queue_max_len, args(n+1))); n += 2 }
+
+      else if (args(n) == "--mysql-numconns")
+        { CONFIG += (('sql_max_connections, args(n+1))); n += 2 }
 
       else if (args(n) == "--memcached-ttl")
         { CONFIG += (('memcached_ttl, args(n+1))); n += 2 }
@@ -142,6 +148,8 @@ object SQLTap{
     println("  --mysql-user      <user>    mysql server username                        ")
     println("  --mysql-password  <pass>    mysql server password                        ")
     println("  --mysql-database  <db>      mysql server database (USE ...;)             ")
+    println("  --mysql-queuelen  <num>     max mysql queue size per worker              ")
+    println("  --mysql-numconns  <num>     max number of mysql connections per worker   ")
     println("  --memcached       <addrs>   comma-seperated memcache servers (host:port) ")
     println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
     println("  -h, --help                  you're reading it...                         ")
