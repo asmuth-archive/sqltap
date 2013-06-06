@@ -30,7 +30,7 @@ object Statistics {
   }
 
   def decr(key: Symbol, value: Double = 1.0) : Unit = {
-    stats(key).incr(value)
+    stats(key).decr(value)
   }
 
   def get() : Map[String, String] = {
