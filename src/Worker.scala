@@ -16,9 +16,11 @@ import java.util.concurrent.atomic.{AtomicInteger}
 // TODO
 //   > log levels (info, warning, error, critical, fatal)
 //   > limit max number of entries in the conn queue
-/7   > user.findAll(1){id,shop.findOne{id}} kills the worker
+//   > user.findAll(1){id,shop.findOne{id}} kills the worker
 //   > better error messages for invalid query strings
 //   > relation default order, fetch service "default" fetched fields
+//   > pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
+//   > user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
 
 class Worker() extends Thread {
 
