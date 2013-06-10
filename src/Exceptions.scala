@@ -30,5 +30,5 @@ class NotFoundException(cur: Instruction = null) extends Exception {
     else
       "could not find record '" +
       (if (cur.relation == null) "null" else cur.relation.name) +
-      "' with id #" + cur.record.id.toString
+      (if (cur.record.has_id) "' with id #" + cur.record.id.toString else "")
 }

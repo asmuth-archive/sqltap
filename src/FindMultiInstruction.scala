@@ -32,26 +32,32 @@ class FindMultiInstruction extends SQLInstruction {
           relation.resource, null, 0, fields.toList,
           conditions, order, limit, offset))
 
-    } else if (relation.join_foreign == true && prev.record.has_id) {
-      record.set_id(prev.record.id)
+    } else if (relation.join_foreign == true) {
+      var join_id : Int = 0
 
       if (conditions == null)
         conditions = relation.join_cond
       else
         conditions += " AND " + relation.join_cond
 
-      execute_query(worker,
-        SQLBuilder.select(
-          relation.resource, relation.join_field, record.id,
-          fields.toList, conditions, order, limit, offset))
+      if (relation.join_field_local == null && prev.record.has_id) {
+        join_id = prev.record.id
+        prev.record.set_id(join_id)
+      }
+
+      else if (relation.join_field_local != null && prev.finished) {
+        join_id = prev.record.get(relation.join_field_local).toInt
+      }
+
+      if (join_id > 0)
+        execute_query(worker,
+          SQLBuilder.select(
+              relation.resource, relation.join_field, join_id,
+              fields.toList, conditions, order, limit, offset))
     }
 
     else if (relation.join_foreign == false) {
       throw new ParseException("findAll can't be used with a non-foreign relation")
-    }
-
-    else if (prev.finished) {
-      throw new ExecutionException("deadlock detected")
     }
   }
 
