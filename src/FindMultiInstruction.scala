@@ -37,7 +37,7 @@ class FindMultiInstruction extends SQLInstruction {
 
       if (conditions == null)
         conditions = relation.join_cond
-      else
+      else if (relation.join_cond != null)
         conditions += " AND " + relation.join_cond
 
       if (relation.join_field_local == null && prev.record.has_id) {
