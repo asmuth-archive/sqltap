@@ -62,6 +62,12 @@ trait Instruction {
     prev.unroll()
   }
 
+  def cancel(worker: Worker) : Unit = {
+    finished = true
+    unroll()
+    execute_next(worker)
+  }
+
   def inspect(lvl: Int = 0) : Unit = {
     SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: [" +
       (if (args != null && args.size > 0) args.mkString(", ") else "none") + "]")

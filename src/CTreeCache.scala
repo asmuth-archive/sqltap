@@ -33,7 +33,7 @@ object CTreeCache {
     stubcache(key) = buf // STUB
   }
 
-  def retrieve(ctree: CTree, ins: Instruction) : Unit = {
+  def retrieve(ctree: CTree, ins: Instruction, worker: Worker) : Unit = {
     val key       = ctree.key(ins.record.id)
 
     println("RETRIEVE", key)
@@ -42,7 +42,8 @@ object CTreeCache {
       val buf = stubcache(key)
       val ctree_buf = new CTreeBuffer(buf)
 
-      load(ctree_buf, ctree.stack.head)
+      load(ctree_buf, ins, worker)
+      buf.retrieve.position(0) // STUB
     }
   }
 
@@ -67,20 +68,33 @@ object CTreeCache {
     buf.write_end()
   }
 
-  private def load(buf: CTreeBuffer, ins: Instruction) : Unit = {
+  private def load(buf: CTreeBuffer, ins: Instruction, worker: Worker) : Unit = {
     while (true) {
       println("READ NEXT")
       buf.read_next() match {
 
         case buf.T_RES => {
-          println("READ: RESNAME", buf.read_string())
+          val res_name = buf.read_string()
+
+          // FIXPAUL: this doesnt terminate when found
+          for (nxt <- ins.next) {
+            if (nxt.resource_name == res_name) {
+              load(buf, nxt, worker)
+            }
+          }
         }
 
         case buf.T_FLD => {
-          println("READ: FIELD", buf.read_string(), buf.read_string())
+          val field = buf.read_string()
+          val value = buf.read_string()
+          ins.record.set(field, value)
+          ins.fields -= field
         }
 
         case buf.T_END => {
+          if (ins.fields.length == 0)
+            ins.cancel(worker)
+
           return
         }
 

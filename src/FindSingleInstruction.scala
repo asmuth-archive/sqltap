@@ -39,11 +39,17 @@ class FindSingleInstruction extends SQLInstruction {
 
       if (ctree != null) {
         println("!!!!!!! found ctree", ctree.name)
-        CTreeCache.retrieve(ctree, this)
+        CTreeCache.retrieve(ctree, this, worker)
 
-        if (finished)
+        if (finished) {
           ctree_store = false
+          return
+        }
       }
+
+      // optimization: skip select id from ... where id = ...; queries
+      if (fields.length == 1 && fields.head == record.resource.id_field)
+        return cancel(worker)
     }
 
     if (record.has_id) {
