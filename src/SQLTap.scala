@@ -120,17 +120,28 @@ object SQLTap{
     for (source <- sources){
       val xml = scala.xml.XML.loadString(source)
       var resources = List[scala.xml.Node]()
+      var ctrees    = List[scala.xml.Node]()
 
       if (xml.head.label == "resource")
         resources = List(xml.head)
 
-      else
+      else if (xml.head.label == "ctree")
+        ctrees = List(xml.head)
+
+      else {
         resources = (xml \ "resource").toList
+        ctrees    = (xml \ "ctree").toList
+      }
 
       for (elem <- resources) {
         val resource = new ResourceManifest(elem)
-        log_debug("Loaded resource: " + resource.name)
+        log_debug("Loading resource: " + resource.name)
         manifest += ((resource.name, resource))
+      }
+
+      for (elem <- ctrees) {
+        val ctree = new CTree(elem)
+        log_debug("Loading ctree: " + ctree.name)
       }
     }
   }
