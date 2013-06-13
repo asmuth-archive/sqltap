@@ -9,7 +9,16 @@ package com.paulasmuth.sqltap
 
 class CTreeBuffer(buf: ElasticBuffer) {
 
-  def write_header(resource_name: String) : Unit = ()
-  def write_end() : Unit = ()
+  def write_header(resource_name: String) : Unit = {
+    println("SERIALIZE RESNAME", resource_name)
+  }
+
+  def write_field(name: String, value: String) : Unit = {
+    println("SERIALIZE FIELD", name, value)
+  }
+
+  def write_end() : Unit = {
+    println("SERIALIZE END")
+  }
 
 }

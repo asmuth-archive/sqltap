@@ -9,6 +9,11 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
 
+// TODO
+//   > if only a subset of the fields is requested in a query, the cache entry is missing fields
+//      -> make sure all ctree fields are fetched after a ctree miss (recursively)
+//   > comparison doesnt take into account arguments
+//   > mget if multiple children/queries all all ctrees
 object CTreeCache {
 
   def store(ctree: CTree, ins: Instruction) : Unit = {
@@ -20,11 +25,12 @@ object CTreeCache {
 
   // def retrieve(ctree: CTree, record_id: Int) = {
 
-  def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
+  private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
     buf.write_header(qins.resource_name)
 
     for (field <- cins.fields) {
-      println("SERIALIZE FIELD", field)
+      if (qins.record.has_field(field))
+        buf.write_field(field, qins.record.get(field))
     }
 
     for (lins <- cins.next) {
@@ -32,7 +38,6 @@ object CTreeCache {
       for (rins <- qins.next) {
         // FIXPAUL: this doesnt compare arguments!
         if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
-          println("BAM!")
           serialize(buf, lins, rins)
         }
       }

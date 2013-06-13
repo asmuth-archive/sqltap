@@ -15,22 +15,30 @@ class Record(_resource: ResourceManifest) {
   var fields  = ListBuffer[String]()
   var data    = ListBuffer[String]()
 
-  def id : Int =
+  def id() : Int = {
     get(resource.id_field).toInt
+  }
 
-  def set_id(id: Int) : Unit =
+  def set_id(id: Int) : Unit = {
     set(resource.id_field, id.toString)
+  }
 
-  def set_id(id: String) : Unit =
+  def set_id(id: String) : Unit = {
     set_id(id.toInt)
+  }
 
-  def has_id : Boolean =
-    fields.indexOf(resource.id_field) >= 0
+  def has_id() : Boolean = {
+    has_field(resource.id_field)
+  }
 
+  def has_field(field: String) : Boolean = {
+    fields.indexOf(field) >= 0
+  }
 
-  def load(_fields: ListBuffer[String], _data: ListBuffer[String]) =
-    { fields = _fields; data = _data }
-
+  def load(_fields: ListBuffer[String], _data: ListBuffer[String]) = {
+    fields = _fields
+    data = _data
+  }
 
   def get(field: String) : String = {
     val idx = fields.indexOf(field)
@@ -41,7 +49,6 @@ class Record(_resource: ResourceManifest) {
     data(idx)
   }
 
-
   def set(field: String, value: String) : Unit = {
     val idx = fields.indexOf(field)
 
@@ -51,11 +58,9 @@ class Record(_resource: ResourceManifest) {
       append(field, value)
   }
 
-
   private def append(field: String, value: String) : Unit = {
     fields = fields :+ field
     data   = data   :+ value
   }
-
 
 }
