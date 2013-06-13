@@ -17,16 +17,12 @@ object QueryParser {
   private val PARSER_STATE_ARGSTR = 4
   private val PARSER_STATE_BODY   = 5
 
-  def parse(query: Query) : Unit = {
-    val stack = new InstructionStack()
+  def parse(stack: InstructionStack, qry: String) : Unit = {
     var args  = new ListBuffer[String]()
     var state = PARSER_STATE_NEXT
-    val qry   = query.query_string
 
     if (qry == null)
       throw new ParseException("no query string")
-
-    stack.push_down(query)
 
     var cur = 0
     var len = qry.length

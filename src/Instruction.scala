@@ -31,7 +31,7 @@ trait Instruction {
   def execute(worker: Worker) : Unit
 
   def prepare() : Unit = {
-    if (prev.name == "root")
+    if (prev == null || prev.name == "root")
       relation = SQLTap.manifest(resource_name).to_relation
     else
       relation = prev.relation.resource.relation(resource_name)

@@ -24,6 +24,9 @@ class InstructionStack {
     head.fields += field
 
   def pop() : Unit = {
+    if (head.prev == null)
+      return
+
     val ins = head
     head = head.prev
     head.next += ins

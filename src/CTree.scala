@@ -9,9 +9,22 @@ package com.paulasmuth.sqltap
 
 class CTree(doc: xml.Node) {
   val elem = new XMLHelper(doc)
-  val name : String = elem.attr("name", true)
+
+  val name  : String = elem.attr("name", true)
+  val query : String = elem.attr("query", true)
+
+  val stack = new InstructionStack()
+  QueryParser.parse(stack, query)
+
+  if (stack.head.name != "findSingle")
+    throw new ParseException(
+      "ctree queries must have a findOne root instruction")
+
 
   println(elem)
+  stack.head.inspect()
 
+  def resource_name() : String =
+    stack.head.resource_name
 
 }

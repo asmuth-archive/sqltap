@@ -10,7 +10,6 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
 class Query(qry_str: String) extends Instruction {
-  val query_string = qry_str
   val name = "root"
 
   private var etime = List[Long]()
@@ -20,12 +19,14 @@ class Query(qry_str: String) extends Instruction {
   def execute(worker: Worker) : Unit = {
     etime = etime :+ System.nanoTime
 
-    //try {
-      QueryParser.parse(this)
-    //} catch {
-    //  e: Exception => throw new ExecutionException(
-    //    "error while parsing query: " + e.toString)
-    //}
+    try {
+      val stack = new InstructionStack()
+      stack.push_down(this)
+      QueryParser.parse(stack, qry_str)
+    } catch {
+      case e: Exception => throw new ExecutionException(
+        "error while parsing query: " + e.toString)
+    }
 
     if (SQLTap.debug)
       inspect(0)
