@@ -32,7 +32,9 @@ class FindSingleInstruction extends SQLInstruction {
 
     if (record.has_id) {
       println("TRY CTREE")
-      CTreeIndex.find(this)
+      val ctree = CTreeIndex.find(this)
+
+      println("!!!!!!! found ctree", ctree.name)
     }
 
     if (record.has_id) {

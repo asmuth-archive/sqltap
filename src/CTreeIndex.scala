@@ -27,14 +27,21 @@ object CTreeIndex {
     ctrees(resource_name)
   }
 
-  def find(root: Instruction) : Unit = {
+  def find(root: Instruction) : CTree = {
     val candidates = find(root.resource_name)
+    var winner : CTree = null
+    var top_score : Int = 10
 
     println("CANDIDATES", candidates)
 
     for (ctree <- candidates) {
-      ctree.compare(root)
+      val score = ctree.compare(root)
+
+      if (score > top_score)
+        winner = ctree
     }
+
+    winner
   }
 
 }
