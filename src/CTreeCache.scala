@@ -16,24 +16,33 @@ import scala.collection.mutable.{HashMap}
 //   > mget if multiple children/queries all all ctrees
 object CTreeCache {
 
-  val stubcache = new HashMap[String,String]() // STUB
+  val stubcache = new HashMap[String,ElasticBuffer]() // STUB
 
   def store(ctree: CTree, ins: Instruction) : Unit = {
     println("STORE CTREE", ctree, ins)
-    val el_buf    = new ElasticBuffer(1024)
-    val ctree_buf = new CTreeBuffer(el_buf)
+    val buf       = new ElasticBuffer(65535)
+    val ctree_buf = new CTreeBuffer(buf)
 
     serialize(ctree_buf, ctree.stack.head, ins)
 
-    val buf = el_buf.retrieve
     val key = ctree.key(ins.record.id)
 
     println("STORE WITH KEY", key)
 
-    stubcache(key) = new String(buf.array, 0, buf.position, "US-ASCII") // STUB
+    stubcache(key) = buf // STUB
   }
 
-  // def retrieve(ctree: CTree, record_id: Int) = {
+  def retrieve(ctree: CTree, ins: Instruction) : Unit = {
+    val key       = ctree.key(ins.record.id)
+
+    println("RETRIEVE", key)
+
+    if (stubcache contains key) {
+      val buf = stubcache(key)
+      val ctree_buf = new CTreeBuffer(buf)
+      //load(
+    }
+  }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
     buf.write_header(qins.resource_name)

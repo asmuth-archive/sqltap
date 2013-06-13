@@ -9,14 +9,7 @@ package com.paulasmuth.sqltap
 
 import java.nio.{ByteBuffer}
 
-trait AbstractWrappedBuffer {
-  def write(data: Array[Byte]) : Unit
-  def write(data: Byte) : Unit
-  def write(data: Int) : Unit
-  def retrieve() : ByteBuffer
-}
-
-class WrappedBuffer(buf: ByteBuffer) extends AbstractWrappedBuffer {
+class WrappedBuffer(buf: ByteBuffer) {
 
   def write(data: Array[Byte]) : Unit = {
     buf.put(data)
@@ -32,6 +25,15 @@ class WrappedBuffer(buf: ByteBuffer) extends AbstractWrappedBuffer {
 
   def retrieve() : ByteBuffer = {
     buf
+  }
+
+  def read_int() : Int = {
+    buf.getInt()
+  }
+
+  def read_string(len: Int) : String = {
+    buf.position(buf.position + len)
+    len.toString
   }
 
 }

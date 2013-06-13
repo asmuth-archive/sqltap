@@ -9,26 +9,26 @@ package com.paulasmuth.sqltap
 
 import java.nio.{ByteBuffer}
 
-class ElasticBuffer(initial_capa: Int) extends AbstractWrappedBuffer {
+class ElasticBuffer(initial_capacity: Int) extends WrappedBuffer(null) {
 
-  private var buffer : ByteBuffer = ByteBuffer.allocate(initial_capa)
+  private var buffer : ByteBuffer = ByteBuffer.allocate(initial_capacity)
 
-  def write(data: Byte) = {
+  override def write(data: Byte) = {
     resize(1)
     buffer.put(data)
   }
 
-  def write(data: Int) = {
+  override def write(data: Int) = {
     resize(4)
     buffer.putInt(data)
   }
 
-  def write(data: Array[Byte]) = {
+  override def write(data: Array[Byte]) = {
     resize(data.length)
     buffer.put(data)
   }
 
-  def retrieve() : ByteBuffer = {
+  override def retrieve() : ByteBuffer = {
     buffer
   }
 

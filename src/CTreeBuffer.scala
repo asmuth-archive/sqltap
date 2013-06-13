@@ -29,14 +29,23 @@ class CTreeBuffer(buf: ElasticBuffer) {
 
     buf.write(T_FLD)
     buf.write(name_bytes.size)
-    buf.write(value_bytes.size)
     buf.write(name_bytes)
+    buf.write(value_bytes.size)
     buf.write(value_bytes)
   }
 
   def write_end() : Unit = {
     println("SERIALIZE END")
     buf.write(T_END)
+  }
+
+  def read_next() : Int = {
+    buf.read_int()
+  }
+
+  def read_string() : String = {
+    val len : Int = buf.read_int()
+    buf.read_string(len)
   }
 
 }

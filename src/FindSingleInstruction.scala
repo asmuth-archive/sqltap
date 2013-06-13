@@ -13,7 +13,9 @@ class FindSingleInstruction extends SQLInstruction {
 
   val name = "findSingle"
   var worker : Worker = null
+
   var ctree : CTree = null
+  var ctree_store   = true
 
   var conditions : String = null
   var order      : String = null
@@ -35,8 +37,13 @@ class FindSingleInstruction extends SQLInstruction {
       println("TRY CTREE")
       ctree = CTreeIndex.find(this)
 
-      if (ctree != null)
+      if (ctree != null) {
         println("!!!!!!! found ctree", ctree.name)
+        CTreeCache.retrieve(ctree, this)
+
+        if (finished)
+          ctree_store = false
+      }
     }
 
     if (record.has_id) {
@@ -82,7 +89,7 @@ class FindSingleInstruction extends SQLInstruction {
   }
 
   override def ready() : Unit = {
-    if (ctree != null)
+    if (ctree_store && ctree != null)
       CTreeCache.store(ctree, this)
 
     prev.unroll()
