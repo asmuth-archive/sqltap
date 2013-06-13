@@ -29,6 +29,7 @@ object CTreeCache {
 
     println("STORE WITH KEY", key)
 
+    buf.retrieve.flip // STUB
     stubcache(key) = buf // STUB
   }
 
@@ -40,7 +41,8 @@ object CTreeCache {
     if (stubcache contains key) {
       val buf = stubcache(key)
       val ctree_buf = new CTreeBuffer(buf)
-      //load(
+
+      load(ctree_buf, ctree.stack.head)
     }
   }
 
@@ -63,6 +65,27 @@ object CTreeCache {
     }
 
     buf.write_end()
+  }
+
+  private def load(buf: CTreeBuffer, ins: Instruction) : Unit = {
+    while (true) {
+      println("READ NEXT")
+      buf.read_next() match {
+
+        case buf.T_RES => {
+          println("READ: RESNAME", buf.read_string())
+        }
+
+        case buf.T_FLD => {
+          println("READ: FIELD", buf.read_string(), buf.read_string())
+        }
+
+        case buf.T_END => {
+          return
+        }
+
+      }
+    }
   }
 
 }

@@ -11,7 +11,11 @@ import java.nio.{ByteBuffer}
 
 class ElasticBuffer(initial_capacity: Int) extends WrappedBuffer(null) {
 
-  private var buffer : ByteBuffer = ByteBuffer.allocate(initial_capacity)
+  private var buf : ByteBuffer = ByteBuffer.allocate(initial_capacity)
+
+  override def buffer() : ByteBuffer = {
+    buf
+  }
 
   override def write(data: Byte) = {
     resize(1)
@@ -43,7 +47,7 @@ class ElasticBuffer(initial_capacity: Int) extends WrappedBuffer(null) {
 
       buffer.flip()
       new_buffer.put(buffer)
-      buffer = new_buffer
+      buf = new_buffer
     }
   }
 

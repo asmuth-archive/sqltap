@@ -12,28 +12,34 @@ import java.nio.{ByteBuffer}
 class WrappedBuffer(buf: ByteBuffer) {
 
   def write(data: Array[Byte]) : Unit = {
-    buf.put(data)
+    buffer.put(data)
   }
 
   def write(data: Byte) : Unit = {
-    buf.put(data)
+    buffer.put(data)
   }
 
   def write(data: Int) : Unit = {
-    buf.putInt(data)
+    buffer.putInt(data)
   }
 
   def retrieve() : ByteBuffer = {
+    buffer
+  }
+
+  def buffer() : ByteBuffer = {
     buf
   }
 
   def read_int() : Int = {
-    buf.getInt()
+    buffer.getInt()
   }
 
   def read_string(len: Int) : String = {
-    buf.position(buf.position + len)
-    len.toString
+    val str_buf = new Array[Byte](len)
+
+    buffer.get(str_buf)
+    new String(str_buf, "UTF-8")
   }
 
 }

@@ -9,9 +9,9 @@ package com.paulasmuth.sqltap
 
 class CTreeBuffer(buf: ElasticBuffer) {
 
-  private val T_RES : Int = 1
-  private val T_FLD : Int = 2
-  private val T_END : Int = 3
+  val T_RES : Int = 1
+  val T_FLD : Int = 2
+  val T_END : Int = 3
 
   def write_header(resource_name: String) : Unit = {
     val bytes = resource_name.getBytes("UTF-8")
