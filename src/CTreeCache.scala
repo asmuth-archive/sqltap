@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-import scala.collection.mutable.{ListBuffer}
+import scala.collection.mutable.{HashMap}
 
 // TODO
 //   > if only a subset of the fields is requested in a query, the cache entry is missing fields
@@ -16,11 +16,21 @@ import scala.collection.mutable.{ListBuffer}
 //   > mget if multiple children/queries all all ctrees
 object CTreeCache {
 
+  val stubcache = new HashMap[String,String]() // STUB
+
   def store(ctree: CTree, ins: Instruction) : Unit = {
     println("STORE CTREE", ctree, ins)
-    val buf = new CTreeBuffer(new ElasticBuffer(1024))
+    val el_buf    = new ElasticBuffer(1024)
+    val ctree_buf = new CTreeBuffer(el_buf)
 
-    serialize(buf, ctree.stack.head, ins)
+    serialize(ctree_buf, ctree.stack.head, ins)
+
+    val buf = el_buf.retrieve
+    val key = ctree.key(ins.record.id)
+
+    println("STORE WITH KEY", key)
+
+    stubcache(key) = new String(buf.array, 0, buf.position, "US-ASCII") // STUB
   }
 
   // def retrieve(ctree: CTree, record_id: Int) = {

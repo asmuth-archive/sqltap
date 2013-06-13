@@ -28,6 +28,10 @@ class CTree(doc: xml.Node) {
     stack.head.resource_name
   }
 
+  def key(record_id: Int) : String = {
+    name + "-" + record_id.toString
+  }
+
   def compare(ins: Instruction) : Int = {
     compare(ins, stack.head)
   }
