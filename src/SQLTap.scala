@@ -143,6 +143,8 @@ object SQLTap{
         val ctree = new CTree(elem)
         log_debug("Loading ctree: " + ctree.name)
       }
+
+      println(CTreeIndex.ctrees)
     }
   }
 

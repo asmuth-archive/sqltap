@@ -20,11 +20,16 @@ class CTree(doc: xml.Node) {
     throw new ParseException(
       "ctree queries must have a findOne root instruction")
 
-
+  CTreeIndex.register(this)
   println(elem)
   stack.head.inspect()
 
-  def resource_name() : String =
+  def resource_name() : String = {
     stack.head.resource_name
+  }
+
+  def compare(ins: Instruction) : Unit = {
+    println("COMPARING TO", ins)
+  }
 
 }

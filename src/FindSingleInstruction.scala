@@ -29,6 +29,12 @@ class FindSingleInstruction extends SQLInstruction {
     if (record_id != null)
       record.set_id(record_id)
 
+
+    if (record.has_id) {
+      println("TRY CTREE")
+      CTreeIndex.find(this)
+    }
+
     if (record.has_id) {
       join_field = relation.resource.id_field
       join_id = record.id

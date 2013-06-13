@@ -16,11 +16,25 @@ object CTreeIndex {
   def register(ctree: CTree) = {
     println("new ctree", ctree.resource_name)
 
-    if (!ctrees.contains(ctree.resource_name)) {
-      ctrees(ctree.resource_name) = new ListBuffer[CTree]()
+    find(ctree.resource_name) += ctree
+  }
+
+  def find(resource_name: String) : ListBuffer[CTree] = {
+    if (!ctrees.contains(resource_name)) {
+      ctrees(resource_name) = new ListBuffer[CTree]()
     }
 
-    ctrees(ctree.resource_name) += ctree
+    ctrees(resource_name)
+  }
+
+  def find(root: Instruction) : Unit = {
+    val candidates = find(root.resource_name)
+
+    println("CANDIDATES", candidates)
+
+    for (ctree <- candidates) {
+      ctree.compare(root)
+    }
   }
 
 }
