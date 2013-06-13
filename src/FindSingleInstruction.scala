@@ -32,7 +32,6 @@ class FindSingleInstruction extends SQLInstruction {
     if (record_id != null)
       record.set_id(record_id)
 
-
     if (record.has_id) {
       println("TRY CTREE")
       ctree = CTreeIndex.find(this)

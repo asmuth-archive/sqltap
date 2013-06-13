@@ -23,15 +23,21 @@ class CTreeBuffer(buf: ElasticBuffer) {
   }
 
   def write_field(name: String, value: String) : Unit = {
-    val name_bytes = name.getBytes("UTF-8")
-    val value_bytes = value.getBytes("UTF-8")
     println("SERIALIZE FIELD", name, value)
 
     buf.write(T_FLD)
+
+    val name_bytes = name.getBytes("UTF-8")
     buf.write(name_bytes.size)
     buf.write(name_bytes)
-    buf.write(value_bytes.size)
-    buf.write(value_bytes)
+
+    if (value == null) {
+      buf.write(0)
+    } else {
+      val value_bytes = value.getBytes("UTF-8")
+      buf.write(value_bytes.size)
+      buf.write(value_bytes)
+    }
   }
 
   def write_end() : Unit = {
@@ -45,7 +51,11 @@ class CTreeBuffer(buf: ElasticBuffer) {
 
   def read_string() : String = {
     val len : Int = buf.read_int()
-    buf.read_string(len)
+
+    if (len == 0)
+      "null"
+    else
+      buf.read_string(len)
   }
 
 }
