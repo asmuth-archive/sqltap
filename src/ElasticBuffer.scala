@@ -18,6 +18,11 @@ class ElasticBuffer(initial_capa: Int) extends AbstractWrappedBuffer {
     buffer.put(data)
   }
 
+  def write(data: Int) = {
+    resize(4)
+    buffer.putInt(data)
+  }
+
   def write(data: Array[Byte]) = {
     resize(data.length)
     buffer.put(data)
