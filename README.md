@@ -223,6 +223,9 @@ and also contains a query queue.
 + The QueryParser and the HTTP and SQL protocl are implemented as simple state
 machines.
 
++ CTrees are only used if the CTree is a subtree of the request, i.e. a ctree
+is not used when the ctree is a "supertree" of the request. CTree are only matched
+on findOne Instructions and each CTree query must start with a findOne Instruction.
 
 Bechmarks
 ---------

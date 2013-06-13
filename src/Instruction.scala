@@ -55,7 +55,11 @@ trait Instruction {
       return
 
     if (prev != null)
-      prev.unroll()
+      ready()
+  }
+
+  def ready() : Unit = {
+    prev.unroll()
   }
 
   def inspect(lvl: Int = 0) : Unit = {
