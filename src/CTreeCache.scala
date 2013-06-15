@@ -25,6 +25,7 @@ object CTreeCache {
 
     serialize(ctree_buf, ctree.stack.head, ins)
 
+    println(ins.resource_name, ins.record.fields)
     val key = ctree.key(ins.record.id)
 
     println("STORE WITH KEY", key)
@@ -33,18 +34,21 @@ object CTreeCache {
     stubcache(key) = buf // STUB
   }
 
-  def retrieve(ctree: CTree, ins: Instruction, worker: Worker) : Unit = {
-    val key       = ctree.key(ins.record.id)
+  def retrieve(ctree: CTree, ins: Instruction, worker: Worker) : Boolean = {
+    val key = ctree.key(ins.record.id)
 
     println("RETRIEVE", key)
 
-    if (stubcache contains key) {
-      val buf = stubcache(key)
-      val ctree_buf = new CTreeBuffer(buf)
+    if (!stubcache.contains(key))
+      return false
 
-      load(ctree_buf, ins, worker)
-      buf.retrieve.position(0) // STUB
-    }
+    val buf = stubcache(key)
+    val ctree_buf = new CTreeBuffer(buf)
+
+    load(ctree_buf, ins, worker)
+    buf.retrieve.position(0) // STUB
+
+    true
   }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
@@ -70,7 +74,6 @@ object CTreeCache {
 
   private def load(buf: CTreeBuffer, ins: Instruction, worker: Worker) : Unit = {
     while (true) {
-      println("READ NEXT")
       buf.read_next() match {
 
         case buf.T_RES => {

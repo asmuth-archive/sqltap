@@ -15,7 +15,7 @@ class FindSingleInstruction extends SQLInstruction {
   var worker : Worker = null
 
   var ctree : CTree = null
-  var ctree_store   = true
+  var ctree_store   = false
 
   var conditions : String = null
   var order      : String = null
@@ -33,16 +33,19 @@ class FindSingleInstruction extends SQLInstruction {
       record.set_id(record_id)
 
     if (record.has_id) {
-      println("TRY CTREE")
-      ctree = CTreeIndex.find(this)
+      CTreeIndex.find(this) match {
+        case None => ()
+        case Some((ctree, cost)) => {
+          val cached = CTreeCache.retrieve(ctree, this, worker)
 
-      if (ctree != null) {
-        println("!!!!!!! found ctree", ctree.name)
-        CTreeCache.retrieve(ctree, this, worker)
+          // FIXPAUL: expand query if cost above a certian threshold
+          //if (cost > threshold)
+          //  run_full_ctree(...)
 
-        if (finished) {
-          ctree_store = false
-          return
+          if (!cached && cost == 0) {
+            ctree_store = false
+            return
+          }
         }
       }
 

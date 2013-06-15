@@ -14,8 +14,6 @@ object CTreeIndex {
   val ctrees = new HashMap[String, ListBuffer[CTree]]
 
   def register(ctree: CTree) = {
-    println("new ctree", ctree.resource_name)
-
     find(ctree.resource_name) += ctree
   }
 
@@ -27,21 +25,31 @@ object CTreeIndex {
     ctrees(resource_name)
   }
 
-  def find(root: Instruction) : CTree = {
+  def find(root: Instruction) : Option[(CTree, Int)] = {
     val candidates = find(root.resource_name)
     var winner : CTree = null
+    var winner_cost : Int = 0
     var top_score : Int = 10
 
-    println("CANDIDATES", candidates)
-
     for (ctree <- candidates) {
-      val score = ctree.compare(root)
+      val (score, cost) = ctree.compare(root)
 
-      if (score > top_score)
+      SQLTap.log_debug("CTree: evaluating candidate: '" + ctree.name + 
+       "' (score: " + score + ", cost: " + cost + ")")
+
+      if (score > top_score) {
         winner = ctree
+        winner_cost = cost
+      }
     }
 
-    winner
+    if (winner != null)
+      SQLTap.log_debug("CTree: using ctree '" + winner.name + "'")
+
+    if (winner == null)
+      None
+    else
+      Some(((winner, winner_cost)))
   }
 
 }

@@ -32,46 +32,59 @@ class CTree(doc: xml.Node) {
     name + "-" + record_id.toString
   }
 
-  def compare(ins: Instruction) : Int = {
+  def compare(ins: Instruction) : (Int, Int) = {
     compare(ins, stack.head)
   }
 
-  def compare(left: Instruction, right: Instruction) : Int = {
+  // the "score" determines how much of the query tree can be substituted with
+  // the ctree. a score of 0 means that no field in the query can be answered
+  // from the ctree (larger is better)
+  // the "cost" determines how much additional data the ctree contais that is not
+  // required to answer the query which would be unecessarily fetched. a perfect
+  // cost of 0 means no extraneous data is fetched (smaller is better)
+  def compare(left: Instruction, right: Instruction) : (Int, Int) = {
     var score = 0
+    var cost  = 0
 
-    // FIXPAUL this is naive and expeeeeensive ;) 
-    for (lfield <- left.fields) {
-      var found = false
+    val lfields = left.fields.clone()
 
-      // FIXPAUL this doesnt even terminate when a field is found
-      for (rfield <- right.fields)
-        if (lfield == rfield)
-          found = true
-
-      if (found) {
-        println("yeah", lfield)
+    for (rfield <- right.fields) {
+      if (lfields.contains(rfield)) {
         score += 1
+        lfields -= rfield
       } else {
-        println("nooo", lfield)
-        score -= 1
+        cost -= 1
       }
     }
 
+    val inslist = left.next.clone()
 
-    for (lins <- left.next) {
-      // FIXPAUL this doesnt terminate when a field is found
-      for (rins <- right.next) {
+    for (rins <- right.next) {
+      var found = false
+      var n     = inslist.length
+
+      while (n > 0 && !found) {
+        n -= 1
+
+        val lins = inslist(n)
+
         // FIXPAUL: this doesnt compare arguments!
         if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
-          println("BAM!")
-          score += 20
-          score += compare(lins, rins)
+          found = true
+
+          val (cscore, ccost) = compare(lins, rins)
+          score += 10 + cscore
+          cost  += ccost
+
+          inslist -= lins
         }
       }
+
+      if (!found)
+        cost -= 10
     }
 
-    println("COMPARING", left, right, score)
-    score
+    (score, cost)
   }
 
 }
