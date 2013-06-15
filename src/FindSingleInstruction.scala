@@ -15,7 +15,10 @@ class FindSingleInstruction extends SQLInstruction {
   var worker : Worker = null
 
   var ctree : CTree = null
+  var ctree_cost    = 0
+  var ctree_wait    = false
   var ctree_store   = false
+  var ctree_try     = true
 
   var conditions : String = null
   var order      : String = null
@@ -26,6 +29,9 @@ class FindSingleInstruction extends SQLInstruction {
 
     worker = _worker
 
+    if (ctree_wait)
+      return
+
     if (fields.length == 0)
       fields += record.resource.id_field
 
@@ -33,17 +39,17 @@ class FindSingleInstruction extends SQLInstruction {
       record.set_id(record_id)
 
     if (record.has_id) {
-      CTreeIndex.find(this) match {
-        case None => ()
-        case Some((ctree, cost)) => {
-          val cached = CTreeCache.retrieve(ctree, this, worker)
+      if (ctree_try) {
+        ctree_try = false
 
-          // FIXPAUL: expand query if cost above a certian threshold
-          //if (cost > threshold)
-          //  run_full_ctree(...)
+        CTreeIndex.find(this) match {
+          case None => ()
+          case Some((_ctree, cost)) => {
+            ctree      = _ctree
+            ctree_wait = true
+            ctree_cost = cost
 
-          if (!cached && cost == 0) {
-            ctree_store = false
+            CTreeCache.retrieve(ctree, this, worker)
             return
           }
         }
@@ -96,11 +102,28 @@ class FindSingleInstruction extends SQLInstruction {
     unroll()
   }
 
+
   override def ready() : Unit = {
-    if (ctree_store && ctree != null)
+    if (ctree_store)
       CTreeCache.store(ctree, this)
 
     prev.unroll()
+  }
+
+  def ctree_ready() : Unit = {
+    ctree_wait = false
+
+    if (finished)
+      return
+
+    // FIXPAUL: expand query only if cost above a certian threshold
+    if (ctree_cost != 0) {
+      // CTreeCache.expand_query(ctree, this)
+      //ctree_cost = 0
+    }
+
+    ctree_store = ctree_cost == 0
+    execute(worker)
   }
 
 }

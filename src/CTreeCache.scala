@@ -34,21 +34,20 @@ object CTreeCache {
     stubcache(key) = buf // STUB
   }
 
-  def retrieve(ctree: CTree, ins: Instruction, worker: Worker) : Boolean = {
+  def retrieve(ctree: CTree, ins: FindSingleInstruction, worker: Worker) : Unit = {
     val key = ctree.key(ins.record.id)
 
     println("RETRIEVE", key)
 
-    if (!stubcache.contains(key))
-      return false
+    if (stubcache.contains(key)) {
+      val buf = stubcache(key)
+      val ctree_buf = new CTreeBuffer(buf)
 
-    val buf = stubcache(key)
-    val ctree_buf = new CTreeBuffer(buf)
+      load(ctree_buf, ins, worker)
+      buf.retrieve.position(0) // STUB
+    }
 
-    load(ctree_buf, ins, worker)
-    buf.retrieve.position(0) // STUB
-
-    true
+    ins.ctree_ready()
   }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
