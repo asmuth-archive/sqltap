@@ -15,6 +15,9 @@ class CountInstruction extends SQLInstruction {
   val name = "count"
 
   def execute(worker: Worker) : Unit = {
+    if (finished)
+      return
+
     if (prev == null)
       throw new ExecutionException("count is not supported on root resources")
 
