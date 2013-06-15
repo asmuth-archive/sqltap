@@ -16,7 +16,6 @@ class CTreeBuffer(buf: ElasticBuffer) {
 
   def write_header(resource_name: String) : Unit = {
     val bytes = resource_name.getBytes("UTF-8")
-    println("SERIALIZE RESNAME", resource_name)
 
     buf.write(T_RES)
     buf.write(bytes.size)
@@ -24,8 +23,6 @@ class CTreeBuffer(buf: ElasticBuffer) {
   }
 
   def write_field(name: String, value: String) : Unit = {
-    println("SERIALIZE FIELD", name, value)
-
     buf.write(T_FLD)
 
     val name_bytes = name.getBytes("UTF-8")
@@ -44,7 +41,6 @@ class CTreeBuffer(buf: ElasticBuffer) {
   def write_phi(resource_name: String, len: Int) : Unit = {
     val bytes = resource_name.getBytes("UTF-8")
 
-    println("SERIALIZE PHI")
     buf.write(T_PHI)
     buf.write(len)
     buf.write(bytes.size)
@@ -52,7 +48,6 @@ class CTreeBuffer(buf: ElasticBuffer) {
   }
 
   def write_end() : Unit = {
-    println("SERIALIZE END")
     buf.write(T_END)
   }
 

@@ -10,28 +10,22 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.{HashMap,ListBuffer}
 
 // TODO
-//   > if only a subset of the fields is requested in a query, the cache entry is missing fields
-//      -> make sure all ctree fields are fetched after a ctree miss (recursively)
 //   > comparison doesnt take into account arguments
-//   > mget if multiple children/queries all all ctrees
+//   > query vs. ctree expansion
 //   > cache query plans / ctreeindex.find decisions
-//   > fastpath (direct serial to json) if query if full ctree match
+//   > direct ctree access / fastpath (direct serial to json) with memcache mget "/ctree/name?id=1,2,3"
 
 object CTreeCache {
 
   val stubcache = new HashMap[String,ElasticBuffer]() // STUB
 
   def store(ctree: CTree, ins: Instruction) : Unit = {
-    println("STORE CTREE", ctree, ins)
     val buf       = new ElasticBuffer(65535)
     val ctree_buf = new CTreeBuffer(buf)
 
     serialize(ctree_buf, ctree.stack.head, ins)
 
-    println(ins.resource_name, ins.record.fields)
     val key = ctree.key(ins.record.id)
-
-    println("STORE WITH KEY", key)
 
     buf.retrieve.flip // STUB
     stubcache(key) = buf // STUB
@@ -39,8 +33,6 @@ object CTreeCache {
 
   def retrieve(ctree: CTree, ins: FindSingleInstruction, worker: Worker) : Unit = {
     val key = ctree.key(ins.record.id)
-
-    println("RETRIEVE", key)
 
     if (stubcache.contains(key)) {
       val buf = stubcache(key)
@@ -91,7 +83,6 @@ object CTreeCache {
       }
 
       case qins_m: PhiInstruction => {
-        println("PHI", cins.resource_name)
         buf.write_header(cins.resource_name)
 
         for (field <- cins.fields) {
@@ -153,8 +144,6 @@ object CTreeCache {
           val len = buf.read_next()
           val res_name = buf.read_string()
 
-          println("PHI!", res_name, len)
-
           // FIXPAUL: this doesnt terminate when found
           for (nxt <- ins.next) {
             if (nxt.resource_name == res_name) {
@@ -175,9 +164,6 @@ object CTreeCache {
               }
 
               nxt.next = instructions
-              println(instructions)
-
-              println("CAAANCEL", nxt.name, nxt.resource_name)
               nxt.cancel(worker)
             }
           }

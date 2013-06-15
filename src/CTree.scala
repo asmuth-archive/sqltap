@@ -21,7 +21,6 @@ class CTree(doc: xml.Node) {
       "ctree queries must have a findOne root instruction")
 
   CTreeIndex.register(this)
-  println(elem)
   stack.head.inspect()
 
   def resource_name() : String = {
