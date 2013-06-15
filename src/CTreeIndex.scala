@@ -34,12 +34,13 @@ object CTreeIndex {
     for (ctree <- candidates) {
       val (score, cost) = ctree.compare(root)
 
-      SQLTap.log_debug("CTree: evaluating candidate: '" + ctree.name + 
-       "' (score: " + score + ", cost: " + cost + ")")
+      SQLTap.log_debug("CTree: evaluating candidate: '" + ctree.name +
+       "' (score: " + score + ", cost: " + cost + ") for: " + root.resource_name)
 
       if (cost == 0 || (score > top_score && winner_cost != 0)) {
         winner = ctree
         winner_cost = cost
+        top_score = score
       }
     }
 
