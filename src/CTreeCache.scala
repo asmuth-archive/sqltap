@@ -53,7 +53,12 @@ object CTreeCache {
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
     buf.write_header(qins.resource_name)
 
-    for (field <- cins.fields) {
+    val fields = cins.fields
+
+    if (cins.name == "count")
+      fields += "__count"
+
+    for (field <- fields) {
       if (qins.record.has_field(field))
         buf.write_field(field, qins.record.get(field))
     }
