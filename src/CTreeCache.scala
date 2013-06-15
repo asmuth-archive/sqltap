@@ -14,6 +14,8 @@ import scala.collection.mutable.{HashMap}
 //      -> make sure all ctree fields are fetched after a ctree miss (recursively)
 //   > comparison doesnt take into account arguments
 //   > mget if multiple children/queries all all ctrees
+//   > cache query plans / ctreeindex.find decisions
+
 object CTreeCache {
 
   val stubcache = new HashMap[String,ElasticBuffer]() // STUB

@@ -18,6 +18,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
   var ttl   : Int = 0
   val queries = new ListBuffer[String]()
   var failed = false
+  val stime  = System.nanoTime()
 
   def execute(worker: Worker) : Unit = try {
     latch = queries.length
@@ -43,10 +44,18 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
       json_stream.write_comma()
     } else {
       json_stream.write_array_end()
-      callback.ready(this)
+      finished()
     }
   } catch {
     case e: Exception => error(e)
+  }
+
+  private def finished() : Unit = {
+    if (SQLTap.debug)
+      SQLTap.log_debug("Request finished (" +
+        (((System.nanoTime - stime) / 100000) / 10.0) + "ms): ...")
+
+    callback.ready(this)
   }
 
   def error(query: Query, err: Throwable) : Unit = {
