@@ -23,6 +23,9 @@ class FindMultiInstruction extends SQLInstruction {
   def execute(_worker: Worker) : Unit = {
     worker = _worker
 
+    if (finished)
+      return
+
     if (fields.length == 0)
       fields += record.resource.id_field
 

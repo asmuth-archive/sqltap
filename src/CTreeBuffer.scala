@@ -41,10 +41,14 @@ class CTreeBuffer(buf: ElasticBuffer) {
     }
   }
 
-  def write_phi(len: Int) : Unit = {
+  def write_phi(resource_name: String, len: Int) : Unit = {
+    val bytes = resource_name.getBytes("UTF-8")
+
     println("SERIALIZE PHI")
     buf.write(T_PHI)
     buf.write(len)
+    buf.write(bytes.size)
+    buf.write(bytes)
   }
 
   def write_end() : Unit = {

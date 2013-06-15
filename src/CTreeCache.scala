@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable.{HashMap,ListBuffer}
 
 // TODO
 //   > if only a subset of the fields is requested in a query, the cache entry is missing fields
@@ -15,6 +15,7 @@ import scala.collection.mutable.{HashMap}
 //   > comparison doesnt take into account arguments
 //   > mget if multiple children/queries all all ctrees
 //   > cache query plans / ctreeindex.find decisions
+//   > fastpath (direct serial to json) if query if full ctree match
 
 object CTreeCache {
 
@@ -83,7 +84,7 @@ object CTreeCache {
       }
 
       case qins_m: FindMultiInstruction => {
-        buf.write_phi(qins.next.length)
+        buf.write_phi(cins.resource_name, qins.next.length)
 
         for (nxt <- qins.next)
           serialize(buf, cins, nxt)
@@ -137,10 +138,49 @@ object CTreeCache {
         }
 
         case buf.T_END => {
-          if (ins.fields.length == 0)
-            ins.cancel(worker)
+          ins match {
+            case i: PhiInstruction => return
+            case _ => {
+              if (ins.fields.length == 0)
+                ins.cancel(worker)
 
-          return
+              return
+            }
+          }
+        }
+
+        case buf.T_PHI => {
+          val len = buf.read_next()
+          val res_name = buf.read_string()
+
+          println("PHI!", res_name, len)
+
+          // FIXPAUL: this doesnt terminate when found
+          for (nxt <- ins.next) {
+            if (nxt.resource_name == res_name) {
+              var n = len
+              val instructions = new ListBuffer[Instruction]()
+
+              while (n > 0) {
+                val nins = new PhiInstruction()
+                nins.relation = nxt.relation
+                nins.prev = nxt
+                nins.record = new Record(nxt.relation.resource)
+                InstructionFactory.deep_copy(nxt, nins)
+                instructions += nins
+
+                load(buf, nins, worker)
+
+                n -= 1
+              }
+
+              nxt.next = instructions
+              println(instructions)
+
+              println("CAAANCEL", nxt.name, nxt.resource_name)
+              nxt.cancel(worker)
+            }
+          }
         }
 
       }
