@@ -45,9 +45,9 @@ MySQL and non-blocking I/O.
 SQLTap caches partial query responses in memcache, which speeds up some queries by
 multiple orders of magnitude and greatly reduces the load on the MySQL database.
 
-Since it doesn't cache the full query responses, but only normalized common query subtrees
-the cached data partials are shared accross similar queries. This makes the cache more space
-efficient (as it contains fewer redundancies) and increases the hit-rate.
+It doesn't cache the full query responses, but only normalized common query subtrees which
+means that the cached data partials are shared accross similar queries. This makes the cache
+more space efficient (as it contains fewer redundancies) and increases the hit-rate.
 
 The query cache is completely transparent as there is no need for explicit expiration and it
 will never serve stale data: SQLTap uses MySQL's row based replication protocol to get
