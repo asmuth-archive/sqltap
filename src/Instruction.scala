@@ -63,6 +63,7 @@ trait Instruction {
   }
 
   def cancel(worker: Worker) : Unit = {
+    println("REQ CACNEL", this, resource_name)
     finished = true
     unroll()
     execute_next(worker)

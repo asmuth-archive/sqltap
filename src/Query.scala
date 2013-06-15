@@ -41,6 +41,8 @@ class Query(qry_str: String) extends Instruction {
 
     etime = etime :+ System.nanoTime
 
+    println("QUERY UNROLL")
+
     if (callback != null)
       callback.ready(this)
   }

@@ -29,11 +29,11 @@ class FindSingleInstruction extends SQLInstruction {
 
     worker = _worker
 
-    if (ctree_wait)
+    if (finished)
       return
 
-    if (fields.length == 0)
-      fields += record.resource.id_field
+    if (ctree_wait)
+      return
 
     if (record_id != null)
       record.set_id(record_id)

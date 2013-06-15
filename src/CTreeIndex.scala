@@ -28,8 +28,8 @@ object CTreeIndex {
   def find(root: Instruction) : Option[(CTree, Int)] = {
     val candidates = find(root.resource_name)
     var winner : CTree = null
-    var winner_cost : Int = 0
-    var top_score : Int = 10
+    var winner_cost : Int = -1
+    var top_score : Int = 0 // FIXPAUL
 
     for (ctree <- candidates) {
       val (score, cost) = ctree.compare(root)
@@ -37,7 +37,7 @@ object CTreeIndex {
       SQLTap.log_debug("CTree: evaluating candidate: '" + ctree.name + 
        "' (score: " + score + ", cost: " + cost + ")")
 
-      if (score > top_score) {
+      if (cost == 0 || (score > top_score && winner_cost != 0)) {
         winner = ctree
         winner_cost = cost
       }
