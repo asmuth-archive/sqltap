@@ -4,8 +4,7 @@ SQLTap
 SQLTap is a caching HTTP+JSON <=> MySQL gateway. It fetches nested records from the
 database without using SQL JOIN and parallelizes queries where possible.
 
-Rationale
----------
+### Rationale
 
 A question that comes up frequently is "Why would I want use a proxy to retrieve records
 from MySQL rather than accessing it directly"?
@@ -24,10 +23,10 @@ the product record.
 The naive way to do this without putting the burden on the database by using an
 expensive join operation is to sequentially execute multiple SQL queries. E.g. first
 retrieve the product record and then retrieve all the image records. This is also what
-some ORMs like ActiveRecord will do.
+some ORMs like ActiveRecord will do by default.
 
-Retrieving the records in parallel rather than sequentially can result in a huge drop
-in response time, which is highly desirable for user facing applications.
+On the other hand, retrieving the records in parallel rather than sequentially can result
+in a huge drop in response time, which is highly desirable for user facing applications.
 
 As an example, assume retrieving a single record takes 10ms. Then retrieving 5 records
 using sequential execution would take 50ms, but retrieving them in parallel would (in a
@@ -39,25 +38,26 @@ from a single threaded web framework is not trivial, as the MySQL protocol does 
 for pipelining per se and most MySQL client implementations use blocking I/O.
 
 SQLTap executes all sql queries in parallel where possible using multiple connections to
-MySQL and non-blocking I/O. This is a fully transparent optimization.
+MySQL and non-blocking I/O.
 
 #### Query Caching
 
-SQLTap contains some secret sauce that intelligently caches common query subtrees in
-memcache. This makes a lot of requests a lot faster and in general reduces load on the
-database.
+SQLTap caches partial query responses in memcache, which speeds up some queries by
+multiple orders of magnitude and greatly reduces the load on the MySQL database.
 
-The query cache is completely transparent; there is no need for explicit cache expiration,
-as SQLTap uses MySQL's row based replication protocol to get notifications on record changes
-and refresh caches accordingly.
+Since it doesn't cache the full query responses, but only normalized common query subtrees
+the cached data partials are shared accross similar queries. This makes the cache more space
+efficient (as it contains fewer redundancies) and increases the hit-rate.
 
-The query cache is not fully implemented yet ;)
+The query cache is completely transparent as there is no need for explicit expiration and it
+will never serve stale data: SQLTap uses MySQL's row based replication protocol to get
+notifications on record changes and refresh the cached data partials accordingly.
 
 #### Encapsulation
 
 SQLTap permits only a subset of SQL to be executed and enforces limits on maximum execution
-time and result set size. This is to prevent SQL queries that might seem harmless when
-implemented, but turn out to be a bottleneck as the data set grows.
+time and result set size. This is to prevent SQL queries that might seem harmless at first,
+but turn out to be a bottleneck as the data set grows.
 
 Some of the modern web frameworks encourage you to use an ORM for database access. This often
 results in bad code where requests to the sql database are scattered all over the code and
@@ -109,9 +109,7 @@ retrieve user record with id#2342 with all orders and all fields::
     /query?q=user.findOne(2342){*,orders.findAll{*}}
 
 
-Instructions
-------------
-
+### Instructions
 
 ##### resource.findOne(id){...}
 ##### relation.findOne{...}
@@ -163,20 +161,17 @@ example: count the number of products user #1234 has
 
 
 
-XML Schema
-----------
+### XML Schema
 
 here be dragons
 
 
-Configuration
--------------
+### Configuration
 
 here be dragons
 
 
-Installation
-------------
+### Installation
 
 You need java and sbt to build SQLTap:
 
@@ -184,8 +179,7 @@ You need java and sbt to build SQLTap:
 
 
 
-Sending Multiple Queries
-------------------------
+### Sending Multiple Queries
 
 you can send multiple queries seperated by semicolon (`;`):
 
@@ -223,9 +217,11 @@ and also contains a query queue.
 + The QueryParser and the HTTP and SQL protocl are implemented as simple state
 machines.
 
-+ CTrees are only used if the CTree is a subtree of the request, i.e. a ctree
-is not used when the ctree is a "supertree" of the request. CTree are only matched
-on findOne Instructions and each CTree query must start with a findOne Instruction.
++ CTrees are only used if the CTree is a subtree of the request - a ctree is not used
+when the ctree is a "supertree" of the request. CTree are only matched on findOne
+Instructions and each CTree query must start with a findOne Instruction.
+
++ All memcache contents are gzipped
 
 Bechmarks
 ---------
