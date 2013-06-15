@@ -12,6 +12,7 @@ class CTreeBuffer(buf: ElasticBuffer) {
   val T_RES : Int = 1
   val T_FLD : Int = 2
   val T_END : Int = 3
+  val T_PHI : Int = 4
 
   def write_header(resource_name: String) : Unit = {
     val bytes = resource_name.getBytes("UTF-8")
@@ -38,6 +39,12 @@ class CTreeBuffer(buf: ElasticBuffer) {
       buf.write(value_bytes.size)
       buf.write(value_bytes)
     }
+  }
+
+  def write_phi(len: Int) : Unit = {
+    println("SERIALIZE PHI")
+    buf.write(T_PHI)
+    buf.write(len)
   }
 
   def write_end() : Unit = {

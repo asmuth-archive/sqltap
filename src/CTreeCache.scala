@@ -53,29 +53,65 @@ object CTreeCache {
   }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
-    buf.write_header(qins.resource_name)
+    qins match {
 
-    val fields = cins.fields
-
-    if (cins.name == "count")
-      fields += "__count"
-
-    for (field <- fields) {
-      if (qins.record.has_field(field))
-        buf.write_field(field, qins.record.get(field))
-    }
-
-    for (lins <- cins.next) {
-      // FIXPAUL: this doesnt terminate when found
-      for (rins <- qins.next) {
-        // FIXPAUL: this doesnt compare arguments!
-        if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
-          serialize(buf, lins, rins)
-        }
+      case qins_m: CountInstruction => {
+        buf.write_header(qins.resource_name)
+        buf.write_field("__count", qins.record.get("__count"))
+        buf.write_end()
       }
-    }
 
-    buf.write_end()
+      case qins_m: FindSingleInstruction => {
+        buf.write_header(qins.resource_name)
+
+        for (field <- cins.fields) {
+          if (qins.record.has_field(field))
+            buf.write_field(field, qins.record.get(field))
+        }
+
+        for (lins <- cins.next) {
+          // FIXPAUL: this doesnt terminate when found
+          for (rins <- qins.next) {
+            // FIXPAUL: this doesnt compare arguments!
+            if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
+              serialize(buf, lins, rins)
+            }
+          }
+        }
+
+        buf.write_end()
+      }
+
+      case qins_m: FindMultiInstruction => {
+        buf.write_phi(qins.next.length)
+
+        for (nxt <- qins.next)
+          serialize(buf, cins, nxt)
+      }
+
+      case qins_m: PhiInstruction => {
+        println("PHI", cins.resource_name)
+        buf.write_header(cins.resource_name)
+
+        for (field <- cins.fields) {
+          if (qins.record.has_field(field))
+            buf.write_field(field, qins.record.get(field))
+        }
+
+        for (lins <- cins.next) {
+          // FIXPAUL: this doesnt terminate when found
+          for (rins <- qins.next) {
+            // FIXPAUL: this doesnt compare arguments!
+            if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
+              serialize(buf, lins, rins)
+            }
+          }
+        }
+
+        buf.write_end()
+      }
+
+    }
   }
 
   private def load(buf: CTreeBuffer, ins: Instruction, worker: Worker) : Unit = {
