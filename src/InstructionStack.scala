@@ -21,6 +21,9 @@ class InstructionStack {
   }
 
   def push_field(field: String) = {
+    if (field == "*")
+      head.fields.clear()
+
     if (!head.has_field(field))
       head.fields += field
   }
