@@ -26,7 +26,7 @@ object CTreeIndex {
   }
 
   def find(root: Instruction) : Option[(CTree, Int)] = {
-    val candidates = find(root.resource_name)
+    val candidates = find(root.relation.resource.name)
     var winner : CTree = null
     var winner_cost : Int = -1
     var top_score : Int = 0 // FIXPAUL

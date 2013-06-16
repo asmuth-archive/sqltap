@@ -19,20 +19,17 @@ object CTreeCache {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
 
-  def store(ctree: CTree, ins: Instruction) : Unit = {
+  def store(ctree: CTree, key: String, ins: Instruction) : Unit = {
     val buf       = new ElasticBuffer(65535)
     val ctree_buf = new CTreeBuffer(buf)
 
     serialize(ctree_buf, ctree.stack.head, ins)
 
-    val key = ctree.key(ins.record.id)
-
     stubcache.put(key, buf) // STUB
   }
 
-  def retrieve(ctree: CTree, ins: FindSingleInstruction, worker: Worker) : Unit = {
-    val key = ctree.key(ins.record.id)
-
+  def retrieve(ctree: CTree, key: String, ins: FindSingleInstruction, worker: Worker) : Unit = {
+    println("RETRIEVE", key)
     if (stubcache.containsKey(key)) {
       val buf = stubcache.get(key).clone()
       val ctree_buf = new CTreeBuffer(buf)
