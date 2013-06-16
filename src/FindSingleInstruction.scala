@@ -41,8 +41,9 @@ class FindSingleInstruction extends SQLInstruction {
 
     if (record.has_id) {
       // optimization: skip select id from ... where id = ...; queries
-      if (fields.length == 1 && fields.head == record.resource.id_field)
+      if (fields.length == 1 && fields.head == record.resource.id_field) {
         return cancel(worker)
+      }
 
       join_field = relation.resource.id_field
       join_id = record.id

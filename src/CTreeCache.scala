@@ -10,6 +10,7 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.{ListBuffer}
 import java.util.concurrent.{ConcurrentHashMap}
 // TODO
+//   > use ctrees in findmulti instruction (cache join key: resource-name + join_field + id)
 //   > comparison doesnt take into account arguments
 //   > query vs. ctree expansion
 //   > cache query plans / ctreeindex.find decisions
@@ -125,8 +126,19 @@ object CTreeCache {
 
         case buf.T_END => {
           ins match {
-            case i: PhiInstruction => return
-            case _ => {
+
+            case ins: PhiInstruction => return
+
+            case ins: FindMultiInstruction => {
+              if (ins.fields.length == 0) {
+                ins.cancel(worker)
+              }
+
+              return
+            }
+            case ins: FindSingleInstruction => {
+              ins.ctree_try = false
+
               if (ins.fields.length == 0) {
                 ins.cancel(worker)
               }
@@ -164,6 +176,7 @@ object CTreeCache {
               if (len > 0)
                 nxt match {
                   case multi_ins: FindMultiInstruction => {
+                    //multi_ins.ctree_try = false
                     multi_ins.expanded = true
 
                     for (cfield <- nxt.next.head.record.fields)
