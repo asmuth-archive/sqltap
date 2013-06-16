@@ -38,6 +38,9 @@ class FindSingleInstruction extends SQLInstruction {
     if (record_id != null)
       record.set_id(record_id)
 
+    if (fields.length == 0)
+      return cancel(worker)
+
     if (record.has_id) {
       if (ctree_try) {
         ctree_try = false

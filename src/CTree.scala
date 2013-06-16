@@ -20,6 +20,10 @@ class CTree(doc: xml.Node) {
     throw new ParseException(
       "ctree queries must have a findOne root instruction")
 
+  if (!stack.head.fields.contains(stack.head.relation.resource.id_field))
+    throw new ParseException(
+      "a ctree's root instruction must fetch the id field")
+
   CTreeIndex.register(this)
   stack.head.inspect()
 
