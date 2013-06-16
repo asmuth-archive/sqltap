@@ -40,6 +40,19 @@ class Record(_resource: ResourceManifest) {
     data = _data
   }
 
+  def update(_fields: ListBuffer[String], _data: ListBuffer[String]) = {
+    var n = _fields.length
+
+    while (n > 0) {
+      if (!fields.contains(_fields(n - 1))) {
+        fields += _fields(n - 1)
+        data   += _data(n - 1)
+      }
+
+      n -= 1
+    }
+  }
+
   def get(field: String) : String = {
     val idx = fields.indexOf(field)
 

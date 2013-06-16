@@ -69,7 +69,24 @@ class FindMultiInstruction extends SQLInstruction {
     var execute_ = true
 
     if (expanded) {
-      println("EXPANDED FINDMULTI")
+      for (row <- query.rows) {
+        var n     = next.length
+        var found = false
+
+        val this_id = row(
+          query.columns.indexOf(relation.resource.id_field)).toInt
+
+        while (!found && n > 0) {
+          val this_ins = next(n - 1)
+
+          if (this_ins.record.id == this_id) {
+            this_ins.record.update(query.columns, row)
+            found = true
+          }
+
+          n -= 1
+        }
+      }
     } else {
       if (query.rows.length == 0)
         next = new ListBuffer[Instruction]()

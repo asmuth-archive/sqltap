@@ -67,8 +67,6 @@ class FindSingleInstruction extends SQLInstruction {
       if (ctree_try) {
         ctree_try = false
 
-        println("TRY CTREE", resource_name)
-
         CTreeIndex.find(this) match {
           case None => ()
           case Some((_ctree, cost)) => {
