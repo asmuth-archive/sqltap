@@ -40,6 +40,8 @@ trait Instruction {
       record = new Record(relation.resource)
     else
       throw new ExecutionException("relation not found: " + resource_name)
+
+    fields += relation.resource.id_field
   }
 
   def execute_next(worker: Worker) : Unit = {
@@ -76,4 +78,12 @@ trait Instruction {
       ins.inspect(lvl+1)
   }
 
+  def has_field(field: String) : Boolean = {
+    for (other <- fields) {
+      if (other.equals(field))
+        return true
+    }
+
+    false
+  }
 }

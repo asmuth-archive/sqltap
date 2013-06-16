@@ -20,8 +20,10 @@ class InstructionStack {
     length += 1
   }
 
-  def push_field(field: String) =
-    head.fields += field
+  def push_field(field: String) = {
+    if (!head.has_field(field))
+      head.fields += field
+  }
 
   def pop() : Unit = {
     if (head.prev == null)

@@ -127,8 +127,9 @@ object CTreeCache {
           ins match {
             case i: PhiInstruction => return
             case _ => {
-              if (ins.fields.length == 0)
+              if (ins.fields.length == 0) {
                 ins.cancel(worker)
+              }
 
               return
             }
@@ -159,7 +160,20 @@ object CTreeCache {
               }
 
               nxt.next = instructions
-              nxt.cancel(worker)
+
+              if (len > 0)
+                nxt match {
+                  case multi_ins: FindMultiInstruction => {
+                    multi_ins.expanded = true
+
+                    for (cfield <- nxt.next.head.record.fields)
+                      nxt.fields -= cfield
+                  }
+                  case _ => ()
+                }
+
+              if (nxt.fields.length == 0)
+                nxt.cancel(worker)
             }
           }
         }

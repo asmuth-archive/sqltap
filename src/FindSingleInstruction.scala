@@ -28,20 +28,16 @@ class FindSingleInstruction extends SQLInstruction {
     var join_field : String = null
     var join_id    : Int    = 0
 
-    println("EXECUTE")
     worker = _worker
 
-    if (finished)
-      return
-
-    if (ctree_wait)
+    if (finished || ctree_wait)
       return
 
     if (record_id != null)
       record.set_id(record_id)
 
-    if (fields.length == 0)
-      return cancel(worker)
+    if (!fields.contains(record.resource.id_field))
+      fields += record.resource.id_field
 
     if (record.has_id) {
       // optimization: skip select id from ... where id = ...; queries
@@ -67,7 +63,6 @@ class FindSingleInstruction extends SQLInstruction {
       throw new ExecutionException("deadlock detected")
     }
 
-    println("FUBAR")
     if (join_field != null) {
       if (ctree_try) {
         ctree_try = false

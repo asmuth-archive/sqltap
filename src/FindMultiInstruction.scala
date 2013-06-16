@@ -15,10 +15,11 @@ class FindMultiInstruction extends SQLInstruction {
   val name = "findMulti"
   var worker : Worker = null
 
-  var conditions : String = null
-  var order      : String = null
-  var limit      : String = null
-  var offset     : String = null
+  var conditions : String  = null
+  var order      : String  = null
+  var limit      : String  = null
+  var offset     : String  = null
+  var expanded   : Boolean = false
 
   def execute(_worker: Worker) : Unit = {
     worker = _worker
@@ -26,7 +27,7 @@ class FindMultiInstruction extends SQLInstruction {
     if (finished)
       return
 
-    if (fields.length == 0)
+   if (!has_field(record.resource.id_field))
       fields += record.resource.id_field
 
     if (prev.name == "root") {
@@ -67,22 +68,27 @@ class FindMultiInstruction extends SQLInstruction {
   def ready(query: SQLQuery) : Unit = {
     var execute_ = true
 
-    if (query.rows.length == 0)
-      next = new ListBuffer[Instruction]()
+    if (expanded) {
+      println("EXPANDED FINDMULTI")
+    } else {
+      if (query.rows.length == 0)
+        next = new ListBuffer[Instruction]()
 
-    val instructions = new ListBuffer[Instruction]()
+      val instructions = new ListBuffer[Instruction]()
 
-    for (row <- query.rows) {
-      val ins = new PhiInstruction()
-      ins.relation = relation
-      ins.prev = this
-      ins.record = new Record(relation.resource)
-      ins.record.load(query.columns, row)
-      InstructionFactory.deep_copy(this, ins)
-      instructions += ins
+      for (row <- query.rows) {
+        val ins = new PhiInstruction()
+        ins.relation = relation
+        ins.prev = this
+        ins.record = new Record(relation.resource)
+        ins.record.load(query.columns, row)
+        InstructionFactory.deep_copy(this, ins)
+        instructions += ins
+      }
+
+      next = instructions
     }
 
-    next = instructions
     finished = true
 
     execute_next(worker)
