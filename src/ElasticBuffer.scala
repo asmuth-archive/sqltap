@@ -51,4 +51,12 @@ class ElasticBuffer(initial_capacity: Int) extends WrappedBuffer(null) {
     }
   }
 
+  override def clone() : ElasticBuffer = synchronized {
+    val cbuf = new ElasticBuffer(buffer.capacity)
+    cbuf.write(buffer.array)
+    cbuf.retrieve.position(0)
+    cbuf.retrieve.limit(buffer.position)
+    cbuf
+  }
+
 }

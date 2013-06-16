@@ -7,8 +7,8 @@
 
 package com.paulasmuth.sqltap
 
-import scala.collection.mutable.{HashMap,ListBuffer}
-
+import scala.collection.mutable.{ListBuffer}
+import java.util.concurrent.{ConcurrentHashMap}
 // TODO
 //   > comparison doesnt take into account arguments
 //   > query vs. ctree expansion
@@ -17,7 +17,7 @@ import scala.collection.mutable.{HashMap,ListBuffer}
 
 object CTreeCache {
 
-  val stubcache = new HashMap[String,ElasticBuffer]() // STUB
+  val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
 
   def store(ctree: CTree, ins: Instruction) : Unit = {
     val buf       = new ElasticBuffer(65535)
@@ -27,19 +27,17 @@ object CTreeCache {
 
     val key = ctree.key(ins.record.id)
 
-    buf.retrieve.flip // STUB
-    stubcache(key) = buf // STUB
+    stubcache.put(key, buf) // STUB
   }
 
   def retrieve(ctree: CTree, ins: FindSingleInstruction, worker: Worker) : Unit = {
     val key = ctree.key(ins.record.id)
 
-    if (stubcache.contains(key)) {
-      val buf = stubcache(key)
+    if (stubcache.containsKey(key)) {
+      val buf = stubcache.get(key).clone()
       val ctree_buf = new CTreeBuffer(buf)
 
       load(ctree_buf, ins, worker)
-      buf.retrieve.position(0) // STUB
     }
 
     ins.ctree_ready()
