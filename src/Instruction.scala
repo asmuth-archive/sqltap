@@ -79,9 +79,6 @@ trait Instruction {
   }
 
   def has_field(field: String) : Boolean = {
-    if (fields.length == 1 && fields.head.equals("*"))
-      return true
-
     for (other <- fields) {
       if (other.equals(field))
         return true

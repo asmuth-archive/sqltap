@@ -42,6 +42,8 @@ class ResourceManifest(doc: xml.Node) {
     ((List[ResourceField]() /: (doc \ "field"))
       (_ :+ new ResourceField(_)))
 
+  val field_names : List[String] =
+    fields.map(_.name)
 
   def field(name: String) : ResourceField = {
     fields.find(_.name == name).getOrElse(null)

@@ -21,11 +21,12 @@ class InstructionStack {
   }
 
   def push_field(field: String) = {
-    if (field == "*")
+    if (field == "*") {
       head.fields.clear()
-
-    if (!head.has_field(field))
+      head.fields ++= head.relation.resource.field_names
+    } else if (!head.has_field(field)) {
       head.fields += field
+    }
   }
 
   def pop() : Unit = {
