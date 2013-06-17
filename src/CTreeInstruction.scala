@@ -28,10 +28,8 @@ trait CTreeInstruction extends Instruction {
     if (finished)
       return
 
-    // FIXPAUL: expand query only if cost above a certian threshold
-    if (ctree_cost != 0) {
-      // CTreeCache.expand_query(ctree, this)
-      //ctree_cost = 0
+    if (ctree_cost > -10) {
+      CTreeCache.expand_query(ctree, this)
     }
 
     ctree_store = ctree_cost == 0

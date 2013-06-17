@@ -10,9 +10,7 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.{ListBuffer}
 import java.util.concurrent.{ConcurrentHashMap}
 // TODO
-//   > what happens if I don't request a subtree that was included in the ctree and it is used?
 //   > doc: simple example (schema + relations + query + response), ctree examples (product.findOne{images} via direct, order{product} and user{listed_products}), simple xml attr reference
-//   > use ctrees in findmulti instruction (cache join key: resource-name + join_field + id)
 //   > comparison doesnt take into account arguments
 //   > query vs. ctree expansion
 //   > cache query plans / ctreeindex.find decisions
@@ -32,7 +30,6 @@ object CTreeCache {
   }
 
   def retrieve(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
-    println("RETRIEVE", key)
     if (stubcache.containsKey(key)) {
       val buf = stubcache.get(key).clone()
       val ctree_buf = new CTreeBuffer(buf)
@@ -228,6 +225,10 @@ object CTreeCache {
 
       }
     }
+  }
+
+  def expand_query(ctree: CTree, ins: CTreeInstruction) : Unit = {
+    println("EXPAND CTREE!", ctree, ins)
   }
 
 }
