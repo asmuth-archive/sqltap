@@ -110,23 +110,42 @@ object CTreeCache {
 
         case buf.T_RES => {
           val res_name = buf.read_string()
+          var n        = ins.next.length
+          var found    = false
 
-          // FIXPAUL: this doesnt terminate when found
-          for (nxt <- ins.next) {
-            if (nxt.resource_name == res_name) {
-              load(buf, nxt, worker)
+          if (ins.resource_name == res_name)
+            found = true
+
+          if (ins != null) {
+            while (!found && n > 0) {
+              if (ins.next(n - 1).resource_name == res_name) {
+                found = true
+                load(buf, ins.next(n - 1), worker)
+              }
+
+              n -= 1
             }
+          }
+
+          if (!found) {
+            load(buf, null, worker)
           }
         }
 
         case buf.T_FLD => {
           val field = buf.read_string()
           val value = buf.read_string()
-          ins.record.set(field, value)
-          ins.fields -= field
+
+          if (ins != null) {
+            ins.record.set(field, value)
+            ins.fields -= field
+          }
         }
 
         case buf.T_END => {
+          if (ins == null)
+            return
+
           ins match {
 
             case ins: PhiInstruction => return
@@ -138,6 +157,7 @@ object CTreeCache {
 
               return
             }
+
             case ins: FindSingleInstruction => {
               ins.ctree_try = false
 
@@ -154,41 +174,43 @@ object CTreeCache {
           val len = buf.read_next()
           val res_name = buf.read_string()
 
-          // FIXPAUL: this doesnt terminate when found
-          for (nxt <- ins.next) {
-            if (nxt.resource_name == res_name) {
-              var n = len
-              val instructions = new ListBuffer[Instruction]()
+          if (ins != null) {
+            // FIXPAUL: this doesnt terminate when found
+            for (nxt <- ins.next) {
+              if (nxt.resource_name == res_name) {
+                var n = len
+                val instructions = new ListBuffer[Instruction]()
 
-              while (n > 0) {
-                val nins = new PhiInstruction()
-                nins.relation = nxt.relation
-                nins.prev = nxt
-                nins.record = new Record(nxt.relation.resource)
-                InstructionFactory.deep_copy(nxt, nins)
-                instructions += nins
+                while (n > 0) {
+                  val nins = new PhiInstruction()
+                  nins.relation = nxt.relation
+                  nins.prev = nxt
+                  nins.record = new Record(nxt.relation.resource)
+                  InstructionFactory.deep_copy(nxt, nins)
+                  instructions += nins
 
-                load(buf, nins, worker)
+                  load(buf, nins, worker)
 
-                n -= 1
-              }
-
-              nxt.next = instructions
-
-              if (len > 0)
-                nxt match {
-                  case multi_ins: FindMultiInstruction => {
-                    //multi_ins.ctree_try = false
-                    multi_ins.expanded = true
-
-                    for (cfield <- nxt.next.head.record.fields)
-                      nxt.fields -= cfield
-                  }
-                  case _ => ()
+                  n -= 1
                 }
 
-              if (nxt.fields.length == 0)
-                nxt.cancel(worker)
+                nxt.next = instructions
+
+                if (len > 0)
+                  nxt match {
+                    case multi_ins: FindMultiInstruction => {
+                      //multi_ins.ctree_try = false
+                      multi_ins.expanded = true
+
+                      for (cfield <- nxt.next.head.record.fields)
+                        nxt.fields -= cfield
+                    }
+                    case _ => ()
+                  }
+
+                if (nxt.fields.length == 0)
+                  nxt.cancel(worker)
+              }
             }
           }
         }
