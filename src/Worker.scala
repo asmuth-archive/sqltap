@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > query?user.findOne(13008){id,shop.findOne{*}} -> should run only one query
 //   > query?user.findOne(13008){id} -> shouldnt run any query
 //   > user.findOne(1) hangs
+//   > ctree stats
 // Execute: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
 
 class Worker() extends Thread {

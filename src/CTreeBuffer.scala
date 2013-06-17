@@ -64,4 +64,8 @@ class CTreeBuffer(buf: ElasticBuffer) {
       buf.read_string(len)
   }
 
+  def remaining() : Int = {
+    buf.remaining()
+  }
+
 }

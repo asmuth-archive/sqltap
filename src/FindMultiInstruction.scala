@@ -10,7 +10,7 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 import scala.collection.mutable.{ListBuffer}
 
-class FindMultiInstruction extends SQLInstruction {
+class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
 
   val name = "findMulti"
   var worker : Worker = null
@@ -54,6 +54,23 @@ class FindMultiInstruction extends SQLInstruction {
       }
 
       if (join_id > 0)
+        if (ctree_try) {
+          ctree_try = false
+
+          CTreeIndex.find(this) match {
+            case None => ()
+            case Some((_ctree, cost)) => {
+              ctree      = _ctree
+              ctree_wait = true
+              ctree_cost = cost
+              ctree_key  = ctree.key(conditions, join_id) // FIXPAUL conditions should be md5-hashed
+
+              CTreeCache.retrieve(ctree, ctree_key, this, worker)
+              return
+            }
+          }
+        }
+
         execute_query(worker,
           SQLBuilder.select(
               relation.resource, relation.join_field, join_id,

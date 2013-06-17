@@ -9,18 +9,11 @@ package com.paulasmuth.sqltap
 
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
-class FindSingleInstruction extends SQLInstruction {
+class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
 
   val name = "findSingle"
 
   var worker : Worker     = null
-  var ctree : CTree       = null
-  var ctree_cost          = 0
-  var ctree_wait          = false
-  var ctree_store         = false
-  var ctree_try           = true
-  var ctree_key : String  = null
-
   var conditions : String = null
   var order      : String = null
 
@@ -102,30 +95,6 @@ class FindSingleInstruction extends SQLInstruction {
     execute_next(worker)
 
     unroll()
-  }
-
-
-  override def ready() : Unit = {
-    if (ctree_store)
-      CTreeCache.store(ctree, ctree_key, this)
-
-    prev.unroll()
-  }
-
-  def ctree_ready() : Unit = {
-    ctree_wait = false
-
-    if (finished)
-      return
-
-    // FIXPAUL: expand query only if cost above a certian threshold
-    if (ctree_cost != 0) {
-      // CTreeCache.expand_query(ctree, this)
-      //ctree_cost = 0
-    }
-
-    ctree_store = ctree_cost == 0
-    execute(worker)
   }
 
 }

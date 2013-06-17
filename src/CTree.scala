@@ -16,10 +16,6 @@ class CTree(doc: xml.Node) {
   val stack = new InstructionStack()
   QueryParser.parse(stack, query)
 
-  if (stack.head.name != "findSingle")
-    throw new ParseException(
-      "ctree queries must have a findOne root instruction")
-
   if (!stack.head.fields.contains(stack.head.relation.resource.id_field))
     throw new ParseException(
       "a ctree's root instruction must fetch the id field")
