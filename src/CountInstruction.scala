@@ -18,8 +18,11 @@ class CountInstruction extends SQLInstruction {
     if (finished)
       return
 
-    if (prev == null)
-      throw new ExecutionException("count is not supported on root resources")
+    if (prev.name == "root") {
+      execute_query(worker,
+        SQLBuilder.count(relation.resource,
+          null, 0, null))
+    }
 
     else if (relation.join_foreign == true && prev.record.has_id) {
       record.set_id(prev.record.id)
