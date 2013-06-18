@@ -15,6 +15,7 @@ trait ResourceRelation {
   val join_foreign : Boolean
   val join_field : String
   val join_field_local : String
+  val join_field_remote : String
   val join_cond : String
 }
 
@@ -26,6 +27,7 @@ class DummyResourceRelation(_res: ResourceManifest) extends ResourceRelation {
   val join_field : String = null
   val join_cond : String = null
   val join_field_local : String = null
+  val join_field_remote : String = null
   val join_foreign : Boolean = false
 
   def resource : ResourceManifest =
@@ -49,6 +51,9 @@ class RealResourceRelation(doc: xml.Node) extends ResourceRelation {
 
   val join_field_local : String =
     elem.attr("join_field_local", false)
+
+  val join_field_remote : String =
+    elem.attr("join_field_remote", false)
 
   val join_cond : String =
     elem.attr("join_cond", false)

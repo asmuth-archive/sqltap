@@ -43,7 +43,11 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
     }
 
     else if (relation.join_foreign == false && prev.finished) {
-      join_field = relation.resource.id_field
+      if (relation.join_field_remote != null)
+        join_field = relation.join_field_remote
+      else
+        join_field = relation.resource.id_field
+
       join_id = prev.record.get(relation.join_field).toInt
       record.set_id(join_id)
     }
