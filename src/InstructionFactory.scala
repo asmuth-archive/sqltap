@@ -80,7 +80,7 @@ object InstructionFactory {
         if (args.length < 3)
           throw new ParseException("countAllWhere requires at least one argument")
 
-        ins.asInstanceOf[CountInstruction].conditions = "(" + args(2) + ")"
+        ins.asInstanceOf[CountInstruction].conditions = args(2)
       }
 
       case _ =>

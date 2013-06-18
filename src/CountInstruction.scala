@@ -47,4 +47,11 @@ class CountInstruction extends SQLInstruction {
     unroll()
   }
 
+  override def meta() : List[(String,String)] = {
+    if (conditions != null)
+      super.meta() :+ (("__conditions", conditions))
+    else
+      super.meta()
+  }
+
 }
