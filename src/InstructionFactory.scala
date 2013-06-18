@@ -50,6 +50,9 @@ object InstructionFactory {
 
         if (args.length >= 3)
           ins.asInstanceOf[FindMultiInstruction].limit = args(2)
+
+        if (args.length > 3)
+          ins.asInstanceOf[FindMultiInstruction].offset = args(3)
       }
 
       case "findAllWhere" => {
@@ -62,6 +65,9 @@ object InstructionFactory {
 
         if (args.length > 3)
           ins.asInstanceOf[FindMultiInstruction].limit = args(3)
+
+        if (args.length > 4)
+          ins.asInstanceOf[FindMultiInstruction].offset = args(4)
       }
 
       case "countAll" => {
