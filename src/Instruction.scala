@@ -86,4 +86,11 @@ trait Instruction {
 
     false
   }
+
+  def meta() : List[(String,String)] = {
+    List(
+      (("__resource", relation.resource.name))
+    )
+  }
+
 }

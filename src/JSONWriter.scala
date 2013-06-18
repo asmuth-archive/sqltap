@@ -94,6 +94,21 @@ class JSONWriter(buf: WrappedBuffer) {
     write_instruction(head, 0)
   }
 
+  def write_meta(cur: Instruction) : Unit = {
+    var n = 0
+
+    for (tuple <- cur.meta) {
+      if (n != 0)
+        write_comma()
+
+      write_string(tuple._1)
+      write(": ")
+      write_string(tuple._2)
+
+      n += 1
+    }
+  }
+
   def write_instruction(cur: Instruction, index: Int) : Unit = {
     var append : String = null
 
@@ -118,6 +133,11 @@ class JSONWriter(buf: WrappedBuffer) {
     }
 
     else if (cur.name == "count") {
+      if (cur.prev.name == "root") {
+        write_meta(cur)
+        write_comma()
+      }
+
       write_string(cur.relation.output_name)
       write(": ")
       write(cur.record.get("__count"))
@@ -131,9 +151,7 @@ class JSONWriter(buf: WrappedBuffer) {
       }
 
       if (cur.record != null) {
-        write_string("__resource")
-        write(": ")
-        write_string(cur.record.resource.name)
+        write_meta(cur)
 
         for ((field, ind) <- cur.record.fields.zipWithIndex) {
           write_comma()
