@@ -13,6 +13,7 @@ import scala.collection.mutable.{ListBuffer}
 class CountInstruction extends SQLInstruction {
 
   val name = "count"
+  var conditions : String = null
 
   def execute(worker: Worker) : Unit = {
     if (finished)
@@ -20,8 +21,7 @@ class CountInstruction extends SQLInstruction {
 
     if (prev.name == "root") {
       execute_query(worker,
-        SQLBuilder.count(relation.resource,
-          null, 0, null))
+        SQLBuilder.count(relation.resource, null, 0, conditions))
     }
 
     else if (relation.join_foreign == true && prev.record.has_id) {

@@ -149,8 +149,7 @@ data unless sanatizing it first (it allows for sql injection...)
 
 example (find the first 10 valid products):
 
-    products.findAllWhere("", 10){*}
-
+    products.findAllWhere("is_valid = 1", 10){*}
 
 
 ##### relation.countAll{}
@@ -158,6 +157,16 @@ example (find the first 10 valid products):
 example: count the number of products user #1234 has
 
     user.findOne(1234){products.countAll{}}
+
+
+##### relation.countAllWhere("condition"){}
+
+countAllWhere is DANGEROUS: you must not construct a countAllWhere query from user supplied
+data unless sanatizing it first (it allows for sql injection...)
+
+example (count the first 10 valid products):
+
+    products.countAllWhere("is_valid = 1"){}
 
 
 

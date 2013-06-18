@@ -74,6 +74,15 @@ object InstructionFactory {
         ins = new CountInstruction()
       }
 
+      case "countAllWhere" => {
+        ins = new CountInstruction()
+
+        if (args.length < 3)
+          throw new ParseException("countAllWhere requires at least one argument")
+
+        ins.asInstanceOf[CountInstruction].conditions = "(" + args(2) + ")"
+      }
+
       case _ =>
         throw new ParseException("invalid instruction: " + args(1))
 
