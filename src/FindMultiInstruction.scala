@@ -69,12 +69,12 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
               return
             }
           }
-        }
 
-        execute_query(worker,
-          SQLBuilder.select(
-              relation.resource, relation.join_field, join_id,
-              fields.toList, conditions, order, limit, offset))
+          execute_query(worker,
+            SQLBuilder.select(
+                relation.resource, relation.join_field, join_id,
+                fields.toList, conditions, order, limit, offset))
+        }
     }
 
     else if (relation.join_foreign == false) {
