@@ -99,21 +99,28 @@ object CTreeCache {
 
         case buf.T_RES => {
           val res_name = buf.read_string()
-          var n        = ins.next.length
           var found    = false
 
-          if (ins.resource_name == res_name) {
-            found = true
-          }
-
           if (ins != null) {
-            while (!found && n > 0) {
-              if (ins.next(n - 1).resource_name == res_name) {
-                found = true
-                load(buf, ins.next(n - 1), worker)
-              }
+            var n        = ins.next.length
 
-              n -= 1
+            if (ins.resource_name == res_name) {
+              found = true
+            }
+
+            if (ins.relation.resource.name == res_name) {
+              found = true
+            }
+
+            if (ins != null) {
+              while (!found && n > 0) {
+                if (ins.next(n - 1).resource_name == res_name) {
+                  found = true
+                  load(buf, ins.next(n - 1), worker)
+                }
+
+                n -= 1
+              }
             }
           }
 
@@ -181,7 +188,6 @@ object CTreeCache {
             if (nxt != null) {
               var n = len
               val instructions = new ListBuffer[Instruction]()
-
               while (n > 0) {
                 val nins = new PhiInstruction()
                 nins.relation = nxt.relation
