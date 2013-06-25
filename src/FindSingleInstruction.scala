@@ -18,8 +18,9 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   var order      : String = null
 
   def execute(_worker: Worker) : Unit = {
-    var join_field : String = null
-    var join_id    : Int    = 0
+    var skip       : Boolean = false
+    var join_field : String  = null
+    var join_id    : Int     = 0
 
     worker = _worker
 
@@ -35,7 +36,7 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
     if (record.has_id) {
       // optimization: skip select id from ... where id = ...; queries
       if (fields.length == 1 && fields.head == record.resource.id_field) {
-        return cancel(worker)
+        skip = true
       }
 
       join_field = relation.resource.id_field
@@ -79,6 +80,9 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
           }
         }
       }
+
+      if (skip)
+        return cancel(worker)
 
       execute_query(worker,
         SQLBuilder.select(
