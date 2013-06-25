@@ -97,8 +97,12 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   def ready(query: SQLQuery) : Unit = {
     if (query.rows.length == 0)
       throw new NotFoundException(this)
-    else
-      record.load(query.columns, query.rows(0))
+    else {
+      if (record.fields.length < 2)
+        record.load(query.columns, query.rows(0))
+      else
+        record.update(query.columns, query.rows(0))
+    }
 
     finished = true
     execute_next(worker)

@@ -221,7 +221,6 @@ object CTreeCache {
   }
 
   def expand_query(ctree: CTree, ins: CTreeInstruction) : Unit = {
-    println("EXPAND CTREE!", ctree, ins)
     expand_query(ctree.stack.head, ins)
   }
 
