@@ -79,7 +79,7 @@ class CTree(doc: xml.Node) {
       }
 
       if (!found)
-        cost -= 10
+        cost -= 100
     }
 
     (score, cost)

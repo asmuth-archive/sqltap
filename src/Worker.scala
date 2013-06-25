@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > ctree stats
 //   > doc: simple example (schema + relations + query + response), ctree examples (product.findOne{images} via direct, order{product} and user{listed_products}), simple xml attr reference
 //   > Execute: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
-//   > query vs. ctree expansion
 //   > cache query plans / ctreeindex.find decisions
 
 class Worker() extends Thread {

@@ -28,11 +28,11 @@ trait CTreeInstruction extends Instruction {
     if (finished)
       return
 
-    if (ctree_cost > -10) {
+    if (ctree_cost > -100) {
       CTreeCache.expand_query(ctree, this)
+      ctree_store = true
     }
 
-    ctree_store = ctree_cost == 0
     execute(worker)
   }
 }

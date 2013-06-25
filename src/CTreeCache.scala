@@ -222,6 +222,31 @@ object CTreeCache {
 
   def expand_query(ctree: CTree, ins: CTreeInstruction) : Unit = {
     println("EXPAND CTREE!", ctree, ins)
+    expand_query(ctree.stack.head, ins)
+  }
+
+  private def expand_query(left: Instruction, right: Instruction) : Unit = {
+    var score = 0
+    var cost  = 0
+
+    right.fields = left.fields.clone()
+
+    for (rins <- right.next) {
+      var found = false
+      var n     = left.next.length
+
+      while (n > 0 && !found) {
+        n -= 1
+
+        val lins = left.next(n)
+
+        if (lins.compare(rins)) {
+          found = true
+
+          expand_query(lins, rins)
+        }
+      }
+    }
   }
 
 }
