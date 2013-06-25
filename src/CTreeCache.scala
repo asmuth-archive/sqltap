@@ -10,11 +10,9 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.{ListBuffer}
 import java.util.concurrent.{ConcurrentHashMap}
 // TODO
-//   > doc: simple example (schema + relations + query + response), ctree examples (product.findOne{images} via direct, order{product} and user{listed_products}), simple xml attr reference
 //   > comparison doesnt take into account arguments
 //   > query vs. ctree expansion
 //   > cache query plans / ctreeindex.find decisions
-//   > direct ctree access / fastpath (direct serial to json) with memcache mget "/ctree/name?id=1,2,3"
 object CTreeCache {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB

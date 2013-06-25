@@ -21,10 +21,9 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > relation default order, fetch service "default" fetched fields
 //   > pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
 //   > user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
-//   > query?user.findOne(13008){id,shop.findOne{*}} -> should run only one query
-//   > query?user.findOne(13008){id} -> shouldnt run any query
 //   > user.findOne(1) hangs
 //   > ctree stats
+//   > doc: simple example (schema + relations + query + response), ctree examples (product.findOne{images} via direct, order{product} and user{listed_products}), simple xml attr reference
 // Execute: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
 
 class Worker() extends Thread {
