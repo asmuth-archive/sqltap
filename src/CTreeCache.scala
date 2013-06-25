@@ -229,7 +229,9 @@ object CTreeCache {
     var score = 0
     var cost  = 0
 
-    right.fields = left.fields.clone()
+    for (lfield <- left.fields)
+      if (!right.record.has_field(lfield))
+        right.fields += lfield
 
     for (rins <- right.next) {
       var found = false
