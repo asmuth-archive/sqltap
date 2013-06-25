@@ -15,7 +15,8 @@ import java.util.concurrent.{ConcurrentHashMap}
 //   > query vs. ctree expansion
 //   > cache query plans / ctreeindex.find decisions
 //   > direct ctree access / fastpath (direct serial to json) with memcache mget "/ctree/name?id=1,2,3"
-
+//   > user.findOne($){listed_products.findAll(10){id}} <--- same ctree not tried
+//   > user.findOne($){username,listed_products.findAll(10){id}} <--- ctree + query equals -> hang?
 object CTreeCache {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
