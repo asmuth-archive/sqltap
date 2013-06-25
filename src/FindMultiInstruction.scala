@@ -70,17 +70,18 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
               return
             }
           }
-
-          execute_query(worker,
-            SQLBuilder.select(
-                relation.resource, relation.join_field, join_id,
-                fields.toList, _conditions, order, limit, offset))
         }
+
+        execute_query(worker,
+          SQLBuilder.select(
+              relation.resource, relation.join_field, join_id,
+              fields.toList, _conditions, order, limit, offset))
     }
 
     else if (relation.join_foreign == false) {
       throw new ParseException("findAll can't be used with a non-foreign relation")
     }
+
   }
 
   def ready(query: SQLQuery) : Unit = {
