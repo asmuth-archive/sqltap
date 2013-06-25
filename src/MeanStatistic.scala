@@ -38,6 +38,10 @@ class MeanStatistic extends Statistic {
       value = 0.0
     else
       value = sum.get() / c / 100.0
+
+
+    count.set(0)
+    sum.set(0)
   }
 
 }
