@@ -22,6 +22,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
   var expanded   : Boolean = false
 
   def execute(_worker: Worker) : Unit = {
+    var _conditions = conditions
     worker = _worker
 
     if (finished)
@@ -40,9 +41,9 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
       var join_id : Int = 0
 
       if (conditions == null)
-        conditions = relation.join_cond
+        _conditions = relation.join_cond
       else if (relation.join_cond != null)
-        conditions += " AND " + relation.join_cond
+        _conditions += " AND " + relation.join_cond
 
       if (relation.join_field_local == null && prev.record.has_id) {
         join_id = prev.record.id
@@ -63,7 +64,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
               ctree      = _ctree
               ctree_wait = true
               ctree_cost = cost
-              ctree_key  = ctree.key(conditions, join_id) // FIXPAUL conditions should be md5-hashed
+              ctree_key  = ctree.key(_conditions, join_id) // FIXPAUL conditions should be md5-hashed
 
               CTreeCache.retrieve(ctree, ctree_key, this, worker)
               return
@@ -73,7 +74,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
           execute_query(worker,
             SQLBuilder.select(
                 relation.resource, relation.join_field, join_id,
-                fields.toList, conditions, order, limit, offset))
+                fields.toList, _conditions, order, limit, offset))
         }
     }
 

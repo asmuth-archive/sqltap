@@ -93,4 +93,45 @@ trait Instruction {
     )
   }
 
+  def compare(other: Instruction) : Boolean = {
+    if (resource_name != other.resource_name || name != other.name)
+      return false
+
+    this match {
+      case multi: FindMultiInstruction => {
+        other match {
+          case omulti: FindMultiInstruction => {
+            if (multi.conditions != omulti.conditions)
+              return false
+
+            if (multi.limit != omulti.limit)
+              return false
+
+            if (multi.offset != omulti.offset)
+              return false
+          }
+          case _ => {
+            return false
+          }
+        }
+      }
+
+      case count: CountInstruction => {
+        other match {
+          case ocount: CountInstruction => {
+            if (count.conditions != ocount.conditions)
+              return false
+          }
+          case _ => {
+            return false
+          }
+        }
+      }
+
+      case _ => ()
+    }
+
+    true
+  }
+
 }

@@ -67,8 +67,7 @@ class CTree(doc: xml.Node) {
 
         val lins = inslist(n)
 
-        // FIXPAUL: this doesnt compare arguments!
-        if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
+        if (lins.compare(rins)) {
           found = true
 
           val (cscore, ccost) = compare(lins, rins)

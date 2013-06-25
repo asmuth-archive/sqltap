@@ -9,10 +9,7 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
 import java.util.concurrent.{ConcurrentHashMap}
-// TODO
-//   > comparison doesnt take into account arguments
-//   > query vs. ctree expansion
-//   > cache query plans / ctreeindex.find decisions
+
 object CTreeCache {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
@@ -57,8 +54,7 @@ object CTreeCache {
         for (lins <- cins.next) {
           // FIXPAUL: this doesnt terminate when found
           for (rins <- qins.next) {
-            // FIXPAUL: this doesnt compare arguments!
-            if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
+            if (lins.compare(rins)) {
               serialize(buf, lins, rins)
             }
           }
@@ -85,8 +81,7 @@ object CTreeCache {
         for (lins <- cins.next) {
           // FIXPAUL: this doesnt terminate when found
           for (rins <- qins.next) {
-            // FIXPAUL: this doesnt compare arguments!
-            if (lins.resource_name == rins.resource_name && lins.name == rins.name) {
+            if (lins.compare(rins)) {
               serialize(buf, lins, rins)
             }
           }
