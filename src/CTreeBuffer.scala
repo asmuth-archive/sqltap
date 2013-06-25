@@ -59,7 +59,7 @@ class CTreeBuffer(buf: ElasticBuffer) {
     val len : Int = buf.read_int()
 
     if (len == 0)
-      "null"
+      null
     else
       buf.read_string(len)
   }
