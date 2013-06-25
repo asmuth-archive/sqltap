@@ -111,7 +111,7 @@ object CTreeCache {
           var n        = ins.next.length
           var found    = false
 
-          if (ins.relation.resource.name == res_name) {
+          if (ins.resource_name == res_name) {
             found = true
           }
 
@@ -194,6 +194,7 @@ object CTreeCache {
               while (n > 0) {
                 val nins = new PhiInstruction()
                 nins.relation = nxt.relation
+                nins.resource_name = nxt.resource_name
                 nins.prev = nxt
                 nins.record = new Record(nxt.relation.resource)
                 InstructionFactory.deep_copy(nxt, nins)
