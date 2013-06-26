@@ -44,7 +44,13 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
     }
 
     else if (relation.join_foreign == false && prev.finished) {
-      join_id = prev.record.get(relation.join_field).toInt
+      val join_id_str = prev.record.get(relation.join_field)
+
+      if (join_id_str == null) {
+        return cancel(worker)
+      }
+
+      join_id = join_id_str.toInt
 
       if (relation.join_field_remote != null) {
         join_field = relation.join_field_remote
