@@ -34,6 +34,6 @@ trait CTreeInstruction extends Instruction {
     }
 
     execute(worker)
-    CTreeCache.flush()
+    CTreeCache.flush(worker)
   }
 }

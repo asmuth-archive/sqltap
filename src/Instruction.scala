@@ -49,7 +49,7 @@ trait Instruction {
       if (ins.running == false)
         ins.execute(worker: Worker)
 
-    CTreeCache.flush()
+    CTreeCache.flush(worker)
   }
 
   def unroll() : Unit = {

@@ -10,10 +10,9 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.{ListBuffer}
 import java.util.concurrent.{ConcurrentHashMap}
 
-object CTreeCache {
+object CTreeCache extends ReadyCallback[MemcacheRequest] {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
-  val queue = new ListBuffer[(CTree, String, CTreeInstruction, Worker)]() // FIXPAUL: queue must be per-worker
 
   def store(ctree: CTree, key: String, ins: Instruction) : Unit = {
     val buf       = new ElasticBuffer(65535)
@@ -25,34 +24,32 @@ object CTreeCache {
   }
 
   def retrieve(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
-    queue += ((ctree, key, ins, worker)) // FIXPAUL: queue must be per-worker
+    val request = new MemcacheRequest()
+    request.key = key
+    request.instruction = ins
+    request.worker = worker
+    request.attach(this)
 
-    if (queue.length > 10) { // FIXPAUL: MEMCACHE_BATCH_SIZE
-      flush()
-    }
+    worker.memcache_pool.enqueue(request)
   }
 
-  def flush() : Unit = {
-    if (queue.length == 0)
-      return
+  def flush(worker: Worker) : Unit = {
+    worker.memcache_pool.flush()
+  }
 
-    val jobs = queue.toList // FIXPAUL: queue must be per-worker
-    queue.clear()
+  def ready(req: MemcacheRequest) : Unit = {
+    if (stubcache.containsKey(req.key)) {
+      val buf = stubcache.get(req.key).clone()
+      val ctree_buf = new CTreeBuffer(buf)
 
-    for (job <- jobs) {
-      val key = job._2
-      val ins = job._3
-      val worker = job._4
-
-      if (stubcache.containsKey(key)) {
-        val buf = stubcache.get(key).clone()
-        val ctree_buf = new CTreeBuffer(buf)
-
-        load(ctree_buf, ins, worker)
-      }
-
-      ins.ctree_ready(worker)
+      load(ctree_buf, req.instruction, req.worker)
     }
+
+    req.instruction.ctree_ready(req.worker)
+  }
+
+  def error(req: MemcacheRequest, err: Throwable) : Unit = {
+    SQLTap.exception(err, false)
   }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
