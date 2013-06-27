@@ -54,7 +54,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
         join_id = prev.record.get(relation.join_field_local).toInt
       }
 
-      if (join_id > 0)
+      if (join_id > 0) {
         if (ctree_try) {
           ctree_try = false
 
@@ -78,6 +78,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
           SQLBuilder.select(
               relation.resource, relation.join_field, join_id,
               fields.toList, _conditions, order, limit, offset))
+      }
     }
 
     else if (relation.join_foreign == false) {
