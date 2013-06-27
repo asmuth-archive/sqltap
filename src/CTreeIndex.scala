@@ -38,7 +38,11 @@ object CTreeIndex {
       SQLTap.log_debug("CTree: evaluating candidate: '" + ctree.name +
        "' (score: " + score + ", cost: " + cost + ") for: " + root.resource_name)
 
-      if ((cost == 0 && winner_cost > 0) || (score > top_score && winner_cost != 0)) {
+      var matches = (cost == 0 && winner_cost > 0)
+      matches   ||= (score > top_score && winner_cost != 0)
+      matches   ||= (score == top_score && cost > winner_cost)
+
+      if (matches) {
         winner = ctree
         winner_cost = cost
         top_score = score
