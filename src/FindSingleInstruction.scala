@@ -44,7 +44,6 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
     }
 
     else if (relation.join_foreign == false && prev.is_finished) {
-      println("OKOK", prev.finished, prev.is_finished, prev.record.fields)
       val join_id_str = prev.record.get(relation.join_field)
 
       if (join_id_str == null) {
