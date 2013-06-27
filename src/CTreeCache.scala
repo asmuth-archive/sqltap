@@ -10,9 +10,12 @@ package com.paulasmuth.sqltap
 import scala.collection.mutable.{ListBuffer}
 import java.util.concurrent.{ConcurrentHashMap}
 
-object CTreeCache extends ReadyCallback[MemcacheRequest] {
+object CTreeCache extends ReadyCallback[CacheRequest] {
 
-  val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
+  //val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
+  //stubcache.put(key, buf) // STUB
+  //if (stubcache.containsKey(req.key)) {
+  //val buf = stubcache.get(req.key).clone()
 
   def store(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
     val buf       = new ElasticBuffer(65535)
@@ -20,35 +23,44 @@ object CTreeCache extends ReadyCallback[MemcacheRequest] {
 
     serialize(ctree_buf, ctree.stack.head, ins)
 
-    stubcache.put(key, buf) // STUB
+    val request = new CacheStoreRequest(key, buf)
+    request.worker = worker
+    request.attach(this)
+
+    worker.cache.enqueue(request)
+    worker.cache.flush()
   }
 
   def retrieve(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
-    val request = new MemcacheRequest()
-    request.key = key
+    val request = new CacheGetRequest(key)
     request.instruction = ins
     request.worker = worker
     request.attach(this)
 
-    worker.memcache_pool.enqueue(request)
+    worker.cache.enqueue(request)
   }
 
   def flush(worker: Worker) : Unit = {
-    worker.memcache_pool.flush()
+    worker.cache.flush()
   }
 
-  def ready(req: MemcacheRequest) : Unit = {
-    if (stubcache.containsKey(req.key)) {
-      val buf = stubcache.get(req.key).clone()
-      val ctree_buf = new CTreeBuffer(buf)
-
-      load(ctree_buf, req.instruction, req.worker)
+  def ready(req: CacheRequest) : Unit = {
+    req match {
+      case get: CacheGetRequest => {
+        get.retrieve match {
+          case buf: ElasticBuffer => {
+            val ctree_buf = new CTreeBuffer(buf)
+            load(ctree_buf, get.instruction, req.worker)
+            get.instruction.ctree_ready(req.worker)
+          }
+          case None => ()
+        }
+      }
+      case set: CacheStoreRequest => ()
     }
-
-    req.instruction.ctree_ready(req.worker)
   }
 
-  def error(req: MemcacheRequest, err: Throwable) : Unit = {
+  def error(req: CacheRequest, err: Throwable) : Unit = {
     SQLTap.exception(err, false)
   }
 

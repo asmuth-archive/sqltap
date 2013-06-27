@@ -9,19 +9,13 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
 
-class MemcacheRequest {
-  var key : String = null
-  var callback : ReadyCallback[MemcacheRequest] = null
+class CacheGetRequest(_key: String) extends CacheRequest {
+  val key : String = _key
   var instruction : CTreeInstruction = null
-  var worker : Worker = null
 
-  def ready() = {
-    if (callback != null)
-      callback.ready(this)
-  }
-
-  def attach(_callback: ReadyCallback[MemcacheRequest]) : Unit = {
-    callback = _callback
+  def retrieve() : Option[ElasticBuffer] = {
+    println("retrieve...", key)
+    return None
   }
 
 }

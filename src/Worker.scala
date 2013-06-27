@@ -36,10 +36,10 @@ class Worker() extends Thread {
   var requests_queued  = new AtomicInteger()
   var requests_success = new AtomicInteger()
 
-  val queue         = new ConcurrentLinkedQueue[SocketChannel]()
-  val loop          = SelectorProvider.provider().openSelector()
-  val sql_pool      = new SQLConnectionPool(SQLTap.CONFIG, loop)
-  val memcache_pool = new MemcacheConnectionPool()
+  val queue    = new ConcurrentLinkedQueue[SocketChannel]()
+  val loop     = SelectorProvider.provider().openSelector()
+  val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
+  val cache    = new CacheAdapter
 
   SQLTap.log("worker starting...")
 
