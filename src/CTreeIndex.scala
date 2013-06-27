@@ -29,7 +29,7 @@ object CTreeIndex {
     val candidates = find(root.relation.resource.name)
     var winner : CTree = null
     var winner_cost : Int = -1
-    var top_score : Int = 0 // FIXPAUL
+    var top_score : Int = 2
 
     for (ctree <- candidates) {
       val (score, cost) = ctree.compare(root)
