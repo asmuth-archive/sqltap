@@ -16,6 +16,9 @@ class CTree(doc: xml.Node) {
   val allow_conditions : Boolean =
     elem.attr("allow_conditions", false, "true").equals("true")
 
+  val base_score : Int =
+    elem.attr("base_score", false, "0").toInt
+
   val stack = new InstructionStack()
   QueryParser.parse(stack, query)
 

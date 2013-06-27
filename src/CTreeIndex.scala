@@ -32,7 +32,8 @@ object CTreeIndex {
     var top_score : Int = 2
 
     for (ctree <- candidates) {
-      val (score, cost) = ctree.compare(root)
+      var (score, cost) = ctree.compare(root)
+      score += ctree.base_score
 
       SQLTap.log_debug("CTree: evaluating candidate: '" + ctree.name +
        "' (score: " + score + ", cost: " + cost + ") for: " + root.resource_name)
