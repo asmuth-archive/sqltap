@@ -13,7 +13,6 @@ import scala.collection.mutable.{ListBuffer}
 class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
 
   val name = "findMulti"
-  var worker : Worker = null
 
   var conditions : String  = null
   var order      : String  = null

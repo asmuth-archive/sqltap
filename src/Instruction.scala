@@ -15,6 +15,8 @@ trait Instruction {
   var next          = ListBuffer[Instruction]()
   var prev          : Instruction = null
 
+  var worker        : Worker = null
+
   var fields        = ListBuffer[String]()
   var relation      : ResourceRelation = null
   var record        : Record = null

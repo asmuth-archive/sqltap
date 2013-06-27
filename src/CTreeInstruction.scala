@@ -17,7 +17,7 @@ trait CTreeInstruction extends Instruction {
 
   override def ready() : Unit = {
     if (ctree_store)
-      CTreeCache.store(ctree, ctree_key, this)
+      CTreeCache.store(ctree, ctree_key, this, worker)
 
     prev.unroll()
   }

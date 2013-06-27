@@ -13,7 +13,6 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
 
   val name = "findSingle"
 
-  var worker : Worker     = null
   var conditions : String = null
   var order      : String = null
 

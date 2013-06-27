@@ -14,7 +14,7 @@ object CTreeCache extends ReadyCallback[MemcacheRequest] {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
 
-  def store(ctree: CTree, key: String, ins: Instruction) : Unit = {
+  def store(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
     val buf       = new ElasticBuffer(65535)
     val ctree_buf = new CTreeBuffer(buf)
 
