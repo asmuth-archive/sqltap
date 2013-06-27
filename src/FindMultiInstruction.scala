@@ -79,6 +79,12 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
               relation.resource, relation.join_field, join_id,
               fields.toList, _conditions, order, limit, offset))
       }
+
+      else if (prev.finished) {
+        throw new ExecutionException(
+          "deadlock detected (query contains unresolved dependencies), " +
+          "resource: " + resource_name)
+      }
     }
 
     else if (relation.join_foreign == false) {

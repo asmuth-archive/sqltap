@@ -47,6 +47,7 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
       val join_id_str = prev.record.get(relation.join_field)
 
       if (join_id_str == null) {
+        next.clear()
         return cancel(worker)
       }
 
