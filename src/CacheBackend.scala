@@ -7,15 +7,6 @@
 
 package com.paulasmuth.sqltap
 
-import scala.collection.mutable.{ListBuffer}
-
-class CacheGetRequest(_key: String) extends CacheRequest {
-  val key : String = _key
-  var instruction : CTreeInstruction = null
-  var buffer : ElasticBuffer = null
-
-  def retrieve() : Option[ElasticBuffer] = {
-    if (buffer == null) None else Some(buffer)
-  }
-
+trait CacheBackend {
+  def execute(requests: List[CacheRequest])
 }

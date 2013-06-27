@@ -8,14 +8,8 @@
 package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
-import java.util.concurrent.{ConcurrentHashMap}
 
 object CTreeCache extends ReadyCallback[CacheRequest] {
-
-  //val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
-  //stubcache.put(key, buf) // STUB
-  //if (stubcache.containsKey(req.key)) {
-  //val buf = stubcache.get(req.key).clone()
 
   def store(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
     val buf       = new ElasticBuffer(65535)
@@ -48,12 +42,14 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
     req match {
       case get: CacheGetRequest => {
         get.retrieve match {
-          case buf: ElasticBuffer => {
+          case Some(buf: ElasticBuffer) => {
             val ctree_buf = new CTreeBuffer(buf)
             load(ctree_buf, get.instruction, req.worker)
             get.instruction.ctree_ready(req.worker)
           }
-          case None => ()
+          case None => {
+            get.instruction.ctree_ready(req.worker)
+          }
         }
       }
       case set: CacheStoreRequest => ()
@@ -132,7 +128,7 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
           var found    = false
 
           if (ins != null) {
-            var n        = ins.next.length
+            var n = ins.next.length
 
             if (ins.resource_name == res_name) {
               found = true

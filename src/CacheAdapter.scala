@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
 
-class CacheAdapter {
+class CacheAdapter(backend: CacheBackend) {
 
   val queue = ListBuffer[CacheRequest]()
 
@@ -25,12 +25,7 @@ class CacheAdapter {
 
     val next = queue.toList
     queue.clear()
-
-    for (request <- next) {
-      println("EXECUTE", request)
-      // STUB...
-      //job.ready()
-    }
+    backend.execute(next)
   }
 
 }
