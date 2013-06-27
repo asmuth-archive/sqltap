@@ -13,6 +13,9 @@ class CTree(doc: xml.Node) {
   val name  : String = elem.attr("name", true)
   val query : String = elem.attr("query", true)
 
+  val allow_conditions : Boolean =
+    elem.attr("allow_conditions", false, "true").equals("true")
+
   val stack = new InstructionStack()
   QueryParser.parse(stack, query)
 

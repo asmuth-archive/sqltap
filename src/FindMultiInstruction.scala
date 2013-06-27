@@ -61,13 +61,15 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
           CTreeIndex.find(this) match {
             case None => ()
             case Some((_ctree, cost)) => {
-              ctree      = _ctree
-              ctree_wait = true
-              ctree_cost = cost
-              ctree_key  = ctree.key(_conditions, join_id) // FIXPAUL conditions should be md5-hashed
+              if (_ctree.allow_conditions) {
+                ctree      = _ctree
+                ctree_wait = true
+                ctree_cost = cost
+                ctree_key  = ctree.key(_conditions, join_id) // FIXPAUL conditions should be md5-hashed
 
-              CTreeCache.retrieve(ctree, ctree_key, this, worker)
-              return
+                CTreeCache.retrieve(ctree, ctree_key, this, worker)
+                return
+              }
             }
           }
         }
