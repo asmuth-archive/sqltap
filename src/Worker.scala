@@ -15,20 +15,17 @@ import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
 //   > log levels (info, warning, error, critical, fatal)
-//   > limit max number of entries in the conn queue
-//   > user.findAll(1){id,shop.findOne{id}} kills the worker
-//   > better error messages for invalid query strings
-//   > relation default order, fetch service "default" fetched fields
-//   > pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
-//   > user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
-//   > user.findOne(1) hangs
-//   > ctree stats
-//   > doc: simple example (schema + relations + query + response), ctree examples (product.findOne{images} via direct, order{product} and user{listed_products}), simple xml attr reference
-//   > Execute: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
-//   > cache query plans / ctreeindex.find decisions
-//   > caching for counts
+//   > memcache proto
+//   > expiration...
 //   > optimization: don't store keys in memcache but key-indexes
-//   > optimization: batch memcache gets (queue + flush method)
+//   > limit max number of entries in the conn queue
+//   > better error messages for invalid query strings
+//   > bug: pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
+//   > bug: user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
+//   > bug: user.findOne(1) hangs
+//   > bug: user.findAll(1){id,shop.findOne{id}} kills the worker
+//   > bug: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
+//   > ctree stats
 
 class Worker() extends Thread {
 
