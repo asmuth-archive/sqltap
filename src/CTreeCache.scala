@@ -164,6 +164,11 @@ object CTreeCache {
 
               return
             }
+
+            case ins: CountInstruction => {
+              ins.cancel(worker)
+              return
+            }
           }
         }
 
