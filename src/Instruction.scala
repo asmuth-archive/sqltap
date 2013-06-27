@@ -48,6 +48,8 @@ trait Instruction {
     for (ins <- next)
       if (ins.running == false)
         ins.execute(worker: Worker)
+
+    CTreeCache.flush()
   }
 
   def unroll() : Unit = {
@@ -132,6 +134,10 @@ trait Instruction {
     }
 
     true
+  }
+
+  def is_finished() : Boolean = {
+    finished
   }
 
 }

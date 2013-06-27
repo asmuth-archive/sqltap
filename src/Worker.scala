@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > Execute: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
 //   > cache query plans / ctreeindex.find decisions
 //   > caching for counts
+//   > optimization: don't store keys in memcache but key-indexes
+//   > optimization: batch memcache gets (queue + flush method)
 
 class Worker() extends Thread {
 

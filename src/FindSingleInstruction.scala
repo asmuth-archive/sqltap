@@ -43,7 +43,8 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
       join_id = record.id
     }
 
-    else if (relation.join_foreign == false && prev.finished) {
+    else if (relation.join_foreign == false && prev.is_finished) {
+      println("OKOK", prev.finished, prev.is_finished, prev.record.fields)
       val join_id_str = prev.record.get(relation.join_field)
 
       if (join_id_str == null) {
@@ -66,7 +67,7 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
       join_id = prev.record.id
     }
 
-    else if (prev.finished) {
+    else if (prev.is_finished) {
       throw new ExecutionException("deadlock detected")
     }
 

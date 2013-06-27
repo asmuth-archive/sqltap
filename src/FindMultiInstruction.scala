@@ -50,7 +50,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
         prev.record.set_id(join_id)
       }
 
-      else if (relation.join_field_local != null && prev.finished) {
+      else if (relation.join_field_local != null && prev.is_finished) {
         join_id = prev.record.get(relation.join_field_local).toInt
       }
 
@@ -80,7 +80,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
               fields.toList, _conditions, order, limit, offset))
       }
 
-      else if (prev.finished) {
+      else if (prev.is_finished) {
         throw new ExecutionException(
           "deadlock detected (query contains unresolved dependencies), " +
           "resource: " + resource_name)

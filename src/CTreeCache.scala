@@ -13,6 +13,7 @@ import java.util.concurrent.{ConcurrentHashMap}
 object CTreeCache {
 
   val stubcache = new ConcurrentHashMap[String,ElasticBuffer]() // STUB
+  val queue = new ListBuffer[(CTree, String, CTreeInstruction, Worker)]() // FIXPAUL: queue must be per-worker
 
   def store(ctree: CTree, key: String, ins: Instruction) : Unit = {
     val buf       = new ElasticBuffer(65535)
@@ -24,14 +25,34 @@ object CTreeCache {
   }
 
   def retrieve(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
-    if (stubcache.containsKey(key)) {
-      val buf = stubcache.get(key).clone()
-      val ctree_buf = new CTreeBuffer(buf)
+    queue += ((ctree, key, ins, worker)) // FIXPAUL: queue must be per-worker
 
-      load(ctree_buf, ins, worker)
+    if (queue.length > 10) { // FIXPAUL: MEMCACHE_BATCH_SIZE
+      flush()
     }
+  }
 
-    ins.ctree_ready(worker)
+  def flush() : Unit = {
+    if (queue.length == 0)
+      return
+
+    val jobs = queue.toList // FIXPAUL: queue must be per-worker
+    queue.clear()
+
+    for (job <- jobs) {
+      val key = job._2
+      val ins = job._3
+      val worker = job._4
+
+      if (stubcache.containsKey(key)) {
+        val buf = stubcache.get(key).clone()
+        val ctree_buf = new CTreeBuffer(buf)
+
+        load(ctree_buf, ins, worker)
+      }
+
+      ins.ctree_ready(worker)
+    }
   }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
