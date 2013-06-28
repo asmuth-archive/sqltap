@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.{AtomicInteger}
 //   > bug: user.findAll(1){id,shop.findOne{id}} kills the worker
 //   > bug: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
 //   > ctree stats
+//   > limit max number of concurrent requests per worker
 
 class Worker() extends Thread {
 
