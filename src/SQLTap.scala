@@ -10,7 +10,6 @@ package com.paulasmuth.sqltap
 import java.io.File
 
 // TODO
-//   > memcache proto
 //   > gzip
 //   > optimization: don't store keys in ctree cache but key-indexes
 //   > limit max number of entries in the conn queue

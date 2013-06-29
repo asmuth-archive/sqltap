@@ -32,6 +32,11 @@ class ElasticBuffer(initial_capacity: Int) extends WrappedBuffer(null) {
     buffer.put(data)
   }
 
+  def write(data: Array[Byte], offset: Int, length: Int) = {
+    resize(length)
+    buf.put(data, offset, length)
+  }
+
   override def retrieve() : ByteBuffer = {
     buffer
   }

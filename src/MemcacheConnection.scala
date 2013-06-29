@@ -23,7 +23,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
   private val MC_STATE_CMD_DELETE = 4
   private val MC_STATE_CMD_SET    = 5
   private val MC_STATE_CMD_MGET   = 6
-  private val MC_STATE_CLOSE      = 7
+  private val MC_STATE_READ       = 7
+  private val MC_STATE_CLOSE      = 8
 
   private val MC_WRITE_BUF_LEN  = 65535
   private val MC_READ_BUF_LEN   = 65535
@@ -39,6 +40,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
 
   private var timer = TimeoutScheduler.schedule(1000, this)
   private var requests : List[CacheRequest] = null
+  private var cur_buf  : ElasticBuffer = null
+  private var cur_len  = 0
 
   def connect() : Unit = {
     Statistics.incr('memcache_connections_open)
@@ -57,10 +60,25 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
   def execute_mget(keys: List[String], _requests: List[CacheRequest]) : Unit = {
     requests = _requests
 
-    //STUB
-    println("MGET", keys)
-    _requests.foreach{_.ready()}
-    idle(last_event)
+    if (state != MC_STATE_IDLE)
+      throw new ExecutionException("memcache connection busy")
+
+    timer.start()
+
+    write_buf.clear
+    write_buf.put("get".getBytes)
+
+    for (key <- keys) {
+      write_buf.put(32.toByte)
+      write_buf.put(key.getBytes("UTF-8"))
+    }
+
+    write_buf.put(13.toByte)
+    write_buf.put(10.toByte)
+    write_buf.flip
+
+    state = MC_STATE_CMD_MGET
+    last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
   def execute_set(key: String, request: CacheStoreRequest) : Unit = {
@@ -142,17 +160,27 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
     var pos = 0
 
     while (cur < read_buf.position) {
-      if (read_buf.get(cur) == 10) {
-        next(new String(read_buf.array, pos, cur - 1 - pos, "UTF-8"))
-        pos = cur + 1
-      }
+      if (state == MC_STATE_READ) {
+        cur = math.min(read_buf.position, pos + cur_len)
 
-      if (read_buf.get(cur) == 32) {
-        next(new String(read_buf.array, pos, cur - pos, "UTF-8"))
-        pos = cur + 1
-      }
+        cur_len -= cur - pos
+        cur_buf.write(read_buf.array, pos, cur - pos)
 
-      cur += 1
+        if (cur_len == 0) {
+          cur += 2
+          cur_buf.buffer.flip()
+          state = MC_STATE_CMD_MGET
+        }
+
+        pos = cur
+      } else {
+        if (read_buf.get(cur) == 10) {
+          next(new String(read_buf.array, pos, cur - 1 - pos, "UTF-8"))
+          pos = cur + 1
+        }
+
+        cur += 1
+      }
     }
 
     if (cur < read_buf.position) {
@@ -230,6 +258,35 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
             idle(last_event)
           }
 
+        }
+      }
+
+      case MC_STATE_CMD_MGET => {
+        val parts = cmd.split(" ")
+
+        if (parts.length == 1 && parts.head == "END") {
+          for (req <- requests) {
+            req.ready()
+          }
+
+          return idle(last_event)
+        }
+
+        if (parts.length != 4) {
+          throw new ExecutionException("[Memcache] protocol error")
+        }
+
+        for (req <- requests) {
+          if (req.key == parts(1)) {
+            val buf = new ElasticBuffer(65535)
+            req.buffer = buf
+
+            cur_buf = buf
+            cur_len = parts(3).toInt
+
+            state = MC_STATE_READ
+            return
+          }
         }
       }
 

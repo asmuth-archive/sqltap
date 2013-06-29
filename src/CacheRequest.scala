@@ -13,6 +13,7 @@ trait CacheRequest {
   val key : String
   var callback : ReadyCallback[CacheRequest] = null
   var worker : Worker = null
+  var buffer : ElasticBuffer = null
 
   def ready() : Unit
 }
