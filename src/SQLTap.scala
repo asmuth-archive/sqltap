@@ -29,7 +29,6 @@ object SQLTap{
   )
 
   val manifest = HashMap[String,ResourceManifest]()
-  val trace    = new RelationTrace()
   var debug    = false
 
   def main(args: Array[String]) : Unit = {
@@ -146,7 +145,7 @@ object SQLTap{
       }
     }
 
-    trace.load(manifest.values.toList)
+    RelationTrace.load(manifest.values.toList)
   }
 
   def usage(head: Boolean = true) = {

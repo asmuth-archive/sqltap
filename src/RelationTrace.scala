@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{HashMap,ListBuffer}
 
-class RelationTrace {
+object RelationTrace {
 
   private val trace = new HashMap[String, ListBuffer[String]]
 

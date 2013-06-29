@@ -32,6 +32,17 @@ class ExpirationHandler(worker: Worker) extends ReadyCallback[Record] {
       "[EXPIRE] resource '" + record.resource.name + "' with id #" +
       record.id.toString + " expired")
 
+    val ctrees = CTreeIndex.find(record.resource.name)
+    val fields = RelationTrace.lookup(record.resource.name)
+
+    for (ctree <- ctrees) {
+      val keys = fields.map {
+        ctree.key(_, record.id)
+      }
+
+      val job = new ExpirationJob(worker, ctree, record, keys)
+      println(job)
+    }
   }
 
   def ready(record: Record) : Unit = {
