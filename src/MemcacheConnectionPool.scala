@@ -111,7 +111,7 @@ class MemcacheConnectionPool extends CacheBackend {
     req match {
 
       case set: CacheStoreRequest => {
-        connection.execute_set(req.key, req)
+        connection.execute_set(req.key, set)
       }
 
       case purge: CachePurgeRequest => {

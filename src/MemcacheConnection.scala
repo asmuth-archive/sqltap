@@ -17,12 +17,13 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
   var hostname  : String  = "127.0.0.1"
   var port      : Int     = 11211
 
-  private val MC_STATE_INIT  = 0
-  private val MC_STATE_CONN  = 1
-  private val MC_STATE_IDLE  = 2
+  private val MC_STATE_INIT       = 0
+  private val MC_STATE_CONN       = 1
+  private val MC_STATE_IDLE       = 2
   private val MC_STATE_CMD_DELETE = 4
-  private val MC_STATE_READ  = 5
-  private val MC_STATE_CLOSE = 6
+  private val MC_STATE_CMD_SET    = 5
+  private val MC_STATE_CMD_MGET   = 6
+  private val MC_STATE_CLOSE      = 7
 
   private val MC_WRITE_BUF_LEN  = 65535
   private val MC_READ_BUF_LEN   = 65535
@@ -54,20 +55,46 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
   }
 
   def execute_mget(keys: List[String], _requests: List[CacheRequest]) : Unit = {
-    println("MGET", keys)
     requests = _requests
 
+    //STUB
+    println("MGET", keys)
     _requests.foreach{_.ready()}
-
     idle(last_event)
   }
 
-  def execute_set(key: String, request: CacheRequest) : Unit = {
-    println("SET", key)
-    requests = List(request)
+  def execute_set(key: String, request: CacheStoreRequest) : Unit = {
+    val buf = request.buffer.buffer
+    val len = buf.position
 
     request.ready()
-    idle(last_event)
+    buf.position(0)
+    buf.limit(len)
+
+    if (state != MC_STATE_IDLE)
+      throw new ExecutionException("memcache connection busy")
+
+    timer.start()
+
+    write_buf.clear
+    write_buf.put("set".getBytes)
+    write_buf.put(32.toByte)
+    write_buf.put(key.getBytes("UTF-8"))
+    write_buf.put(32.toByte)
+    write_buf.put(48.toByte)
+    write_buf.put(32.toByte)
+    write_buf.put(48.toByte)
+    write_buf.put(32.toByte)
+    write_buf.put(len.toString.getBytes("UTF-8"))
+    write_buf.put(13.toByte)
+    write_buf.put(10.toByte)
+    write_buf.put(buf)
+    write_buf.put(13.toByte)
+    write_buf.put(10.toByte)
+    write_buf.flip
+
+    state = MC_STATE_CMD_SET
+    last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
   def execute_delete(key: String) : Unit = {
@@ -186,6 +213,20 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
           }
 
           case "NOT_FOUND" => {
+            idle(last_event)
+          }
+
+        }
+      }
+
+      case MC_STATE_CMD_SET => {
+        cmd match {
+
+          case "STORED" => {
+            idle(last_event)
+          }
+
+          case "NOT_STORED" => {
             idle(last_event)
           }
 
