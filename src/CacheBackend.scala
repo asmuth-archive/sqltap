@@ -7,6 +7,10 @@
 
 package com.paulasmuth.sqltap
 
+import java.nio.channels.{Selector}
+
 trait CacheBackend {
-  def execute(requests: List[CacheRequest])
+  var loop : Selector = null
+  def execute(requests: List[CacheRequest]) : Unit
+  def connect(): Unit
 }

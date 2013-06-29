@@ -14,6 +14,8 @@ class StubCache extends CacheBackend {
 
   val stubcache = new HashMap[String,ElasticBuffer]()
 
+  def connect() : Unit = ()
+
   def execute(requests: List[CacheRequest]) = {
     for (req <- requests) {
       req match {

@@ -21,7 +21,8 @@ object Config {
     'sql_queue_max_len    -> "75",
     'sql_max_connections  -> "25",
     'threads              -> "4",
-    'expiration_handler   -> "purge"
+    'expiration_handler   -> "purge",
+    'cache_backend        -> "memcache"
   )
 
   private val config = HashMap[Symbol,String]()

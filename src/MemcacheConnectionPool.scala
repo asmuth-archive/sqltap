@@ -9,40 +9,25 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
 
-/*
-class MemcacheConnectionPool {
+class MemcacheConnectionPool extends CacheBackend {
 
-  val MEMCACHE_BATCH_SIZE = 10
+  //val MEMCACHE_BATCH_SIZE = 10
+  val conn = new MemcacheConnection(this)
 
-  val current = ListBuffer[MemcacheRequest]()
-  val queue   = ListBuffer[MemcacheRequest]()
-
-  def enqueue(request: MemcacheRequest) = {
-    request +=: current
-
-    if (queue.length >= MEMCACHE_BATCH_SIZE)
-      flush()
+  def connect() : Unit = {
+    conn.connect()
   }
 
-  def flush() : Unit = {
-    if (current.length == 0)
-      return
-
-    queue ++= current
-    current.clear()
-
-    ready()
+  def execute(requests: List[CacheRequest]) : Unit = {
   }
 
-  private def ready() {
-    val jobs = queue.toList
-    queue.clear()
+  def ready(conn: MemcacheConnection) : Unit = {
+    conn.execute_flush()
+  }
 
-    for (job <- jobs) {
-      // STUB...
-      job.ready()
-    }
+  def close(conn: MemcacheConnection) : Unit = {
+
+
   }
 
 }
-*/

@@ -60,6 +60,9 @@ object SQLTap{
       else if (args(n) == "--expiration-handler")
         { Config.set('expiration_handler, args(n+1)); n += 2 }
 
+      else if (args(n) == "--cache-backend")
+        { Config.set('cache_backend, args(n+1)); n += 2 }
+
       else if (args(n) == "--memcached-ttl")
         { Config.set('memcached_ttl, args(n+1)); n += 2 }
 
@@ -118,7 +121,7 @@ object SQLTap{
     if (head)
       println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
-    println("usage: sqltapd [options]                                                   ")
+    println("usage: sqltapd [options]                                                      ")
     println("  -c, --config         <dir>     path to xml config files                     ")
     println("  -t, --threads        <num>     number of worker threads (default: 4)        ")
     println("  --http               <port>    start http server on this port               ")
@@ -130,6 +133,7 @@ object SQLTap{
     println("  --mysql-queuelen     <num>     max mysql queue size per worker              ")
     println("  --mysql-numconns     <num>     max number of mysql connections per worker   ")
     println("  --expiration-handler <name>    expiration handler (noop, purge, refresh)    ")
+    println("  --cache-backend      <name>    cache backend (memcache)                     ")
     println("  --memcached          <addrs>   comma-seperated memcache servers (host:port) ")
     println("  --memcached-ttl      <secs>    ttl for memcache keys                        ")
     println("  -h, --help                     you're reading it...                         ")

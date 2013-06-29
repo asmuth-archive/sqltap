@@ -25,7 +25,7 @@ class Worker() extends Thread {
   val queue    = new ConcurrentLinkedQueue[SocketChannel]()
   val loop     = SelectorProvider.provider().openSelector()
   val sql_pool = new SQLConnectionPool(Config.get(), loop)
-  val cache    = new CacheAdapter(new StubCache)
+  val cache    = new CacheAdapter(CacheBackendFactory.get(this))
 
   Logger.log("worker starting...")
 
@@ -86,6 +86,26 @@ class Worker() extends Thread {
             conn.close(e)
           }
         }
+
+        case conn: MemcacheConnection => try {
+
+          if (event.isConnectable)
+            conn.ready(event)
+
+          if (event.isValid && event.isReadable)
+            conn.read(event)
+
+          if (event.isValid && event.isWritable)
+            conn.write(event)
+
+        } catch {
+          case e: Exception => {
+            Logger.error("[Memcache] exception: " + e.toString, false)
+            Logger.exception(e, false)
+            conn.close(e)
+          }
+        }
+
       }
     }
   }
