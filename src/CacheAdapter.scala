@@ -12,7 +12,6 @@ import scala.collection.mutable.{ListBuffer}
 class CacheAdapter(backend: CacheBackend) {
 
   val queue = ListBuffer[CacheRequest]()
-  backend.connect()
 
   // enqueue a request to be executed (doesnt execute yet)
   def enqueue(request: CacheRequest) = {

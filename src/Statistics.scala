@@ -10,18 +10,20 @@ package com.paulasmuth.sqltap
 object Statistics {
 
   private val stats = Map[Symbol, Statistic](
-    'http_connections_open     -> new IntegralStatistic,
-    'http_requests_total       -> new IntegralStatistic,
-    'http_requests_per_second  -> new DeltaStatistic,
-    'http_bytes_per_second     -> new DeltaStatistic,
-    'http_errors_total         -> new IntegralStatistic,
-    'http_errors_per_second    -> new DeltaStatistic,
-    'http_request_time_mean    -> new MeanStatistic,
-    'sql_connections_open      -> new IntegralStatistic,
-    'sql_requests_total        -> new IntegralStatistic,
-    'sql_requests_per_second   -> new DeltaStatistic,
-    'sql_request_time_mean     -> new MeanStatistic,
-    'memcache_connections_open -> new IntegralStatistic
+    'http_connections_open        -> new IntegralStatistic,
+    'http_requests_total          -> new IntegralStatistic,
+    'http_requests_per_second     -> new DeltaStatistic,
+    'http_bytes_per_second        -> new DeltaStatistic,
+    'http_errors_total            -> new IntegralStatistic,
+    'http_errors_per_second       -> new DeltaStatistic,
+    'http_request_time_mean       -> new MeanStatistic,
+    'sql_connections_open         -> new IntegralStatistic,
+    'sql_requests_total           -> new IntegralStatistic,
+    'sql_requests_per_second      -> new DeltaStatistic,
+    'sql_request_time_mean        -> new MeanStatistic,
+    'memcache_requests_total      -> new IntegralStatistic,
+    'memcache_requests_per_second -> new DeltaStatistic,
+    'memcache_connections_open    -> new IntegralStatistic
   )
 
   private var last_update = System.nanoTime

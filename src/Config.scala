@@ -14,15 +14,17 @@ object Config {
   var debug = false
 
   val defaults = HashMap[Symbol, String](
-    'http_port            -> "8080",
-    'http_request_timeout -> "2500",
-    'http_idle_timeout    -> "5000",
-    'sql_timeout          -> "1000",
-    'sql_queue_max_len    -> "75",
-    'sql_max_connections  -> "25",
-    'threads              -> "4",
-    'expiration_handler   -> "purge",
-    'cache_backend        -> "memcache"
+    'http_port                -> "8080",
+    'http_request_timeout     -> "2500",
+    'http_idle_timeout        -> "5000",
+    'sql_timeout              -> "1000",
+    'sql_queue_max_len        -> "250",
+    'sql_max_connections      -> "3",
+    'memcache_queue_max_len   -> "250",
+    'memcache_max_connections -> "1",
+    'threads                  -> "4",
+    'expiration_handler       -> "purge",
+    'cache_backend            -> "memcache"
   )
 
   private val config = HashMap[Symbol,String]()

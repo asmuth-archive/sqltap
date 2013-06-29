@@ -20,11 +20,11 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   private val MC_STATE_INIT  = 0
   private val MC_STATE_CONN  = 1
   private val MC_STATE_IDLE  = 2
-  private val MC_STATE_WRITE = 4
+  private val MC_STATE_CMD_DELETE = 4
   private val MC_STATE_READ  = 5
   private val MC_STATE_CLOSE = 6
 
-  private val MC_WRITE_BUF_LEN  = 4096
+  private val MC_WRITE_BUF_LEN  = 65535
   private val MC_READ_BUF_LEN   = 65535
 
   private var state = MC_STATE_INIT
@@ -39,7 +39,6 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   def connect() : Unit = {
     Statistics.incr('memcache_connections_open)
 
-    println("memcache connect")
     val addr = new InetSocketAddress(hostname, port)
     sock.connect(addr)
     state = MC_STATE_CONN
@@ -49,14 +48,19 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
       .attach(this)
   }
 
-  def execute_flush() : Unit = {
-    println("!!FLISH")
+  def execute_delete(key: String) : Unit = {
+    if (state != MC_STATE_IDLE)
+      throw new ExecutionException("memcache connection busy")
 
     write_buf.clear
-    write_buf.put("flush_all\r\nflush_all\r\nflush_all\r\n".getBytes)
+    write_buf.put("delete".getBytes)
+    write_buf.put(32.toByte)
+    write_buf.put(key.getBytes("UTF-8"))
+    write_buf.put(13.toByte)
+    write_buf.put(10.toByte)
     write_buf.flip
 
-    state = MC_STATE_WRITE
+    state = MC_STATE_CMD_DELETE
     last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
@@ -75,7 +79,6 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   }
 
   def read(event: SelectionKey) : Unit = {
-    println("read")
     val chunk = sock.read(read_buf)
 
     if (chunk <= 0) {
@@ -84,20 +87,20 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
       return
     }
 
-    println("read...")
-
     var cur = 0
     var pos = 0
 
     while (cur < read_buf.position) {
       if (read_buf.get(cur) == 10) {
-        val line = new String(read_buf.array, pos, cur, "UTF-8")
-        println("....!", line)
-
-        pos = cur
+        next(new String(read_buf.array, pos, cur - 1 - pos, "UTF-8"))
+        pos = cur + 1
       }
 
-      println(pos, cur, read_buf.get(cur))
+      if (read_buf.get(cur) == 32) {
+        next(new String(read_buf.array, pos, cur - pos, "UTF-8"))
+        pos = cur + 1
+      }
+
       cur += 1
     }
 
@@ -105,11 +108,12 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
       read_buf.limit(read_buf.position)
       read_buf.position(cur)
       read_buf.compact()
+    } else {
+      read_buf.clear()
     }
   }
 
   def write(event: SelectionKey) : Unit = {
-    println("write")
     try {
       sock.write(write_buf)
     } catch {
@@ -120,7 +124,6 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
     }
 
     if (write_buf.remaining == 0) {
-      state = MC_STATE_READ
       write_buf.clear
       event.interestOps(SelectionKey.OP_READ)
     }
@@ -141,8 +144,32 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   }
 
 
+  private def next(cmd: String) : Unit = {
+    state match {
+
+      case MC_STATE_CMD_DELETE => {
+        cmd match {
+
+          case "DELETED" => {
+            idle(last_event)
+          }
+
+          case "NOT_FOUND" => {
+            idle(last_event)
+          }
+
+        }
+      }
+
+      case _ => {
+        throw new ExecutionException(
+          "unexpected token " + cmd + " (" + state.toString + ")")
+      }
+
+    }
+  }
+
   private def idle(event: SelectionKey) : Unit = {
-    println("memcache idle")
     state = MC_STATE_IDLE
     event.interestOps(0)
     last_event = event

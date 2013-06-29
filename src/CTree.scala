@@ -37,7 +37,8 @@ class CTree(doc: xml.Node) {
     if (join_cond == null) {
       name + "/" + join_key + "/" + record_id
     } else {
-      name + "/" + join_key + "/" + record_id + "/" + join_cond
+      // FIXPAUL md5-hash conditions
+      name + "/" + join_key + "/" + record_id + "/" + join_cond.replaceAll(" ", "")
     }
   }
 

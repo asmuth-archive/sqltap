@@ -12,5 +12,4 @@ import java.nio.channels.{Selector}
 trait CacheBackend {
   var loop : Selector = null
   def execute(requests: List[CacheRequest]) : Unit
-  def connect(): Unit
 }
