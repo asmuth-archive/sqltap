@@ -198,6 +198,9 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     else if (route.length == 1 && route.head == "stats")
       execute_stats()
 
+    else if (route.length > 1 && route.head == "expire")
+      execute_expire(route.tail)
+
     else
       http_error(404, "not found")
 
@@ -256,6 +259,24 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     http_buf.finish_headers()
     json_buf.write_map(stats)
 
+    buf.flip
+
+    worker.requests_success.incrementAndGet()
+    flush()
+  }
+
+  private def execute_expire(args: List[String]) : Unit = {
+    val http_buf = new HTTPWriter(buf)
+    buf.clear
+
+    ExpirationHandler.expire(args(0), args(1).toInt)
+
+    http_buf.write_status(200)
+    http_buf.write_content_length(4)
+    http_buf.write_default_headers()
+    http_buf.finish_headers()
+
+    buf.put("ok\r\n".getBytes)
     buf.flip
 
     worker.requests_success.incrementAndGet()
