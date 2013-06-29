@@ -105,7 +105,8 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
             ctree      = _ctree
             ctree_wait = true
             ctree_cost = cost
-            ctree_key  = ctree.key(relation.join_field, join_id.toString)
+            ctree_key  = ctree.key(relation.join_field,
+              join_id.toString, relation.join_cond)
 
             CTreeCache.retrieve(worker, ctree, ctree_key, this)
             return

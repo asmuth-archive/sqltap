@@ -33,8 +33,12 @@ class CTree(doc: xml.Node) {
     stack.head.relation.resource.name
   }
 
-  def key(join_key: String, record_id: String) : String = {
-    name + "-" + join_key + "-" + record_id
+  def key(join_key: String, record_id: String, join_cond: String) : String = {
+    if (join_cond == null) {
+      name + "/" + join_key + "/" + record_id
+    } else {
+      name + "/" + join_key + "/" + record_id + "/" + join_cond
+    }
   }
 
   def compare(ins: Instruction) : (Int, Int) = {

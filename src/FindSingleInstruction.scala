@@ -97,7 +97,7 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
             ctree      = _ctree
             ctree_wait = true
             ctree_cost = cost
-            ctree_key  = ctree.key(join_field, join_id.toString)
+            ctree_key  = ctree.key(join_field, join_id.toString, null)
 
             CTreeCache.retrieve(worker, ctree, ctree_key, this)
             return
