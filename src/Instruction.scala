@@ -57,7 +57,7 @@ trait Instruction {
   def unroll() : Unit = {
     latch += 1
 
-    if (latch < 1 + next.length)
+    if (latch != 1 + next.length)
       return
 
     if (prev != null)
