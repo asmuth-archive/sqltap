@@ -98,8 +98,6 @@ object SQLTap{
     Statistics.update_async()
     load_config()
 
-    ExpirationHandler.worker.start()
-
     (new Server(CONFIG('threads).toInt))
       .run(CONFIG('http_port).toInt)
 

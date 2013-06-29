@@ -7,9 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-object ExpirationHandler extends ReadyCallback[Record] {
-
-  val worker = new Worker()
+class ExpirationHandler(worker: Worker) extends ReadyCallback[Record] {
 
   def expire(resource_name: String, record_id: Int) : Unit = {
     if (!SQLTap.manifest.contains(resource_name))
@@ -24,7 +22,7 @@ object ExpirationHandler extends ReadyCallback[Record] {
     val job = new RecordLookupJob(resource)
     job.attach(this)
 
-    synchronized {
+    worker.synchronized {
       job.execute(worker, record_id)
     }
   }
