@@ -10,9 +10,7 @@ package com.paulasmuth.sqltap
 trait CTreeInstruction extends Instruction {
   var ctree : CTree       = null
   var ctree_cost          = 0
-  var ctree_wait          = false
   var ctree_store         = false
-  var ctree_try           = true
   var ctree_key : String  = null
 
   override def ready() : Unit = {
@@ -23,15 +21,15 @@ trait CTreeInstruction extends Instruction {
   }
 
   def ctree_ready(worker: Worker) : Unit = {
-    ctree_wait = false
+    if (ctree_cost > -100) {
+      ctree_store = true
+
+      if (!finished)
+        InstructionFactory.expand_query(ctree.stack.head, this)
+    }
 
     if (finished)
       return
-
-    if (ctree_cost > -100) {
-      InstructionFactory.expand_query(ctree.stack.head, this)
-      ctree_store = true
-    }
 
     execute(worker)
     CTreeCache.flush(worker)

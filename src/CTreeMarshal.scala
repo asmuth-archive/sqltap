@@ -133,8 +133,6 @@ object CTreeMarshal {
             }
 
             case ins: FindSingleInstruction => {
-              ins.ctree_try = false
-
               if (ins.fields.length == 0) {
                 ins.cancel(worker)
               }
@@ -189,7 +187,6 @@ object CTreeMarshal {
               if (len > 0)
                 nxt match {
                   case multi_ins: FindMultiInstruction => {
-                    multi_ins.ctree_try = false
                     multi_ins.expanded = true
 
                     for (cfield <- nxt.next.head.record.fields)

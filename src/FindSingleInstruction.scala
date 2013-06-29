@@ -98,7 +98,6 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
             state = INS_STATE_CTREE
 
             ctree      = _ctree
-            ctree_wait = true
             ctree_cost = cost
             ctree_key  = ctree.key(join_field, join_id.toString, null)
 
