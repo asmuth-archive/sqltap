@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 
 object InstructionFactory {
 
-  private def copy(src: Instruction) : Instruction = {
+  def copy(src: Instruction) : Instruction = {
     var cpy = make(src.args)
     cpy.fields = src.fields.clone()
     cpy.relation = src.relation
@@ -26,12 +26,39 @@ object InstructionFactory {
     par.next = par.next :+ cld
   }
 
-  def deep_copy(src: Instruction, dst: Instruction) : Unit =
+  def deep_copy(src: Instruction, dst: Instruction) : Unit = {
     for (nxt <- src.next) {
       var cpy = copy(nxt)
       link(dst, cpy)
       deep_copy(nxt, cpy)
     }
+  }
+
+  def expand_query(left: Instruction, right: Instruction) : Unit = {
+    var score = 0
+    var cost  = 0
+
+    for (lfield <- left.fields)
+      if (!right.record.has_field(lfield))
+        right.fields += lfield
+
+    for (rins <- right.next) {
+      var found = false
+      var n     = left.next.length
+
+      while (n > 0 && !found) {
+        n -= 1
+
+        val lins = left.next(n)
+
+        if (lins.compare(rins)) {
+          found = true
+
+          expand_query(lins, rins)
+        }
+      }
+    }
+  }
 
   def make(args: ListBuffer[String]) : Instruction = {
     var ins : Instruction = null
@@ -93,7 +120,5 @@ object InstructionFactory {
 
     return ins
   }
-
-
 
 }

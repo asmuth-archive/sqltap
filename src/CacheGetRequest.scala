@@ -22,7 +22,7 @@ class CacheGetRequest(_key: String) extends CacheRequest {
     if (buffer != null) {
       val ctree_buf = new CTreeBuffer(buffer)
 
-      CTreeCache.load(ctree_buf, instruction, worker)
+      CTreeMarshal.load(ctree_buf, instruction, worker)
       instruction.ctree_ready(worker)
     }
 

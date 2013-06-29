@@ -29,7 +29,7 @@ trait CTreeInstruction extends Instruction {
       return
 
     if (ctree_cost > -100) {
-      CTreeCache.expand_query(ctree, this)
+      InstructionFactory.expand_query(ctree.stack.head, this)
       ctree_store = true
     }
 
