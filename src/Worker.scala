@@ -14,7 +14,6 @@ import java.util.concurrent.{ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
-//   > findsingle instruction + findmulti instruction should be statemachines
 //   > log levels (info, warning, error, critical, fatal)
 //   > memcache proto
 //   > refresh expiration handler

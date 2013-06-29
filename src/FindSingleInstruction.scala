@@ -12,11 +12,12 @@ import com.paulasmuth.sqltap.mysql.{SQLQuery}
 class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
 
   val INS_STATE_INIT = 1
-  val INS_STATE_READY = 2
-  val INS_STATE_CTREE = 3
-  val INS_STATE_QREADY = 4
-  val INS_STATE_QUERY = 5
-  val INS_STATE_DONE = 6
+  val INS_STATE_PREP = 2
+  val INS_STATE_READY = 3
+  val INS_STATE_CTREE = 4
+  val INS_STATE_QREADY = 5
+  val INS_STATE_QUERY = 6
+  val INS_STATE_DONE = 7
 
   val name = "findSingle"
   var state = INS_STATE_INIT
@@ -39,6 +40,11 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
         if (!fields.contains(record.resource.id_field))
           fields += record.resource.id_field
 
+        state = INS_STATE_PREP
+        return execute(worker)
+      }
+
+      case INS_STATE_PREP => {
         if (record.has_id) {
           state = INS_STATE_READY
 
@@ -150,6 +156,5 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
 
     super.ctree_ready(worker)
   }
-
 
 }
