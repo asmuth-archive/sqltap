@@ -7,7 +7,28 @@
 
 package com.paulasmuth.sqltap
 
-class ExpirationJob(worker: Worker, ctree: CTree, record: Record, keys: List[String]) {
+class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record]  {
 
+  var cache_keys : List[String] = null
+
+  def execute(record: Record) = {
+    val fields = RelationTrace.lookup(record.resource.name)
+
+    SQLTap.log_debug(
+      "[EXPIRE] resource '" + record.resource.name + "' with id #" +
+      record.id.toString + " expired")
+
+    cache_keys = fields.map {
+      ctree.key(_, record.id)
+    }
+  }
+
+  def ready(record: Record) : Unit = {
+    execute(record)
+  }
+
+  def error(record: Record, err: Throwable) : Unit = {
+    ()
+  }
 
 }

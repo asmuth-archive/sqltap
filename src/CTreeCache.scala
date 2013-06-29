@@ -38,6 +38,34 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
     worker.cache.flush()
   }
 
+  def expire(resource_name: String, record_id: Int, worker: Worker) : Unit = {
+    if (!SQLTap.manifest.contains(resource_name))
+      throw new ParseException("unknown resource: " + resource_name)
+
+    val ctrees   = CTreeIndex.find(resource_name)
+    val resource = SQLTap.manifest(resource_name)
+    val job      = new RecordLookupJob(worker, resource)
+
+    for (ctree <- ctrees) {
+      job.attach(new ExpirationJob(worker, ctree))
+    }
+
+    job.execute(record_id)
+  }
+
+  def expire(record: Record, worker: Worker) : Unit = {
+    val ctrees = CTreeIndex.find(record.resource.name)
+
+    for (ctree <- ctrees) {
+      val job = new ExpirationJob(worker, ctree)
+      job.execute(record)
+    }
+  }
+
+  def expand_query(ctree: CTree, ins: CTreeInstruction) : Unit = {
+    expand_query(ctree.stack.head, ins)
+  }
+
   def ready(req: CacheRequest) : Unit = {
     req match {
       case get: CacheGetRequest => {
@@ -255,10 +283,6 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
 
       }
     }
-  }
-
-  def expand_query(ctree: CTree, ins: CTreeInstruction) : Unit = {
-    expand_query(ctree.stack.head, ins)
   }
 
   private def expand_query(left: Instruction, right: Instruction) : Unit = {

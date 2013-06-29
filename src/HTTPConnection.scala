@@ -269,8 +269,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     val http_buf = new HTTPWriter(buf)
     buf.clear
 
-    val handler = new ExpirationHandler(worker)
-    handler.expire(args(0), args(1).toInt)
+    CTreeCache.expire(args(0), args(1).toInt, worker)
 
     http_buf.write_status(200)
     http_buf.write_content_length(4)

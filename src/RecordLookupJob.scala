@@ -7,13 +7,14 @@
 
 package com.paulasmuth.sqltap
 
+import scala.collection.mutable.{ListBuffer}
 import com.paulasmuth.sqltap.mysql.{SQLQuery}
 
-class RecordLookupJob(resource: ResourceManifest) extends ReadyCallback[SQLQuery] {
+class RecordLookupJob(worker: Worker, resource: ResourceManifest) extends ReadyCallback[SQLQuery] {
 
-  var callback : ReadyCallback[Record] = null
+  private val callbacks = new ListBuffer[ReadyCallback[Record]]()
 
-  def execute(worker: Worker, record_id: Int) = {
+  def execute(record_id: Int) = {
     val qry = new SQLQuery(
       SQLBuilder.select(resource, resource.id_field, record_id,
         resource.field_names, null, null, null, null))
@@ -22,15 +23,15 @@ class RecordLookupJob(resource: ResourceManifest) extends ReadyCallback[SQLQuery
     worker.sql_pool.execute(qry)
   }
 
-  def attach(_callback: ReadyCallback[Record]) = {
-    callback = _callback
+  def attach(callback: ReadyCallback[Record]) = {
+    callbacks += callback
   }
 
   def ready(qry: SQLQuery) : Unit = {
-    if (callback != null) {
-      val record = new Record(resource)
-      record.load(qry.columns, qry.rows.head)
+    val record = new Record(resource)
+    record.load(qry.columns, qry.rows.head)
 
+    for (callback <- callbacks) {
       callback.ready(record)
     }
   }
