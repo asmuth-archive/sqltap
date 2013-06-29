@@ -26,7 +26,7 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
   def start() : Unit = {
     tik = System.nanoTime
 
-    SQLTap.log_debug("Execute: " + query)
+    Logger.debug("Execute: " + query)
 
     timer = TimeoutScheduler.schedule(
       Config.get('sql_timeout).toInt, this)
@@ -44,7 +44,7 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
     qtime = tok - tik
 
     Statistics.incr('sql_request_time_mean, qtime / 1000000.0)
-    SQLTap.log_debug("Finished (" + (qtime / 1000000.0) + "ms): " + query)
+    Logger.debug("Finished (" + (qtime / 1000000.0) + "ms): " + query)
   }
 
   def error(err: Throwable) : Unit = {

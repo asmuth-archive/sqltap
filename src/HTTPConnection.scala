@@ -74,7 +74,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       }
     } catch {
       case e: Exception => {
-        SQLTap.error("[HTTP] conn error: " + e.toString, false)
+        Logger.error("[HTTP] conn error: " + e.toString, false)
         return close()
       }
     }
@@ -106,8 +106,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       http_error(503, e.toString)
 
     case e: Exception => {
-      SQLTap.error("[HTTP] exception: " + e.toString, false)
-      SQLTap.exception(e, false)
+      Logger.error("[HTTP] exception: " + e.toString, false)
+      Logger.exception(e, false)
       close()
     }
   }

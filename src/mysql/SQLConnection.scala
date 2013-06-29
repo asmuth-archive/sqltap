@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap.mysql
 
-import com.paulasmuth.sqltap.{SQLTap,ExecutionException,Statistics,TimeoutScheduler,TimeoutCallback}
+import com.paulasmuth.sqltap.{Logger,ExecutionException,Statistics,TimeoutScheduler,TimeoutCallback}
 import scala.collection.mutable.{ListBuffer}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
@@ -86,7 +86,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
       sock.finishConnect
     } catch {
       case e: ConnectException => {
-        SQLTap.error("[SQL] connection failed: " + e.toString, false)
+        Logger.error("[SQL] connection failed: " + e.toString, false)
         return close(e)
       }
     }
@@ -98,7 +98,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     val chunk = sock.read(read_buf)
 
     if (chunk <= 0) {
-      SQLTap.error("[SQL] read end of file ", false)
+      Logger.error("[SQL] read end of file ", false)
       close(new ExecutionException("sql connection closed"))
       return
     }
@@ -112,7 +112,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
         cur_seq  = BinaryInteger.read(read_buf.array, 3, 1)
 
         if (cur_len == SQL_MAX_PKT_LEN) {
-          SQLTap.error("[SQL] packets > 16mb are currently not supported", false)
+          Logger.error("[SQL] packets > 16mb are currently not supported", false)
           return close(new ExecutionException(
             "sql packets > 16mb are currently not supported"))
         }
@@ -135,7 +135,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
         next(event, pkt)
       } catch {
         case e: SQLProtocolError => {
-          SQLTap.error("[SQL] protocol error: " + e.toString, false)
+          Logger.error("[SQL] protocol error: " + e.toString, false)
           return close(e)
         }
       }
@@ -150,7 +150,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
       sock.write(write_buf)
     } catch {
       case e: Exception => {
-        SQLTap.error("[SQL] conn error: " + e.toString, false)
+        Logger.error("[SQL] conn error: " + e.toString, false)
         return close(e)
       }
     }
@@ -186,7 +186,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     heartbeat.reset()
   } catch {
     case e: Exception => {
-      SQLTap.error("[SQL] error running timeout: " + e, false)
+      Logger.error("[SQL] error running timeout: " + e, false)
       close(e)
     }
   }
@@ -224,7 +224,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
 
     case SQL_STATE_ACK => {
       if (pkt.size == 1 && (pkt(0) & 0x000000ff) == 0xfe) {
-        SQLTap.log_debug("[SQL] switching to mysql old authentication")
+        Logger.debug("[SQL] switching to mysql old authentication")
 
         state = SQL_STATE_OLDAUTH
         authenticate()
@@ -232,7 +232,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
 
         event.interestOps(SelectionKey.OP_WRITE)
       } else {
-        SQLTap.error("received invalid packet in SQL_STATE_ACK", false)
+        Logger.error("received invalid packet in SQL_STATE_ACK", false)
       }
     }
 
@@ -278,12 +278,12 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_ACK => {
-      SQLTap.log_debug("[SQL] connection established!")
+      Logger.debug("[SQL] connection established!")
       init_session(event)
     }
 
     case SQL_STATE_SINIT => {
-      SQLTap.log_debug("[SQL] connection ready")
+      Logger.debug("[SQL] connection ready")
       idle(event)
     }
 
@@ -310,7 +310,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     val err_msg  = BinaryString.read(pkt, 9, pkt.size - 9)
     val err_code = BinaryInteger.read(pkt, 0, 2)
 
-    SQLTap.error("[SQL] error (" + err_code + "): " + err_msg, false)
+    Logger.error("[SQL] error (" + err_code + "): " + err_msg, false)
 
     close(new ExecutionException(
       "SQL error (" + err_code + "): " + err_msg))

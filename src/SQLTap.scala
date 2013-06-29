@@ -7,9 +7,6 @@
 
 package com.paulasmuth.sqltap
 
-import java.util.Locale
-import java.util.Date
-import java.text.DateFormat
 import java.io.File
 
 object SQLTap{
@@ -71,7 +68,7 @@ object SQLTap{
     }
 
     if (!Config.has_key('config_base)) {
-      log("--config required")
+      Logger.log("--config required")
       println()
 
       return usage(true)
@@ -81,7 +78,7 @@ object SQLTap{
   }
 
   def boot() : Unit = try {
-    SQLTap.log("sqltapd " + VERSION + " booting...")
+    Logger.log("sqltapd " + VERSION + " booting...")
 
     Statistics.update_async()
     Manifest.load(new File(Config.get('config_base)))
@@ -90,7 +87,7 @@ object SQLTap{
     val server = new Server(Config.get('threads).toInt)
     server.run(Config.get('http_port).toInt)
   } catch {
-    case e: Exception => exception(e, true)
+    case e: Exception => Logger.exception(e, true)
   }
 
   def usage(head: Boolean = true) = {
@@ -112,34 +109,6 @@ object SQLTap{
     println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
     println("  -h, --help                  you're reading it...                         ")
     println("  -d, --debug                 debug mode                                   ")
-  }
-
-
-  def log(msg: String) = {
-    val now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG, Locale.FRANCE)
-    println("[" + now.format(new Date()) + "] " + msg)
-  }
-
-  def error(msg: String, fatal: Boolean) : Unit = {
-    log("[ERROR] " + msg)
-
-    if (fatal)
-      System.exit(1)
-  }
-
-  def log_debug(msg: String) : Unit = {
-    if (Config.debug)
-      log("[DEBUG] " + msg)
-  }
-
-  def exception(ex: Throwable, fatal: Boolean) = {
-    error(ex.toString, false)
-
-    for (line <- ex.getStackTrace)
-      log(line.toString)
-
-    if (fatal)
-      System.exit(1)
   }
 
 }

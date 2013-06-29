@@ -42,11 +42,11 @@ class Worker() extends Thread {
   val sql_pool = new SQLConnectionPool(Config.get(), loop)
   val cache    = new CacheAdapter(new StubCache)
 
-  SQLTap.log("worker starting...")
+  Logger.log("worker starting...")
 
   override def run : Unit = while (true) {
     if (!running) {
-      SQLTap.log("worker exiting...")
+      Logger.log("worker exiting...")
       return
     }
 
@@ -56,8 +56,8 @@ class Worker() extends Thread {
       TimeoutScheduler.run()
     } catch {
       case e: Exception => {
-        SQLTap.error("exception while running timeouts", false)
-        SQLTap.exception(e, false)
+        Logger.error("exception while running timeouts", false)
+        Logger.exception(e, false)
       }
     }
 
@@ -96,8 +96,8 @@ class Worker() extends Thread {
 
         } catch {
           case e: Exception => {
-            SQLTap.error("[SQL] exception: " + e.toString, false)
-            SQLTap.exception(e, false)
+            Logger.error("[SQL] exception: " + e.toString, false)
+            Logger.exception(e, false)
             conn.close(e)
           }
         }

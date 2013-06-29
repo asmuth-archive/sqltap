@@ -75,7 +75,7 @@ trait Instruction {
   }
 
   def inspect(lvl: Int = 0) : Unit = {
-    SQLTap.log_debug((" " * (lvl*2)) + "> name: " + name + ", args: [" +
+    Logger.debug((" " * (lvl*2)) + "> name: " + name + ", args: [" +
       (if (args != null && args.size > 0) args.mkString(", ") else "none") + "]")
 
     for (ins <- next)

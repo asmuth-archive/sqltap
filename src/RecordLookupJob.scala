@@ -37,7 +37,7 @@ class RecordLookupJob(worker: Worker, resource: ResourceManifest) extends ReadyC
   }
 
   def error(qry: SQLQuery, err: Throwable) : Unit = {
-    SQLTap.exception(err, false)
+    Logger.exception(err, false)
   }
 
 }

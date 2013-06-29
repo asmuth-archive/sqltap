@@ -25,7 +25,7 @@ class MemcachedPool extends ThreadLocal[MemcachedClient] {
       null
 
     else {
-      SQLTap.log("Connecting to memcached...")
+      Logger.log("Connecting to memcached...")
       new MemcachedClient(AddrUtil.getAddresses(SQLTap.CONFIG('memcached)))
     }
   }

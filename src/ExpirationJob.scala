@@ -14,7 +14,7 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
   def execute(record: Record) = {
     val fields = RelationTrace.lookup(record.resource.name)
 
-    SQLTap.log_debug(
+    Logger.debug(
       "[EXPIRE] resource '" + record.resource.name + "' with id #" +
       record.id.toString + " expired")
 

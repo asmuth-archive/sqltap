@@ -52,7 +52,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   private def finished() : Unit = {
     if (Config.debug)
-      SQLTap.log_debug("Request finished (" +
+      Logger.debug("Request finished (" +
         (((System.nanoTime - stime) / 100000) / 10.0) + "ms): ...")
 
     callback.ready(this)
@@ -66,7 +66,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
     val exception = new ExecutionException(err.toString)
 
     // FIXPAUL: kill all running queries
-    SQLTap.exception(err, false)
+    Logger.exception(err, false)
 
     if (callback != null)
       callback.error(this, exception)

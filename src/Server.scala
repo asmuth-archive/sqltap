@@ -38,8 +38,8 @@ class Server(num_workers : Int) {
         watchdog.run()
       } catch {
         case e: Exception => {
-          SQLTap.error("error running watchdog: " + e.toString, false)
-          SQLTap.exception(e, false)
+          Logger.error("error running watchdog: " + e.toString, false)
+          Logger.exception(e, false)
         }
       }
 
@@ -51,7 +51,7 @@ class Server(num_workers : Int) {
           events.remove()
         }
       } else {
-        SQLTap.log("[CRITICAL] no workers available, sleeping for 500ms")
+        Logger.log("[CRITICAL] no workers available, sleeping for 500ms")
         Thread.sleep(500)
       }
     }

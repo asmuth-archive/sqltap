@@ -54,7 +54,7 @@ class Watchdog(base: Server) {
   }
 
   def kill(worker: Worker, reason: String) : Unit = {
-    SQLTap.error("[WATCHDOG] killing worker: " + reason, false)
+    Logger.error("[WATCHDOG] killing worker: " + reason, false)
     worker.kill()
     base.workers -= worker
   }

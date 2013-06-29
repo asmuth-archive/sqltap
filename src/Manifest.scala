@@ -51,13 +51,13 @@ object Manifest {
 
       for (elem <- resources) {
         val resource = new ResourceManifest(elem)
-        SQLTap.log_debug("Loading resource: " + resource.name)
+        Logger.debug("Loading resource: " + resource.name)
         manifest += ((resource.name, resource))
       }
 
       for (elem <- ctrees) {
         val ctree = new CTree(elem)
-        SQLTap.log_debug("Loading ctree: " + ctree.name)
+        Logger.debug("Loading ctree: " + ctree.name)
       }
     }
 

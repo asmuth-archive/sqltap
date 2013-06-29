@@ -57,7 +57,7 @@ class MemcachedTranscoder extends Transcoder[String] {
     new String(buffer, 0, read_len, "UTF-8")
   } catch {
     case e: Exception => {
-      SQLTap.error("[MEMCACHE] " + e, false)
+      Logger.error("[MEMCACHE] " + e, false)
       throw e
       return "error"
     }
