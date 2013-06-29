@@ -195,7 +195,7 @@ object CTreeMarshal {
                   case _ => ()
                 }
 
-              if (nxt.fields.length == 0)
+              if (nxt.fields.length == 0 || nxt.next.length == 0)
                 nxt.cancel(worker)
             }
           }
