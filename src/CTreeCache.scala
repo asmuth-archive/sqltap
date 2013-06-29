@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 import scala.collection.mutable.{ListBuffer}
 
-object CTreeCache extends ReadyCallback[CacheRequest] {
+object CTreeCache {
 
   def store(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
     val buf       = new ElasticBuffer(65535)
@@ -19,7 +19,6 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
 
     val request = new CacheStoreRequest(key, buf)
     request.worker = worker
-    request.attach(this)
 
     worker.cache.enqueue(request)
     worker.cache.flush()
@@ -29,7 +28,6 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
     val request = new CacheGetRequest(key)
     request.instruction = ins
     request.worker = worker
-    request.attach(this)
 
     worker.cache.enqueue(request)
   }
@@ -66,26 +64,30 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
     expand_query(ctree.stack.head, ins)
   }
 
-  def ready(req: CacheRequest) : Unit = {
-    req match {
-      case get: CacheGetRequest => {
-        get.retrieve match {
-          case Some(buf: ElasticBuffer) => {
-            val ctree_buf = new CTreeBuffer(buf)
-            load(ctree_buf, get.instruction, req.worker)
-            get.instruction.ctree_ready(req.worker)
-          }
-          case None => {
-            get.instruction.ctree_ready(req.worker)
-          }
+  private def expand_query(left: Instruction, right: Instruction) : Unit = {
+    var score = 0
+    var cost  = 0
+
+    for (lfield <- left.fields)
+      if (!right.record.has_field(lfield))
+        right.fields += lfield
+
+    for (rins <- right.next) {
+      var found = false
+      var n     = left.next.length
+
+      while (n > 0 && !found) {
+        n -= 1
+
+        val lins = left.next(n)
+
+        if (lins.compare(rins)) {
+          found = true
+
+          expand_query(lins, rins)
         }
       }
-      case set: CacheStoreRequest => ()
     }
-  }
-
-  def error(req: CacheRequest, err: Throwable) : Unit = {
-    SQLTap.exception(err, false)
   }
 
   private def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
@@ -147,7 +149,7 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
     }
   }
 
-  private def load(buf: CTreeBuffer, ins: Instruction, worker: Worker) : Unit = {
+  def load(buf: CTreeBuffer, ins: Instruction, worker: Worker) : Unit = {
     while (buf.remaining > 0) {
       buf.read_next() match {
 
@@ -281,32 +283,6 @@ object CTreeCache extends ReadyCallback[CacheRequest] {
           }
         }
 
-      }
-    }
-  }
-
-  private def expand_query(left: Instruction, right: Instruction) : Unit = {
-    var score = 0
-    var cost  = 0
-
-    for (lfield <- left.fields)
-      if (!right.record.has_field(lfield))
-        right.fields += lfield
-
-    for (rins <- right.next) {
-      var found = false
-      var n     = left.next.length
-
-      while (n > 0 && !found) {
-        n -= 1
-
-        val lins = left.next(n)
-
-        if (lins.compare(rins)) {
-          found = true
-
-          expand_query(lins, rins)
-        }
       }
     }
   }

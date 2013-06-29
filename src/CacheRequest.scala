@@ -14,13 +14,5 @@ trait CacheRequest {
   var callback : ReadyCallback[CacheRequest] = null
   var worker : Worker = null
 
-  def ready() = {
-    if (callback != null) callback.ready(this)
-  }
-
-  def attach(_callback: ReadyCallback[CacheRequest]) : CacheRequest = {
-    callback = _callback
-    this
-  }
-
+  def ready() : Unit
 }

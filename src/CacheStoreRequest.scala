@@ -12,4 +12,9 @@ import scala.collection.mutable.{ListBuffer}
 class CacheStoreRequest(_key: String, _buf: ElasticBuffer) extends CacheRequest {
   val key : String = _key
   val buffer : ElasticBuffer = _buf
+
+  def ready() : Unit = {
+    ()
+  }
+
 }
