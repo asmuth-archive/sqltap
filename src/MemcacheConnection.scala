@@ -12,7 +12,7 @@ import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
 
-class MemcacheConnection(pool: MemcacheConnectionPool) {
+class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
 
   var hostname  : String  = "127.0.0.1"
   var port      : Int     = 11211
@@ -36,6 +36,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   private val sock = SocketChannel.open()
   sock.configureBlocking(false)
 
+  private var timer = TimeoutScheduler.schedule(1000, this)
   private var requests : List[CacheRequest] = null
 
   def connect() : Unit = {
@@ -45,6 +46,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
     sock.connect(addr)
     state = MC_STATE_CONN
 
+    timer.start()
+
     sock
       .register(pool.loop, SelectionKey.OP_CONNECT)
       .attach(this)
@@ -52,7 +55,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
 
   def execute_mget(keys: List[String], _requests: List[CacheRequest]) : Unit = {
     println("MGET", keys)
-    //requests = _requests
+    requests = _requests
 
     _requests.foreach{_.ready()}
 
@@ -61,7 +64,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
 
   def execute_set(key: String, request: CacheRequest) : Unit = {
     println("SET", key)
-    //requests = List(request)
+    requests = List(request)
 
     request.ready()
     idle(last_event)
@@ -70,6 +73,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   def execute_delete(key: String) : Unit = {
     if (state != MC_STATE_IDLE)
       throw new ExecutionException("memcache connection busy")
+
+    timer.start()
 
     write_buf.clear
     write_buf.put("delete".getBytes)
@@ -165,6 +170,10 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
     Statistics.decr('sql_connections_open)
   }
 
+  def timeout() : Unit = {
+    Logger.error("[Memcache] connection timed out...", false)
+    close()
+  }
 
   private def next(cmd: String) : Unit = {
     state match {
@@ -192,9 +201,11 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   }
 
   private def idle(event: SelectionKey) : Unit = {
+    timer.cancel()
     state = MC_STATE_IDLE
     event.interestOps(0)
     last_event = event
+    requests = null
     pool.ready(this)
   }
 
