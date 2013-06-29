@@ -11,7 +11,7 @@ import scala.collection.mutable.{ListBuffer}
 
 object CTreeCache {
 
-  def store(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
+  def store(worker: Worker, ctree: CTree, key: String, ins: CTreeInstruction) : Unit = {
     val buf       = new ElasticBuffer(65535)
     val ctree_buf = new CTreeBuffer(buf)
 
@@ -24,7 +24,7 @@ object CTreeCache {
     worker.cache.flush()
   }
 
-  def retrieve(ctree: CTree, key: String, ins: CTreeInstruction, worker: Worker) : Unit = {
+  def retrieve(worker: Worker, ctree: CTree, key: String, ins: CTreeInstruction) : Unit = {
     val request = new CacheGetRequest(key)
     request.instruction = ins
     request.worker = worker
@@ -36,7 +36,7 @@ object CTreeCache {
     worker.cache.flush()
   }
 
-  def expire(resource_name: String, record_id: Int, worker: Worker) : Unit = {
+  def expire(worker: Worker, resource_name: String, record_id: Int) : Unit = {
     if (!SQLTap.manifest.contains(resource_name))
       throw new ParseException("unknown resource: " + resource_name)
 
@@ -51,7 +51,7 @@ object CTreeCache {
     job.execute(record_id)
   }
 
-  def expire(record: Record, worker: Worker) : Unit = {
+  def expire(worker: Worker, record: Record) : Unit = {
     val ctrees = CTreeIndex.find(record.resource.name)
 
     for (ctree <- ctrees) {
