@@ -31,6 +31,9 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   def execute(_worker: Worker) : Unit = {
     worker = _worker
 
+    if (finished)
+      state = INS_STATE_DONE
+
     state match {
 
       case INS_STATE_INIT => {
