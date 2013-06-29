@@ -39,10 +39,13 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
     } else if (relation.join_foreign == true) {
       var join_id : Int = 0
 
-      if (conditions == null)
+      if (conditions == null) {
         _conditions = relation.join_cond
-      else if (relation.join_cond != null)
+      }
+
+      else if (relation.join_cond != null) {
         _conditions += " AND " + relation.join_cond
+      }
 
       if (relation.join_field_local == null && prev.record.has_id) {
         join_id = prev.record.id
