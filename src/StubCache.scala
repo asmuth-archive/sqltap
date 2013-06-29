@@ -18,6 +18,7 @@ class StubCache extends CacheBackend {
     for (req <- requests) {
       req match {
         case get: CacheGetRequest => {
+          Logger.debug("[CACHE] retrieve: " + req.key)
           stubcache.get(req.key) match {
             case Some(buf:  ElasticBuffer) => {
               get.buffer = buf.clone()
@@ -26,9 +27,11 @@ class StubCache extends CacheBackend {
           }
         }
         case set: CacheStoreRequest => {
+          Logger.debug("[CACHE] store: " + req.key)
           stubcache.put(req.key, set.buffer)
         }
         case purge: CachePurgeRequest => {
+          Logger.debug("[CACHE] purge: " + req.key)
           stubcache.remove(req.key)
         }
       }

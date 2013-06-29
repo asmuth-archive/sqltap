@@ -19,8 +19,8 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
       "[EXPIRE] resource '" + record.resource.name + "' with id #" +
       record.id.toString + " expired")
 
-    cache_keys = fields.map {
-      ctree.key(_, record.id)
+    cache_keys = fields.map { field =>
+      ctree.key(field, record.get(field))
     }
 
     handler.execute(this)
