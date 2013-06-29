@@ -29,10 +29,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private var stime : Long = 0
 
   private var timer : Timeout = TimeoutScheduler.schedule(
-      SQLTap.CONFIG('http_request_timeout).toInt, this)
+      Config.get('http_request_timeout).toInt, this)
 
   private var idle_timer : Timeout = TimeoutScheduler.schedule(
-      SQLTap.CONFIG('http_idle_timeout).toInt, this)
+      Config.get('http_idle_timeout).toInt, this)
 
   private var seq = 0
 

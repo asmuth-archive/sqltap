@@ -28,7 +28,7 @@ class Query(qry_str: String) extends Instruction {
         "error while parsing query: " + e.toString)
     }
 
-    if (SQLTap.debug)
+    if (Config.debug)
       inspect(0)
 
     etime = etime :+ System.nanoTime

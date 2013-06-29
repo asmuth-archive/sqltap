@@ -51,7 +51,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
   }
 
   private def finished() : Unit = {
-    if (SQLTap.debug)
+    if (Config.debug)
       SQLTap.log_debug("Request finished (" +
         (((System.nanoTime - stime) / 100000) / 10.0) + "ms): ...")
 

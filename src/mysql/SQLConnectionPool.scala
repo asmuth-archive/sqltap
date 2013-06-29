@@ -16,8 +16,11 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
 
   val loop : Selector = _loop
 
-  var max_connections = SQLTap.CONFIG('sql_max_connections).toInt
-  var max_queue_len   = SQLTap.CONFIG('sql_queue_max_len).toInt
+  var max_connections =
+    config.getOrElse('sql_max_connections, "1").toInt
+
+  var max_queue_len =
+    config.getOrElse('sql_queue_max_len, "10").toInt
 
   private val connections      = new ListBuffer[SQLConnection]()
   private val connections_idle = new ListBuffer[SQLConnection]()

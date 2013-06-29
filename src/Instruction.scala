@@ -34,7 +34,7 @@ trait Instruction {
 
   def prepare() : Unit = {
     if (prev == null || prev.name == "root")
-      relation = SQLTap.manifest(resource_name).to_relation
+      relation = Manifest.resource(resource_name).to_relation
     else
       relation = prev.relation.resource.relation(resource_name)
 

@@ -39,7 +39,7 @@ class Worker() extends Thread {
 
   val queue    = new ConcurrentLinkedQueue[SocketChannel]()
   val loop     = SelectorProvider.provider().openSelector()
-  val sql_pool = new SQLConnectionPool(SQLTap.CONFIG, loop)
+  val sql_pool = new SQLConnectionPool(Config.get(), loop)
   val cache    = new CacheAdapter(new StubCache)
 
   SQLTap.log("worker starting...")

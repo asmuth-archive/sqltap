@@ -37,7 +37,7 @@ class DummyResourceRelation(_res: ResourceManifest) extends ResourceRelation {
 class RealResourceRelation(doc: xml.Node) extends ResourceRelation {
   val elem = new XMLHelper(doc)
 
-  val _resource : String =
+  val resource_name : String =
     elem.attr("resource", true)
 
   val name : String = 
@@ -62,6 +62,6 @@ class RealResourceRelation(doc: xml.Node) extends ResourceRelation {
     (elem.attr("join_foreign", false) == "true")
 
   def resource : ResourceManifest =
-    SQLTap.manifest(_resource)
+    Manifest.resource(resource_name)
 }
 

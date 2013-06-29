@@ -37,11 +37,11 @@ object CTreeCache {
   }
 
   def expire(worker: Worker, resource_name: String, record_id: Int) : Unit = {
-    if (!SQLTap.manifest.contains(resource_name))
+    if (!Manifest.has_resource(resource_name))
       throw new ParseException("unknown resource: " + resource_name)
 
     val ctrees   = CTreeIndex.find(resource_name)
-    val resource = SQLTap.manifest(resource_name)
+    val resource = Manifest.resource(resource_name)
     val job      = new RecordLookupJob(worker, resource)
 
     for (ctree <- ctrees) {
