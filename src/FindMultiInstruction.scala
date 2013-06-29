@@ -132,6 +132,9 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
         }
       }
 
+      case INS_STATE_CTREE =>
+        return
+
       case INS_STATE_DONE =>
         return
 

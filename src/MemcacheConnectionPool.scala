@@ -80,6 +80,18 @@ class MemcacheConnectionPool extends CacheBackend {
   private def execute(connection: MemcacheConnection, req: CacheRequest) = {
     req match {
 
+      case get: CacheGetRequest => {
+        println("RETRIEVE", get.key)
+        get.ready()
+        ready(connection)
+      }
+
+      case set: CacheStoreRequest => {
+        println("STORE", set.key)
+        set.ready()
+        ready(connection)
+      }
+
       case purge: CachePurgeRequest => {
         connection.execute_delete(purge.key)
       }

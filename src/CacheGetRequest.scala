@@ -19,6 +19,7 @@ class CacheGetRequest(_key: String) extends CacheRequest {
   }
 
   def ready() : Unit = {
+    println("READY!")
     if (buffer != null) {
       val ctree_buf = new CTreeBuffer(buffer)
 
