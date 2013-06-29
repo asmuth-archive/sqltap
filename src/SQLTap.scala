@@ -25,7 +25,7 @@ import java.io.File
 
 object SQLTap{
 
-  val VERSION = "v0.5.1"
+  val VERSION = "v0.5.2"
 
   def main(args: Array[String]) : Unit = {
     var n = 0
