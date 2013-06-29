@@ -13,21 +13,6 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.{ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.{AtomicInteger}
 
-// TODO
-//   > log levels (info, warning, error, critical, fatal)
-//   > memcache proto
-//   > refresh expiration handler
-//   > optimization: don't store keys in ctree cache but key-indexes
-//   > limit max number of entries in the conn queue
-//   > better error messages for invalid query strings
-//   > bug: pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
-//   > bug: user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
-//   > bug: user.findOne(1) hangs
-//   > bug: user.findAll(1){id,shop.findOne{id}} kills the worker
-//   > bug: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
-//   > ctree stats
-//   > limit max number of concurrent requests per worker
-
 class Worker() extends Thread {
 
   private val TICK = 50
