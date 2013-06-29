@@ -7,5 +7,6 @@
 
 package com.paulasmuth.sqltap
 
-class ExpirationHandler {
+trait ExpirationHandler {
+  def execute(job: ExpirationJob)
 }

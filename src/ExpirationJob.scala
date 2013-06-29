@@ -12,7 +12,8 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
   var cache_keys : List[String] = null
 
   def execute(record: Record) = {
-    val fields = RelationTrace.lookup(record.resource.name)
+    val handler = ExpirationHandlerFactory.get()
+    val fields  = RelationTrace.lookup(record.resource.name)
 
     Logger.debug(
       "[EXPIRE] resource '" + record.resource.name + "' with id #" +
@@ -21,6 +22,8 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
     cache_keys = fields.map {
       ctree.key(_, record.id)
     }
+
+    handler.execute(this)
   }
 
   def ready(record: Record) : Unit = {

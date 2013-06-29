@@ -20,7 +20,8 @@ object Config {
     'sql_timeout          -> "1000",
     'sql_queue_max_len    -> "75",
     'sql_max_connections  -> "25",
-    'threads              -> "4"
+    'threads              -> "4",
+    'expiration_handler   -> "noop"
   )
 
   private val config = HashMap[Symbol,String]()

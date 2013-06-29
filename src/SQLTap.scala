@@ -42,6 +42,9 @@ object SQLTap{
       else if (args(n) == "--mysql-numconns")
         { Config.set('sql_max_connections, args(n+1)); n += 2 }
 
+      else if (args(n) == "--expiration-handler")
+        { Config.set('expiration_handler, args(n+1)); n += 2 }
+
       else if (args(n) == "--memcached-ttl")
         { Config.set('memcached_ttl, args(n+1)); n += 2 }
 
@@ -81,8 +84,14 @@ object SQLTap{
     Logger.log("sqltapd " + VERSION + " booting...")
 
     Statistics.update_async()
-    Manifest.load(new File(Config.get('config_base)))
+
+    Manifest.load(
+      new File(Config.get('config_base)))
+
     RelationTrace.load(Manifest.resources)
+
+    ExpirationHandlerFactory.configure(
+      Config.get('expiration_handler))
 
     val server = new Server(Config.get('threads).toInt)
     server.run(Config.get('http_port).toInt)
@@ -95,20 +104,21 @@ object SQLTap{
       println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
     println("usage: sqltapd [options]                                                   ")
-    println("  -c, --config      <dir>     path to xml config files                     ")
-    println("  -t, --threads     <nuk>     number of worker threads (default: 4)        ")
-    println("  --http            <port>    start http server on this port               ")
-    println("  --mysql-host      <addr>    mysql server hostname                        ")
-    println("  --mysql-port      <port>    mysql server port                            ")
-    println("  --mysql-user      <user>    mysql server username                        ")
-    println("  --mysql-password  <pass>    mysql server password                        ")
-    println("  --mysql-database  <db>      mysql server database (USE ...;)             ")
-    println("  --mysql-queuelen  <num>     max mysql queue size per worker              ")
-    println("  --mysql-numconns  <num>     max number of mysql connections per worker   ")
-    println("  --memcached       <addrs>   comma-seperated memcache servers (host:port) ")
-    println("  --memcached-ttl   <secs>    ttl for memcache keys                        ")
-    println("  -h, --help                  you're reading it...                         ")
-    println("  -d, --debug                 debug mode                                   ")
+    println("  -c, --config         <dir>     path to xml config files                     ")
+    println("  -t, --threads        <num>     number of worker threads (default: 4)        ")
+    println("  --http               <port>    start http server on this port               ")
+    println("  --mysql-host         <addr>    mysql server hostname                        ")
+    println("  --mysql-port         <port>    mysql server port                            ")
+    println("  --mysql-user         <user>    mysql server username                        ")
+    println("  --mysql-password     <pass>    mysql server password                        ")
+    println("  --mysql-database     <db>      mysql server database (USE ...;)             ")
+    println("  --mysql-queuelen     <num>     max mysql queue size per worker              ")
+    println("  --mysql-numconns     <num>     max number of mysql connections per worker   ")
+    println("  --expiration-handler <name>    expiration handler (noop, purge, refresh)    ")
+    println("  --memcached          <addrs>   comma-seperated memcache servers (host:port) ")
+    println("  --memcached-ttl      <secs>    ttl for memcache keys                        ")
+    println("  -h, --help                     you're reading it...                         ")
+    println("  -d, --debug                    debug mode                                   ")
   }
 
 }
