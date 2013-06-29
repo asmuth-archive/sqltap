@@ -28,6 +28,9 @@ class StubCache extends CacheBackend {
         case set: CacheStoreRequest => {
           stubcache.put(req.key, set.buffer)
         }
+        case purge: CachePurgeRequest => {
+          stubcache.remove(req.key)
+        }
       }
 
       req.ready()

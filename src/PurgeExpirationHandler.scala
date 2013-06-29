@@ -7,6 +7,10 @@
 
 package com.paulasmuth.sqltap
 
-trait ExpirationHandler {
-  def execute(job: ExpirationJob) : Unit
+class PurgeExpirationHandler extends ExpirationHandler {
+
+  def execute(job: ExpirationJob) : Unit = {
+    job.get_worker.cache.purge(job.cache_keys)
+  }
+
 }

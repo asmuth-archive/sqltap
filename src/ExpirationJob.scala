@@ -26,6 +26,10 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
     handler.execute(this)
   }
 
+  def get_worker() : Worker = {
+    worker
+  }
+
   def ready(record: Record) : Unit = {
     execute(record)
   }

@@ -14,10 +14,11 @@ import java.util.concurrent.{ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.{AtomicInteger}
 
 // TODO
+//   > findsingle instruction + findmulti instruction should be statemachines
 //   > log levels (info, warning, error, critical, fatal)
 //   > memcache proto
-//   > expiration...
-//   > optimization: don't store keys in memcache but key-indexes
+//   > refresh expiration handler
+//   > optimization: don't store keys in ctree cache but key-indexes
 //   > limit max number of entries in the conn queue
 //   > better error messages for invalid query strings
 //   > bug: pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}

@@ -7,6 +7,13 @@
 
 package com.paulasmuth.sqltap
 
-trait ExpirationHandler {
-  def execute(job: ExpirationJob) : Unit
+import scala.collection.mutable.{ListBuffer}
+
+class CachePurgeRequest(_key: String) extends CacheRequest {
+  val key : String = _key
+
+  def ready() : Unit = {
+    ()
+  }
+
 }

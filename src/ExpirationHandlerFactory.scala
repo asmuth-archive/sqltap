@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 object ExpirationHandlerFactory {
 
-  val handler : ExpirationHandler = null
+  var handler : ExpirationHandler = null
 
   def get() : ExpirationHandler = {
     if (handler == null)
@@ -21,6 +21,12 @@ object ExpirationHandlerFactory {
 
   def configure(name: String) : Unit = {
     name match {
+
+      case "noop" =>
+        handler = new NoopExpirationHandler()
+
+      case "purge" =>
+        handler = new PurgeExpirationHandler()
 
       case _ =>
         throw new ParseException("unknown expiration handler: " + name)

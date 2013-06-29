@@ -28,5 +28,14 @@ class CacheAdapter(backend: CacheBackend) {
     backend.execute(next)
   }
 
+  // purges all keys
+  def purge(keys: List[String]) : Unit = {
+    for (key <- keys) {
+      enqueue(new CachePurgeRequest(key))
+    }
+
+    flush()
+  }
+
 }
 
