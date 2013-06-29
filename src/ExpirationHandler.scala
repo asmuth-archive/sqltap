@@ -7,7 +7,9 @@
 
 package com.paulasmuth.sqltap
 
-object ExpirationHandler {
+object ExpirationHandler extends ReadyCallback[Record] {
+
+  val worker = new Worker()
 
   def expire(resource_name: String, record_id: Int) : Unit = {
     if (!SQLTap.manifest.contains(resource_name))
@@ -16,10 +18,30 @@ object ExpirationHandler {
     val resource = SQLTap.manifest(resource_name)
 
     SQLTap.log_debug(
-      "[EXPIRE] resource '" + resource.name + "' with id #" +
-      record_id.toString + " expired")
+      "[EXPIRE] fetching record '" + resource.name + "' with id #" +
+      record_id.toString)
 
-    println("here be dragons...")
+    val job = new RecordLookupJob(resource)
+    job.attach(this)
+
+    synchronized {
+      job.execute(worker, record_id)
+    }
+  }
+
+  def expire(record: Record) : Unit = {
+    SQLTap.log_debug(
+      "[EXPIRE] resource '" + record.resource.name + "' with id #" +
+      record.id.toString + " expired")
+
+  }
+
+  def ready(record: Record) : Unit = {
+    expire(record)
+  }
+
+  def error(record: Record, err: Throwable) : Unit = {
+    ()
   }
 
 }
