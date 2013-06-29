@@ -11,7 +11,7 @@ import scala.collection.mutable.{ListBuffer}
 
 class MemcacheConnectionPool extends CacheBackend {
 
-  //val MEMCACHE_BATCH_SIZE = 10
+  val MEMCACHE_BATCH_SIZE = 10
 
   var max_connections =
     Config.get('memcache_max_connections).toInt
@@ -22,34 +22,30 @@ class MemcacheConnectionPool extends CacheBackend {
   private val connections      = new ListBuffer[MemcacheConnection]()
   private val connections_idle = new ListBuffer[MemcacheConnection]()
   private val queue            = new ListBuffer[CacheRequest]()
+  private val get_queue        = new ListBuffer[CacheGetRequest]()
 
-  // FIXPAUL: proper batching / mget
   def execute(requests: List[CacheRequest]) : Unit = {
+    if (queue.length >= max_queue_len)
+      throw new TemporaryException("memcache queue is full")
+
     for (request <- requests) {
-      val connection = get
-
-      if (connection == null) {
-        if (queue.length >= max_queue_len)
-          throw new TemporaryException("memcache queue is full")
-
-        request +=: queue
-      } else {
-        execute(connection, request)
+      request match {
+        case get: CacheGetRequest => {
+          get +=: get_queue
+        }
+        case _ => {
+          request +=: queue
+        }
       }
     }
+
+    execute_next()
   }
 
   def ready(connection: MemcacheConnection) : Unit = {
     connections_idle += connection
 
-    val pending = math.min(connections_idle.length, queue.length)
-
-    for (n <- (0 until pending)) {
-      val conn = get()
-
-      if (conn != null)
-        execute(conn, queue.remove(0))
-    }
+    execute_next()
 
     Statistics.incr('memcache_requests_total)
     Statistics.incr('memcache_requests_per_second)
@@ -58,6 +54,40 @@ class MemcacheConnectionPool extends CacheBackend {
   def close(connection: MemcacheConnection) : Unit = {
     connections      -= connection
     connections_idle -= connection
+  }
+
+  private def execute_next() : Unit = {
+    if (get_queue.length == 0 && queue.length == 0) {
+      return
+    }
+
+    val conn = get()
+
+    if (conn == null) {
+      return
+    }
+
+    if (get_queue.length > 0) {
+      execute_batch_get(conn)
+    } else if (queue.length > 0) {
+      execute(conn, queue.remove(0))
+      execute_next()
+    }
+  }
+
+  private def execute_batch_get(conn: MemcacheConnection) : Unit = {
+    val batch = new ListBuffer[CacheGetRequest]()
+    val keys  = new ListBuffer[String]()
+
+    while (get_queue.length > 0 && batch.length < MEMCACHE_BATCH_SIZE) {
+      val req = get_queue.remove(0)
+      keys  += req.key
+      batch += req
+    }
+
+    conn.execute_mget(keys.toList, batch.toList)
+
+    execute_next()
   }
 
   private def get() : MemcacheConnection = {
@@ -80,16 +110,8 @@ class MemcacheConnectionPool extends CacheBackend {
   private def execute(connection: MemcacheConnection, req: CacheRequest) = {
     req match {
 
-      case get: CacheGetRequest => {
-        println("RETRIEVE", get.key)
-        get.ready()
-        ready(connection)
-      }
-
       case set: CacheStoreRequest => {
-        println("STORE", set.key)
-        set.ready()
-        ready(connection)
+        connection.execute_set(req.key, req)
       }
 
       case purge: CachePurgeRequest => {

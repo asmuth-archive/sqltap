@@ -36,6 +36,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
   private val sock = SocketChannel.open()
   sock.configureBlocking(false)
 
+  private var requests : List[CacheRequest] = null
+
   def connect() : Unit = {
     Statistics.incr('memcache_connections_open)
 
@@ -46,6 +48,23 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
     sock
       .register(pool.loop, SelectionKey.OP_CONNECT)
       .attach(this)
+  }
+
+  def execute_mget(keys: List[String], _requests: List[CacheRequest]) : Unit = {
+    println("MGET", keys)
+    //requests = _requests
+
+    _requests.foreach{_.ready()}
+
+    idle(last_event)
+  }
+
+  def execute_set(key: String, request: CacheRequest) : Unit = {
+    println("SET", key)
+    //requests = List(request)
+
+    request.ready()
+    idle(last_event)
   }
 
   def execute_delete(key: String) : Unit = {
@@ -133,8 +152,11 @@ class MemcacheConnection(pool: MemcacheConnectionPool) {
     if (state == MC_STATE_CLOSE)
       return
 
-    //if (cur_qry != null)
-    //  cur_qry.error(err)
+    if (requests != null) {
+      for (req <- requests) {
+        req.ready()
+      }
+    }
 
     state = MC_STATE_CLOSE
 
