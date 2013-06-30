@@ -184,6 +184,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
     }
 
     if (cur < read_buf.position) {
+      println("READ REMAINING")
       read_buf.limit(read_buf.position)
       read_buf.position(cur)
       read_buf.compact()
@@ -279,7 +280,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
         }
 
         if (parts.length != 4) {
-          throw new ExecutionException("[Memcache] protocol error")
+          throw new ExecutionException("[Memcache] protocol error: " + cmd)
         }
 
         for (req <- requests) {
