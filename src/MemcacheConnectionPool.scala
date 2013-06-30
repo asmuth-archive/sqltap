@@ -25,8 +25,14 @@ class MemcacheConnectionPool extends CacheBackend {
   private val get_queue        = new ListBuffer[CacheGetRequest]()
 
   def execute(requests: List[CacheRequest]) : Unit = {
-    if (queue.length >= max_queue_len)
-      throw new TemporaryException("memcache queue is full")
+    if (queue.length >= max_queue_len) {
+      requests.foreach(_.ready())
+
+      Logger.exception(
+        new TemporaryException("memcache queue is full"), false)
+
+      return
+    }
 
     for (request <- requests) {
       request match {
