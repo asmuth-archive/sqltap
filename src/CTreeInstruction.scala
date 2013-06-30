@@ -28,8 +28,10 @@ trait CTreeInstruction extends Instruction {
         InstructionFactory.expand_query(ctree.stack.head, this)
     }
 
-    if (finished)
+    if (finished) {
+      ctree_store = false
       return
+    }
 
     execute(worker)
     CTreeCache.flush(worker)
