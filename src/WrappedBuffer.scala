@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 import java.nio.{ByteBuffer}
 
-class WrappedBuffer(buf: ByteBuffer) {
+class WrappedBuffer(buf: ByteBuffer) extends AbstractWrappedBuffer {
 
   def write(data: Array[Byte]) : Unit = {
     buffer.put(data)
@@ -40,6 +40,10 @@ class WrappedBuffer(buf: ByteBuffer) {
 
     buffer.get(str_buf)
     new String(str_buf, "UTF-8")
+  }
+
+  def remaining() : Int = {
+    buffer.remaining()
   }
 
 }

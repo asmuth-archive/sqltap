@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-class CTreeBuffer(buf: ElasticBuffer) {
+class CTreeBuffer(buf: AbstractWrappedBuffer) {
 
   val T_RES : Int = 1
   val T_FLD : Int = 2

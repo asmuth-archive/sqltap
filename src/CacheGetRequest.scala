@@ -19,6 +19,7 @@ class CacheGetRequest(_key: String) extends CacheRequest {
 
   def ready() : Unit = {
     if (buffer != null) {
+      //val gzip_buf  = new GZIPTranscoder(buffer)
       val ctree_buf = new CTreeBuffer(buffer)
 
       CTreeMarshal.load(ctree_buf, instruction, worker)

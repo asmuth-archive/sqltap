@@ -64,8 +64,4 @@ class ElasticBuffer(initial_capacity: Int) extends WrappedBuffer(null) {
     cbuf
   }
 
-  def remaining() : Int = {
-    buffer.remaining()
-  }
-
 }
