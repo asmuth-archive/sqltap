@@ -11,12 +11,14 @@ import scala.collection.mutable.{ListBuffer}
 
 object CTreeMarshal {
 
+  private val COUNT_KEY = 1337
+
   def serialize(buf: CTreeBuffer, cins: Instruction, qins: Instruction) : Unit = {
     qins match {
 
       case qins_m: CountInstruction => {
         buf.write_header(qins.resource_name)
-        buf.write_field("__count", qins.record.get("__count"))
+        buf.write_field(COUNT_KEY, qins.record.get("__count"))
         buf.write_end()
       }
 
@@ -24,8 +26,10 @@ object CTreeMarshal {
         buf.write_header(qins.resource_name)
 
         for (field <- cins.fields) {
-          if (qins.record.has_field(field))
-            buf.write_field(field, qins.record.get(field))
+          if (qins.record.has_field(field)) {
+            val key = qins.relation.resource.field_to_id(field)
+            buf.write_field(key, qins.record.get(field))
+          }
         }
 
         for (lins <- cins.next) {
@@ -51,8 +55,10 @@ object CTreeMarshal {
         buf.write_header(cins.resource_name)
 
         for (field <- cins.fields) {
-          if (qins.record.has_field(field))
-            buf.write_field(field, qins.record.get(field))
+          if (qins.record.has_field(field)) {
+            val key = qins.relation.resource.field_to_id(field)
+            buf.write_field(key, qins.record.get(field))
+          }
         }
 
         for (lins <- cins.next) {
@@ -107,10 +113,16 @@ object CTreeMarshal {
         }
 
         case buf.T_FLD => {
-          val field = buf.read_string()
+          val key = buf.read_next()
           var value = buf.read_string()
 
           if (ins != null) {
+            val field = if (key == COUNT_KEY) {
+              "__count"
+            } else {
+              ins.record.resource.id_to_field(key)
+            }
+
             ins.record.set(field, value)
             ins.fields -= field
           }

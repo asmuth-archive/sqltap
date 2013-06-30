@@ -21,7 +21,6 @@ class ResourceManifest(doc: xml.Node) {
   if (doc.label != "resource")
     throw new ParseException("xml root must be one or more <resource> elements")
 
-
   val name : String =
     elem.attr("name", true)
 
@@ -38,12 +37,18 @@ class ResourceManifest(doc: xml.Node) {
     ((List[ResourceRelation]() /: (doc \ "relation"))
       (_ :+ new RealResourceRelation(_)))
 
-  val fields =
-    ((List[ResourceField]() /: (doc \ "field"))
-      (_ :+ new ResourceField(_)))
+  var fields = List[ResourceField]()
+  var field_index = List[String]()
 
-  val field_names : List[String] =
-    fields.map(_.name)
+  for (field <- (doc \ "field")) {
+    val res_field = new ResourceField(field)
+    fields = fields :+ res_field
+    field_index = field_index :+ res_field.name
+  }
+
+  val field_names : List[String] = {
+    field_index.toList
+  }
 
   def field(name: String) : ResourceField = {
     fields.find(_.name == name).getOrElse(null)
@@ -53,7 +58,16 @@ class ResourceManifest(doc: xml.Node) {
     relations.find(_.name == name).getOrElse(null)
   }
 
-  def to_relation : ResourceRelation =
+  def to_relation : ResourceRelation = {
     new DummyResourceRelation(this)
+  }
+
+  def field_to_id(name: String) : Int = {
+    field_index.indexOf(name)
+  }
+
+  def id_to_field(id: Int) : String = {
+    field_index(id)
+  }
 
 }

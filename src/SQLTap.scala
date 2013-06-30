@@ -11,17 +11,12 @@ import java.io.File
 
 // TODO
 //   > gzip
-//   > optimization: don't store keys in ctree cache but key-indexes
-//   > limit max number of entries in the conn queue
-//   > limit max number of concurrent requests per worker
 //   > bug: pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
 //   > bug: user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
 //   > bug: user.findOne(1) hangs
 //   > bug: user.findAll(1){id,shop.findOne{id}} kills the worker
 //   > bug: SELECT users.`facebook_url` FROM users WHERE `id` = 1 ORDER BY id DESC; crashes
-//   > ctree stats
 //   > better error messages for invalid query strings
-//   > refresh expiration handler
 
 object SQLTap{
 

@@ -22,12 +22,9 @@ class CTreeBuffer(buf: ElasticBuffer) {
     buf.write(bytes)
   }
 
-  def write_field(name: String, value: String) : Unit = {
+  def write_field(key: Int, value: String) : Unit = {
     buf.write(T_FLD)
-
-    val name_bytes = name.getBytes("UTF-8")
-    buf.write(name_bytes.size)
-    buf.write(name_bytes)
+    buf.write(key)
 
     if (value == null) {
       buf.write(0)
