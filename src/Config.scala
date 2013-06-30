@@ -21,8 +21,8 @@ object Config {
     'sql_queue_max_len        -> "250",
     'sql_max_connections      -> "3",
     'memcache_mode            -> "copy",
-    'memcache_queue_max_len   -> "250",
-    'memcache_max_connections -> "5",
+    'memcache_queue_max_len   -> "500",
+    'memcache_max_connections -> "10",
     'threads                  -> "4",
     'expiration_handler       -> "purge",
     'cache_backend            -> "memcache"

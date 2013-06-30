@@ -212,9 +212,15 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
     if (state == MC_STATE_CLOSE)
       return
 
-    if (requests != null) {
-      for (req <- requests) {
-        req.ready()
+    try {
+      if (requests != null) {
+        for (req <- requests) {
+          req.ready()
+        }
+      }
+    } catch {
+      case e: Exception => {
+        Logger.exception(e, false)
       }
     }
 
