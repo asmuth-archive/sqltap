@@ -13,6 +13,9 @@ class CacheStoreRequest(_key: String, _buf: ElasticBuffer) extends CacheRequest 
   val key : String = _key
   buffer  = _buf
 
+  val gzip_buf  = new GZIPTranscoder(buffer)
+  gzip_buf.encode()
+
   def ready() : Unit = {
     ()
   }

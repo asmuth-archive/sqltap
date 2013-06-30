@@ -12,17 +12,25 @@ import scala.collection.mutable.{ListBuffer}
 class CacheGetRequest(_key: String) extends CacheRequest {
   val key : String = _key
   var instruction : CTreeInstruction = null
+  var fired = false
 
   def retrieve() : Option[ElasticBuffer] = {
     if (buffer == null) None else Some(buffer)
   }
 
   def ready() : Unit = {
-    if (buffer != null) {
-      //val gzip_buf  = new GZIPTranscoder(buffer)
-      val ctree_buf = new CTreeBuffer(buffer)
+    if (fired)
+      return
 
+    fired = true
+
+    if (buffer != null) {
+      val gzip_buf = new GZIPTranscoder(buffer)
+      gzip_buf.decode()
+
+      val ctree_buf = new CTreeBuffer(buffer)
       CTreeMarshal.load(ctree_buf, instruction, worker)
+
       instruction.ctree_ready(worker)
     }
 

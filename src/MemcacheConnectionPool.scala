@@ -91,6 +91,7 @@ class MemcacheConnectionPool extends CacheBackend {
       batch += req
     }
 
+    Logger.debug("[Memcache] mget: " + keys.mkString(", "))
     conn.execute_mget(keys.toList, batch.toList)
 
     execute_next()
@@ -117,10 +118,12 @@ class MemcacheConnectionPool extends CacheBackend {
     req match {
 
       case set: CacheStoreRequest => {
+        Logger.debug("[Memcache] store: " + req.key)
         connection.execute_set(req.key, set)
       }
 
       case purge: CachePurgeRequest => {
+        Logger.debug("[Memcache] delete: " + req.key)
         connection.execute_delete(purge.key)
       }
 
