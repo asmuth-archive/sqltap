@@ -20,8 +20,9 @@ object Config {
     'sql_timeout              -> "1000",
     'sql_queue_max_len        -> "250",
     'sql_max_connections      -> "3",
+    'memcache_mode            -> "copy",
     'memcache_queue_max_len   -> "250",
-    'memcache_max_connections -> "3",
+    'memcache_max_connections -> "5",
     'threads                  -> "4",
     'expiration_handler       -> "purge",
     'cache_backend            -> "memcache"

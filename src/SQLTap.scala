@@ -62,11 +62,17 @@ object SQLTap{
       else if (args(n) == "--cache-backend")
         { Config.set('cache_backend, args(n+1)); n += 2 }
 
-      else if (args(n) == "--memcached-ttl")
-        { Config.set('memcached_ttl, args(n+1)); n += 2 }
+      else if (args(n) == "--memcache-hosts")
+        { Config.set('memcache_hosts, args(n+1)); n += 2 }
 
-      else if (args(n) == "--memcached")
-        { Config.set('memcached, args(n+1)); n += 2 }
+      else if (args(n) == "--memcache-mode")
+        { Config.set('memcache_mode, args(n+1)); n += 2 }
+
+      else if (args(n) == "--memcache-queuelen")
+        { Config.set('memcache_queue_max_len, args(n+1)); n += 2 }
+
+      else if (args(n) == "--memcache-numconns")
+        { Config.set('memcache_max_connections, args(n+1)); n += 2 }
 
       else if ((args(n) == "-t") || (args(n) == "--threads"))
         { Config.set('threads, args(n+1)); n += 2 }
@@ -120,23 +126,25 @@ object SQLTap{
     if (head)
       println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
 
-    println("usage: sqltapd [options]                                                      ")
-    println("  -c, --config         <dir>     path to xml config files                     ")
-    println("  -t, --threads        <num>     number of worker threads (default: 4)        ")
-    println("  --http               <port>    start http server on this port               ")
-    println("  --mysql-host         <addr>    mysql server hostname                        ")
-    println("  --mysql-port         <port>    mysql server port                            ")
-    println("  --mysql-user         <user>    mysql server username                        ")
-    println("  --mysql-password     <pass>    mysql server password                        ")
-    println("  --mysql-database     <db>      mysql server database (USE ...;)             ")
-    println("  --mysql-queuelen     <num>     max mysql queue size per worker              ")
-    println("  --mysql-numconns     <num>     max number of mysql connections per worker   ")
-    println("  --expiration-handler <name>    expiration handler (noop, purge, refresh)    ")
-    println("  --cache-backend      <name>    cache backend (memcache)                     ")
-    println("  --memcached          <addrs>   comma-seperated memcache servers (host:port) ")
-    println("  --memcached-ttl      <secs>    ttl for memcache keys                        ")
-    println("  -h, --help                     you're reading it...                         ")
-    println("  -d, --debug                    debug mode                                   ")
+    println("usage: sqltapd [options]                                                        ")
+    println("  -c, --config           <dir>     path to xml config files                     ")
+    println("  -t, --threads          <num>     number of worker threads (default: 4)        ")
+    println("  --http                 <port>    start http server on this port               ")
+    println("  --mysql-host           <addr>    mysql server hostname                        ")
+    println("  --mysql-port           <port>    mysql server port                            ")
+    println("  --mysql-user           <user>    mysql server username                        ")
+    println("  --mysql-password       <pass>    mysql server password                        ")
+    println("  --mysql-database       <db>      mysql server database (USE ...;)             ")
+    println("  --mysql-queuelen       <num>     max mysql queue size per worker              ")
+    println("  --mysql-numconns       <num>     max number of mysql connections per worker   ")
+    println("  --expiration-handler   <name>    expiration handler (noop, purge, refresh)    ")
+    println("  --cache-backend        <name>    cache backend (memcache)                     ")
+    println("  --memcache-hosts       <addrs>   comma-seperated memcache servers (host:port) ")
+    println("  --memcache-queuelen    <num>     max mysql queue size per worker              ")
+    println("  --memcache-numconns    <num>     max number of mysql connections per worker   ")
+    println("  --memcache-mode        <name>    replication mode (copy, shard)               ")
+    println("  -h, --help                       you're reading it...                         ")
+    println("  -d, --debug                      debug mode                                   ")
   }
 
 }
