@@ -284,7 +284,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
         }
 
         for (req <- requests) {
-          if (req.key == parts(1)) {
+          if (req.buffer == null && req.key == parts(1)) {
             val buf = new ElasticBuffer(65535)
             req.buffer = buf
 
