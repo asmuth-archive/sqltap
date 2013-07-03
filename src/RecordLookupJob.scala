@@ -28,7 +28,7 @@ class RecordLookupJob(worker: Worker, resource: ResourceManifest) extends ReadyC
   }
 
   def ready(qry: SQLQuery) : Unit = {
-    if (qry.rows.head.length == 0)
+    if (qry.rows.length == 0)
       return
 
     val record = new Record(resource)
