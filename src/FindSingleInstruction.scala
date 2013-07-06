@@ -67,6 +67,12 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
           state = INS_STATE_READY
           join_id = join_id_str.toInt
 
+          if (join_id == 0) {
+            state = INS_STATE_DONE
+            next.clear()
+            return cancel(worker)
+          }
+
           if (relation.join_field_remote != null) {
             join_field = relation.join_field_remote
           } else {

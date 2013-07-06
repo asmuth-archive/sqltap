@@ -25,7 +25,7 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
     json_stream.write_array_begin()
 
     for (qry_str <- queries) {
-      val query = new Query(qry_str)
+      val query = new Query(qry_str, ttl)
       query.attach(this)
       query.execute(worker)
     }
@@ -74,8 +74,11 @@ class Request(callback: ReadyCallback[Request]) extends ReadyCallback[Query] {
 
   def add_param(param: String) = {
     if (param.substring(0, 2) == "q=")
-      for (qry <- param.substring(2).split(";"))
-        qry +=: queries
+      if (SQLHelper.is_sql(param.substring(2)))
+        param.substring(2) +=: queries
+      else
+        for (qry <- param.substring(2).split(";"))
+          qry +=: queries
 
     else if (param.substring(0, 4) == "ttl=")
       ttl = param.substring(4).toInt
