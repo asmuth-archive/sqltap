@@ -132,6 +132,9 @@ class JSONWriter(buf: WrappedBuffer) {
     }
 
     else if (cur.name == "rawSQL") {
+      write_meta(cur)
+      write_comma()
+
       if (cur.next.length == 0) {
         write("\"sql\" : []")
       } else {
