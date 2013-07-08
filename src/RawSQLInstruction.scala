@@ -27,11 +27,14 @@ class RawSQLInstruction(qry_str: String, ttl: Int) extends SQLInstruction {
   def ready(query: SQLQuery) : Unit = {
     state = INS_STATE_DONE
 
-    if (query.rows.length == 0) {
-      throw new NotFoundException(this)
-    } else {
-      record = new Record(null)
-      record.load(query.columns, query.rows(0))
+    for (n <- (0 until query.rows.length)) {
+      val ins = new PhiInstruction
+
+      ins.record = new Record(null)
+      ins.record.load(query.columns, query.rows(n))
+
+      ins.prev = this
+      next += ins
     }
 
     finished = true

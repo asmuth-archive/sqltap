@@ -129,7 +129,15 @@ class JSONWriter(buf: WrappedBuffer) {
         write(": [")
         append = "]"
       }
+    }
 
+    else if (cur.name == "rawSQL") {
+      if (cur.next.length == 0) {
+        write("\"sql\" : []")
+      } else {
+        write("\"sql\" : [")
+        append = "]"
+      }
     }
 
     else if (cur.name == "count") {

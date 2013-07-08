@@ -92,9 +92,15 @@ trait Instruction {
   }
 
   def meta() : List[(String,String)] = {
-    List(
-      (("__resource", relation.resource.name))
-    )
+    if (relation == null) {
+      List(
+        (("__resource", "undefined"))
+      )
+    } else {
+      List(
+        (("__resource", relation.resource.name))
+      )
+    }
   }
 
   def compare(other: Instruction) : Boolean = {
