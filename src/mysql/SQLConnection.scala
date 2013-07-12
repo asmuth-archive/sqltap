@@ -277,6 +277,10 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
       idle(event)
     }
 
+    case SQL_STATE_QROW => {
+      // do nothing
+    }
+
     case SQL_STATE_ACK => {
       Logger.debug("[SQL] connection established!")
       init_session(event)
