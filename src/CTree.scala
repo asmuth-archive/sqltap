@@ -46,12 +46,19 @@ class CTree(doc: xml.Node) {
     compare(ins, stack.head)
   }
 
-  // the "score" determines how much of the query tree can be substituted with
-  // the ctree. a score of 0 means that no field in the query can be answered
-  // from the ctree (larger is better)
-  // the "cost" determines how much additional data the ctree contais that is not
-  // required to answer the query which would be unecessarily fetched. a perfect
-  // cost of 0 means no extraneous data is fetched (smaller is better)
+  /**
+   * compares two instructions and computes two "similarity" measures:
+   *
+   * - the "score" determines how much of the query tree can be substituted with
+   * the ctree. a score of 0 means that no field in the query can be answered
+   * from the ctree (larger is better)
+   *
+   * - the "cost" determines how much additional data the ctree contais that is not
+   * required to answer the query which would be unecessarily fetched. a perfect
+   * cost of 0 means no extraneous data is fetched (smaller is better)
+   *
+   * @return a tuple of (score, cost)
+   */
   def compare(left: Instruction, right: Instruction) : (Int, Int) = {
     var score = 0
     var cost  = 0
