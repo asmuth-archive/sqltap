@@ -208,4 +208,14 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
     super.ctree_ready(worker)
   }
 
+  override def ready() : Unit = {
+    if (next.length == 0)
+      ctree_store = false
+
+    if (ctree_store)
+      CTreeCache.store(worker, ctree, ctree_key, this)
+
+    prev.unroll()
+  }
+
 }
