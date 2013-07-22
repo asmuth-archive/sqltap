@@ -27,7 +27,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
   private val MC_STATE_CLOSE      = 8
 
   private val MC_WRITE_BUF_LEN  = 65535
-  private val MC_READ_BUF_LEN   = 65535
+  private val MC_READ_BUF_LEN   = (65535 * 2)
 
   private var state = MC_STATE_INIT
   private var last_event : SelectionKey = null
