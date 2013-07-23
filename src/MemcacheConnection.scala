@@ -27,7 +27,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
   private val MC_STATE_CLOSE      = 8
 
   private val MC_WRITE_BUF_LEN  = 65535
-  private val MC_READ_BUF_LEN   = (65535 * 2)
+  private val MC_READ_BUF_LEN   = (65535 * 8)
 
   private var state = MC_STATE_INIT
   private var last_event : SelectionKey = null
@@ -285,7 +285,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
 
         for (req <- requests) {
           if (req.buffer == null && req.key == parts(1)) {
-            val buf = new ElasticBuffer(65535 * 2)
+            val buf = new ElasticBuffer(65535 * 8)
             req.buffer = buf
 
             cur_buf = buf

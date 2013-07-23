@@ -12,7 +12,7 @@ import scala.collection.mutable.{ListBuffer}
 object CTreeCache {
 
   def store(worker: Worker, ctree: CTree, key: String, ins: CTreeInstruction) : Unit = {
-    val buf       = new ElasticBuffer(65535 * 2)
+    val buf       = new ElasticBuffer(65535 * 8)
     val ctree_buf = new CTreeBuffer(buf)
 
     CTreeMarshal.serialize(ctree_buf, ctree.stack.head, ins)
