@@ -40,7 +40,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
   private val SQL_READ_BUF_LEN   = 65535
 
   private var state : Int = 0
-  private val read_buf = ByteBuffer.allocate(SQL_READ_BUF_LEN)
+  private var read_buf = ByteBuffer.allocate(SQL_READ_BUF_LEN)
   private val write_buf = ByteBuffer.allocate(SQL_WRITE_BUF_LEN)
   write_buf.order(ByteOrder.LITTLE_ENDIAN)
 
@@ -95,6 +95,13 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
   }
 
   def read(event: SelectionKey) : Unit = {
+    if (read_buf.remaining == 0) {
+      val read_buf_realloc = ByteBuffer.allocate(read_buf.capacity * 2)
+      read_buf.flip()
+      read_buf_realloc.put(read_buf)
+      read_buf = read_buf_realloc
+    }
+
     val chunk = sock.read(read_buf)
 
     if (chunk <= 0) {
