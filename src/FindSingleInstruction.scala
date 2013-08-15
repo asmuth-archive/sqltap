@@ -25,8 +25,9 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   var conditions : String = null
   var order      : String = null
 
-  var join_field : String  = null
-  var join_id    : Int     = 0
+  var join_field  : String  = null
+  var join_id     : Int     = 0
+  var allow_empty : Boolean = false
 
   def execute(_worker: Worker) : Unit = {
     worker = _worker
@@ -141,9 +142,10 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   def ready(query: SQLQuery) : Unit = {
     state = INS_STATE_DONE
 
-    if (query.rows.length == 0)
-      throw new NotFoundException(this)
-    else {
+    if (query.rows.length == 0) {
+      if (!allow_empty)
+        throw new NotFoundException(this)
+    } else {
       if (record.fields.length < 2)
         record.load(query.columns, query.rows(0))
       else

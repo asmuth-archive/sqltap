@@ -72,6 +72,15 @@ object InstructionFactory {
           ins.record_id = args(2)
       }
 
+      case "findMaybe" => {
+        ins = new FindSingleInstruction()
+
+        if (args.length == 3)
+          ins.record_id = args(2)
+
+        ins.asInstanceOf[FindSingleInstruction].allow_empty = true
+      }
+
       case "findAll" => {
         ins = new FindMultiInstruction()
 
