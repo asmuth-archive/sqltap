@@ -25,7 +25,7 @@ class Server(num_workers : Int) {
 
   def run(port: Int) : Unit = {
     ssock.configureBlocking(false)
-    ssock.socket().bind(new InetSocketAddress("0.0.0.0", port))
+    ssock.socket().bind(new InetSocketAddress("0.0.0.0", port), 1024)
     ssock.register(loop, SelectionKey.OP_ACCEPT)
 
     while (true) {
