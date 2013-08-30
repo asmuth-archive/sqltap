@@ -27,7 +27,13 @@ class Query(qry_str: String, ttl: Int) extends Instruction {
       try {
         val stack = new InstructionStack()
         stack.push_down(this)
+
         QueryParser.parse(stack, qry_str)
+
+        stack.head match {
+          case q: Query => ()
+          case _ => throw new ExecutionException("unbalanced braces")
+        }
       } catch {
         case e: Exception => throw new ExecutionException(
           "error while parsing query: " + e.toString)

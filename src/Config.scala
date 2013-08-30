@@ -16,7 +16,7 @@ object Config {
   val defaults = HashMap[Symbol, String](
     'http_port                -> "8080",
     'http_request_timeout     -> "2500",
-    'http_idle_timeout        -> "5000",
+    'http_idle_timeout        -> "500",
     'sql_timeout              -> "1000",
     'sql_queue_max_len        -> "250",
     'sql_max_connections      -> "3",
