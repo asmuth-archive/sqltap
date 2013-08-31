@@ -17,6 +17,7 @@ object Config {
     'http_port                -> "8080",
     'http_request_timeout     -> "2500",
     'http_idle_timeout        -> "500",
+    'http_keepalive           -> "true",
     'sql_timeout              -> "1000",
     'sql_queue_max_len        -> "250",
     'sql_max_connections      -> "3",

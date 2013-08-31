@@ -19,7 +19,7 @@ import java.io.File
 
 object SQLTap{
 
-  val VERSION = "v0.7.13"
+  val VERSION = "v0.7.14"
 
   def main(args: Array[String]) : Unit = {
     var n = 0
@@ -67,6 +67,9 @@ object SQLTap{
 
       else if (args(n) == "--memcache-numconns")
         { Config.set('memcache_max_connections, args(n+1)); n += 2 }
+
+      else if (args(n) == "--disable-keepalive")
+        { Config.set('http_keepalive, "false"); n += 1 }
 
       else if ((args(n) == "-t") || (args(n) == "--threads"))
         { Config.set('threads, args(n+1)); n += 2 }
@@ -124,6 +127,7 @@ object SQLTap{
     println("  -c, --config           <dir>     path to xml config files                     ")
     println("  -t, --threads          <num>     number of worker threads (default: 4)        ")
     println("  --http                 <port>    start http server on this port               ")
+    println("  --disable-keepalive             disable http keepalive                       ")
     println("  --mysql-host           <addr>    mysql server hostname                        ")
     println("  --mysql-port           <port>    mysql server port                            ")
     println("  --mysql-user           <user>    mysql server username                        ")

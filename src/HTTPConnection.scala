@@ -193,7 +193,8 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     seq += 1
 
     if (parser.http_version == "1.1")
-      keepalive = true
+      if (Config.get('http_keepalive).equals("true"))
+        keepalive = true
 
     if (route.length >= 1 && route.head == "query")
       execute_request(route.tail)
@@ -294,10 +295,10 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
       return
 
     timer.cancel()
-    state = HTTP_STATE_CLOSE
     last_event.cancel()
     sock.close()
     Statistics.decr('http_connections_open)
+    state = HTTP_STATE_CLOSE
   }
 
   def finish() : Unit = {
