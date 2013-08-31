@@ -41,7 +41,13 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   def read(event: SelectionKey) : Unit = {
     var ready = false
     var eof   = false
-    val chunk = sock.read(buf)
+    var chunk = 0
+
+    try {
+      chunk = sock.read(buf)
+    } catch {
+      case e: java.io.IOException => return close()
+    }
 
     last_event = event
 
@@ -289,6 +295,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     timer.cancel()
     state = HTTP_STATE_CLOSE
+    last_event.cancel()
     sock.close()
     Statistics.decr('http_connections_open)
   }
