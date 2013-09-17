@@ -121,6 +121,14 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
           return cancel(worker)
         }
 
+        // workaround: always prepend the id field, since mysql will respond with a
+        // leading EOF_packet if the first queried field is null
+        if (!fields.contains(record.resource.id_field)) {
+          record.resource.id_field +=: fields
+        }
+
+        state = INS_STATE_QUERY
+
         execute_query(worker,
           SQLBuilder.select(
             relation.resource, join_field, join_id, fields.toList,
@@ -159,6 +167,9 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   }
 
   override def ctree_ready(worker: Worker) : Unit = {
+    if (state != INS_STATE_CTREE)
+      return
+
     state = if (finished)
       INS_STATE_DONE
     else
