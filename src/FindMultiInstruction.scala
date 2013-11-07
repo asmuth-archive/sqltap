@@ -30,7 +30,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
   var expanded   : Boolean = false
 
   var join_id : Int = 0
-  var join_conditions = conditions
+  var join_conditions : String = null
 
   def execute(_worker: Worker) : Unit = {
     worker = _worker
@@ -41,6 +41,8 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
     state match {
 
       case INS_STATE_INIT => {
+        join_conditions = conditions
+
         if (!has_field(record.resource.id_field))
           fields += record.resource.id_field
 
