@@ -332,6 +332,7 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     event.interestOps(0)
     last_event = event
     cur_seq = 0
+    cur_len_cumul = 0
     pool.ready(this)
     heartbeat.start()
   }
