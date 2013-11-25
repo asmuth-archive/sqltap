@@ -219,6 +219,19 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
   }
 
+  def start_binlog(file: String) : Unit = {
+    cur_seq -= 1
+
+    if (state != SQL_STATE_IDLE) {
+      throw new SQLProtocolError("connection busy")
+    }
+
+    println("writing COM_BINLOG_DUMP")
+    write_packet(new PingPacket)
+    last_event.interestOps(SelectionKey.OP_WRITE)
+    state = SQL_STATE_PING
+  }
+
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
 
     // err packet

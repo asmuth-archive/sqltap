@@ -21,6 +21,7 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
 
   def ready(conn: SQLConnection) : Unit = {
     println("start the engines! ;)")
+    conn.start_binlog("")
   }
 
   def close(conn: SQLConnection) : Unit = {
