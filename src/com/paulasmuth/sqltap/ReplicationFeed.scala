@@ -37,7 +37,7 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
 
     while (true) {
       println("SELECT")
-      loop.select(java.lang.Long.MAX_VALUE)
+      loop.select()
       val events = loop.selectedKeys().iterator()
 
       while (events.hasNext) {
