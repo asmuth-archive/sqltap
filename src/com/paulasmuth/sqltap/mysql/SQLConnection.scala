@@ -227,7 +227,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     println("writing COM_BINLOG_DUMP")
-    write_packet(new PingPacket)
+    write_packet(new BinlogDumpPacket(23, "", 0))
     last_event.interestOps(SelectionKey.OP_WRITE)
     state = SQL_STATE_PING
   }
