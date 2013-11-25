@@ -13,8 +13,7 @@ import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
 
-class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
-
+class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   var hostname  : String  = "127.0.0.1"
   var port      : Int     = 3306
   var username  : String  = "root"

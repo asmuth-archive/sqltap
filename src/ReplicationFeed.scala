@@ -7,22 +7,32 @@
 
 package com.paulasmuth.sqltap
 
-import com.paulasmuth.sqltap.mysql.{SQLQuery,SQLConnectionPool}
+import com.paulasmuth.sqltap.mysql.{SQLConnection,AbstractSQLConnectionPool}
 import java.nio.channels.{ServerSocketChannel,SelectionKey,SocketChannel}
 import java.nio.channels.spi.SelectorProvider
-import java.util.concurrent.{ConcurrentLinkedQueue}
-import java.util.concurrent.atomic.{AtomicInteger}
 
 /**
  * The ReplicationFeed thread is responsible only for a single SQL Connection
  * that pulls the binlog event stream from MySQL.
  */
-object ReplicationFeed extends Thread {
+object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
   val loop = SelectorProvider.provider().openSelector()
-
   Logger.log("replication feed starting...")
 
+  def ready(conn: SQLConnection) : Unit = {
+    println("start the engines! ;)")
+  }
+
+  def close(conn: SQLConnection) : Unit = {
+    throw new Exception("SQL connection closed")
+  }
+
+  def busy(conn: SQLConnection) : Unit = ()
+
   override def run : Unit = try {
+    val conn = new SQLConnection(this)
+    conn.configure(Config.get())
+    conn.connect()
 
     while (true) {
       println("SELECT")
@@ -34,9 +44,10 @@ object ReplicationFeed extends Thread {
         events.remove()
 
         if (event.isValid) {
-          val conn = event.asInstanceOf[mysql.SQLConnection]
+          val conn = event.attachment.asInstanceOf[mysql.SQLConnection]
 
           if (event.isConnectable) {
+            println("CONNECTED!")
             conn.ready(event)
           }
 

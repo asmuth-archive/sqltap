@@ -12,7 +12,7 @@ import java.nio.channels.{Selector}
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 
-class SQLConnectionPool(config: Map[Symbol,String], _loop: Selector) {
+class SQLConnectionPool(config: Map[Symbol,String], _loop: Selector) extends AbstractSQLConnectionPool {
 
   val loop : Selector = _loop
 
