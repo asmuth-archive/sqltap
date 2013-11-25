@@ -7,7 +7,7 @@
 
 package com.paulasmuth.sqltap
 
-import com.paulasmuth.sqltap.mysql.{SQLConnection,AbstractSQLConnectionPool}
+import com.paulasmuth.sqltap.mysql.{SQLConnection,AbstractSQLConnectionPool,SQLQuery}
 import java.nio.channels.{ServerSocketChannel,SelectionKey,SocketChannel}
 import java.nio.channels.spi.SelectorProvider
 
@@ -17,11 +17,22 @@ import java.nio.channels.spi.SelectorProvider
  */
 object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
   val loop = SelectorProvider.provider().openSelector()
+  private val query = new SQLQuery("SHOW BINARY LOGS;")
+
   Logger.log("replication feed starting...")
 
   def ready(conn: SQLConnection) : Unit = {
-    println("start the engines! ;)")
-    conn.start_binlog("")
+    if (query.running) {
+      println("qrying")
+      conn.execute(query)
+    } else {
+      val row = query.rows.last
+      val position = row.last.toInt
+      val filename = row.first
+
+      println("start the engines... ;)")
+      conn.start_binlog(filename, position)
+    }
   }
 
   def close(conn: SQLConnection) : Unit = {

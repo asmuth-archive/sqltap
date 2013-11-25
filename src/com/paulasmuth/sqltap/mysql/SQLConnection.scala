@@ -219,7 +219,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
   }
 
-  def start_binlog(file: String) : Unit = {
+  def start_binlog(file: String, position: Int) : Unit = {
     cur_seq -= 1
 
     if (state != SQL_STATE_IDLE) {
@@ -227,7 +227,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     println("writing COM_BINLOG_DUMP")
-    write_packet(new BinlogDumpPacket(23, "", 0))
+    write_packet(new BinlogDumpPacket(23, file, position)) // FIXPAUL server id
     last_event.interestOps(SelectionKey.OP_WRITE)
     state = SQL_STATE_PING
   }

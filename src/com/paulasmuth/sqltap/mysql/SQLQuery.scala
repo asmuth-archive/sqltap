@@ -11,7 +11,7 @@ import com.paulasmuth.sqltap._
 import scala.collection.mutable.ListBuffer
 
 class SQLQuery(query_str: String) extends TimeoutCallback {
-
+  var running  = true
   val query    : String = query_str
   var columns  = new ListBuffer[String]()
   var rows     = new ListBuffer[ListBuffer[String]]()
@@ -36,6 +36,7 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
 
   def ready() : Unit = {
     timer.cancel()
+    running = false
 
     if (callback != null)
       callback.ready(this)
