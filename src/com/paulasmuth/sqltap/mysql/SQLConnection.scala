@@ -221,36 +221,26 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   }
 
   def start_binlog(file: String, position: Int) : Unit = {
-    cur_seq -= 1
+    val pkt = new BinlogDumpPacket(23, file, position) // FIXPAUL server id
 
     if (state != SQL_STATE_IDLE) {
       throw new SQLProtocolError("connection busy")
     }
 
-    println("writing COM_BINLOG_DUMP")
-    write_packet(new BinlogDumpPacket(23, file, position)) // FIXPAUL server id
-    last_event.interestOps(SelectionKey.OP_WRITE)
     state = SQL_STATE_BINLOG
+    cur_seq -= 1
+
+    write_packet(pkt)
+    last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
-
-    // err packet
-    if ((pkt(0) & 0x000000ff) == 0xff)
-      packet_err(event, pkt)
-
-    // ok packet
-    else if ((pkt(0) & 0x000000ff) == 0x00)
-      packet_ok(event, pkt)
-
-    // eof packet
-    else if ((pkt(0) & 0x000000ff) == 0xfe && pkt.size == 5)
-      packet_eof(event, pkt)
-
-    // other packets
-    else
-      packet(event, pkt)
-
+    (pkt(0) & 0x000000ff) match {
+      case 0x00 => packet_ok(event, pkt)
+      case 0xff => packet_err(event, pkt)
+      case 0xfe => if (pkt.size == 5) packet_eof(event, pkt) else packet(event, pkt)
+      case _    => packet(event, pkt)
+    }
   }
 
   private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
@@ -338,7 +328,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_BINLOG => {
-      println("RETRIEVE BINLOG OKAY")
+      println("packet", pkt(0), pkt.length)
     }
 
   }
