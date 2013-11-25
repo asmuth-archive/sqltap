@@ -31,6 +31,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   private val SQL_STATE_QROW    = 8
   private val SQL_STATE_CLOSE   = 9
   private val SQL_STATE_PING    = 10
+  private val SQL_STATE_BINLOG  = 11
 
   // max packet length: 16mb
   private val SQL_MAX_PKT_LEN    = 16777215
@@ -229,7 +230,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     println("writing COM_BINLOG_DUMP")
     write_packet(new BinlogDumpPacket(23, file, position)) // FIXPAUL server id
     last_event.interestOps(SelectionKey.OP_WRITE)
-    state = SQL_STATE_PING
+    state = SQL_STATE_BINLOG
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
@@ -336,6 +337,10 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
       idle(event)
     }
 
+    case SQL_STATE_BINLOG => {
+      println("RETRIEVE BINLOG OKAY")
+    }
+
   }
 
   private def packet_eof(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
@@ -405,7 +410,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     state = SQL_STATE_SINIT
     cur_seq = 0
 
-    write_query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;")
+    write_query("SET @master_binlog_checksum = @@global.binlog_checksum;")
 
     event.interestOps(SelectionKey.OP_WRITE)
   }

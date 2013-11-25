@@ -17,7 +17,7 @@ class BinlogDumpPacket(
   val binlog_file_b = binlog_file.getBytes("UTF-8")
 
   def write(buf: ByteBuffer) : Unit = {
-    buf.put(0x0c.toByte)    // COM_BINLOG_DUMP
+    buf.put(0x12.toByte)    // COM_BINLOG_DUMP
     buf.putInt(binlog_pos)
     buf.putShort(0)         // no flags
     buf.putInt(server_id)
