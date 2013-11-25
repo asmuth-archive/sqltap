@@ -12,7 +12,7 @@ import java.nio.channels.{Selector}
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 
-class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
+class SQLConnectionPool(config: Map[Symbol,String], _loop: Selector) {
 
   val loop : Selector = _loop
 
@@ -83,22 +83,7 @@ class SQLConnectionPool(config: HashMap[Symbol,String], _loop: Selector) {
 
   private def connect() : Unit = {
     val conn = new SQLConnection(this)
-
-    if (config contains 'mysql_host)
-      conn.hostname = config('mysql_host)
-
-    if (config contains 'mysql_port)
-      conn.port = config('mysql_port).toInt
-
-    if (config contains 'mysql_user)
-      conn.username = config('mysql_user)
-
-    if (config contains 'mysql_pass)
-      conn.password = config('mysql_pass)
-
-    if (config contains 'mysql_db)
-      conn.database = config('mysql_db)
-
+    conn.configure(config)
     conn.connect()
     connections += conn
   }

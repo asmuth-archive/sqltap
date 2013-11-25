@@ -104,14 +104,10 @@ object SQLTap{
     Logger.log("sqltapd " + VERSION + " booting...")
 
     Statistics.update_async()
-
-    Manifest.load(
-      new File(Config.get('config_base)))
-
+    Manifest.load(new File(Config.get('config_base)))
     RelationTrace.load(Manifest.resources)
-
-    ExpirationHandlerFactory.configure(
-      Config.get('expiration_handler))
+    ExpirationHandlerFactory.configure(Config.get('expiration_handler))
+    ReplicationFeed.start()
 
     val server = new Server(Config.get('threads).toInt)
     server.run(Config.get('http_port).toInt)

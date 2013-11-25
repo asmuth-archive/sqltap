@@ -198,6 +198,28 @@ class SQLConnection(pool: SQLConnectionPool) extends TimeoutCallback {
     }
   }
 
+  def configure(config: Map[Symbol, String]) : Unit = {
+    if (config contains 'mysql_host) {
+      hostname = config('mysql_host)
+    }
+
+    if (config contains 'mysql_port) {
+      port = config('mysql_port).toInt
+    }
+
+    if (config contains 'mysql_user) {
+      username = config('mysql_user)
+    }
+
+    if (config contains 'mysql_pass) {
+      password = config('mysql_pass)
+    }
+
+    if (config contains 'mysql_db) {
+      database = config('mysql_db)
+    }
+  }
+
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
 
     // err packet

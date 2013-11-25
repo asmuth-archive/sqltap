@@ -40,8 +40,8 @@ object Config {
       defaults.getOrElse(key, null))
   }
 
-  def get() : HashMap[Symbol,String] = {
-    defaults ++ config
+  def get() : Map[Symbol,String] = {
+    (defaults ++ config).toMap
   }
 
   def has_key(key: Symbol) : Boolean = {
