@@ -10,6 +10,7 @@ package com.paulasmuth.sqltap
 import java.io.File
 
 // TODO
+//   > todo: use object pool for ByteBuffer.allocate slabs in ElasticBuffer
 //   > bug: pin.findAllWhere(%22submitter_id%20=%206052621%22,%2010){pinable_id,product.findOne{*}}
 //   > bug: user.findOne(13008){id,images.findOne{*}} vs user.findOne(13008){id,images.findAll(1){*}}
 //   > bug: user.findOne(1) hangs
