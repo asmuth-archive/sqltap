@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap
 
 class NoopExpirationHandler extends ExpirationHandler {
 
-  def execute(job: ExpirationJob) : Unit = {
+  def execute(worker: Worker, key: String) : Unit = {
     ()
   }
 

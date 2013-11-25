@@ -7,10 +7,19 @@
 
 package com.paulasmuth.sqltap
 
+/**
+ * Expires CTree Cache entries by simply purging them from the cache
+ */
 class PurgeExpirationHandler extends ExpirationHandler {
 
-  def execute(job: ExpirationJob) : Unit = {
-    job.get_worker.cache.purge(job.cache_keys)
+  /**
+   * Expires a CTree Cache entry by simply purging it from the cache
+   *
+   * @param worker the current worker thread
+   * @param key    the cache key
+   */
+  def execute(worker: Worker, key: String) : Unit = {
+    worker.cache.purge(List(key))
   }
 
 }

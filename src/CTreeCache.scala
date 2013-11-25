@@ -32,23 +32,38 @@ object CTreeCache {
     worker.cache.enqueue(request)
   }
 
+  /**
+   * Flushes the complete CTreeCache
+   */
   def flush(worker: Worker) : Unit = {
     worker.cache.flush()
   }
 
+  /**
+   * Expires an entry from the CTreeCache
+   *
+   * @param worker the current worker thread
+   * @param record_id the primary id of the resource/record to be expired
+   * @param resource_name the name of the resource to be expired
+   */
   def expire(worker: Worker, resource_name: String, record_id: Int) : Unit = {
     if (!Manifest.has_resource(resource_name))
       throw new ParseException("unknown resource: " + resource_name)
 
     val ctrees   = CTreeIndex.find(resource_name)
     val resource = Manifest.resource(resource_name)
-    val job      = new RecordLookupJob(worker, resource)
+    val lookup   = new RecordLookupJob(worker, resource)
 
     for (ctree <- ctrees) {
-      job.attach(new ExpirationJob(worker, ctree))
+      val expire = new ExpirationJob(worker, ctree)
+      expire.execute(record_id)
+
+      if (expire.pending) {
+        lookup.attach(expire)
+      }
     }
 
-    job.execute(record_id)
+    lookup.execute(record_id)
   }
 
   def expire(worker: Worker, record: Record) : Unit = {

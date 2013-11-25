@@ -29,8 +29,31 @@ class CTree(doc: xml.Node) {
   CTreeIndex.register(this)
   stack.head.inspect()
 
+  /**
+   * Returns the name of the resource this ctree is descendant from
+   *
+   * @return name of the resource
+   */
   def resource_name() : String = {
     stack.head.relation.resource.name
+  }
+
+  /**
+   * Returns the resource this ctree is descendant from
+   *
+   * @return the resource
+   */
+  def resource() : ResourceManifest = {
+    stack.head.relation.resource
+  }
+
+  /**
+   * Returns the relation this ctree is descendant from
+   *
+   * @return the relation
+   */
+  def relation() : ResourceRelation = {
+    stack.head.relation
   }
 
   def key(join_key: String, record_id: String, join_cond: String) : String = {

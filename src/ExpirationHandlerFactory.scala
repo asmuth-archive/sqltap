@@ -9,8 +9,13 @@ package com.paulasmuth.sqltap
 
 object ExpirationHandlerFactory {
 
-  var handler : ExpirationHandler = null
+  private var handler : ExpirationHandler = null
 
+  /**
+   * Returns a new ExpirationHandler
+   *
+   * @return a new ExpirationHandler
+   */
   def get() : ExpirationHandler = {
     if (handler == null)
       throw new ExecutionException(

@@ -14,7 +14,11 @@ class RecordLookupJob(worker: Worker, resource: ResourceManifest) extends ReadyC
 
   private val callbacks = new ListBuffer[ReadyCallback[Record]]()
 
-  def execute(record_id: Int) = {
+  def execute(record_id: Int) : Unit = {
+    if (callbacks.length == 0) {
+      return // RecordLookupJob is a noop without callbacks
+    }
+
     val qry = new SQLQuery(
       SQLBuilder.select(resource, resource.id_field, record_id,
         resource.field_names, null, null, null, null))
