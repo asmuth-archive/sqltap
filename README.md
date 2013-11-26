@@ -15,6 +15,8 @@ of SQL queries that hit the MySQL database by XX%.
 
 SQLTap requires MySQL 5.6+ with Row Based Replication enabled.
 
+### Table of Contents
+
 + [Rationale](#rationale)
 + [Usage](#usage)
 + [Configuration](#configuration)
