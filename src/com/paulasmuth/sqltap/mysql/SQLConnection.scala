@@ -338,6 +338,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
         case e: FormatDescriptionBinlogEvent => bl_format = e
         case e: TableMapBinlogEvent => table_map += ((e.table_id, e))
         case e: UpdateRowsBinlogEvent => e.load(table_map.get(e.table_id).get)
+        case _ => ()
       }
 
       pool.binlog(binlog_event)

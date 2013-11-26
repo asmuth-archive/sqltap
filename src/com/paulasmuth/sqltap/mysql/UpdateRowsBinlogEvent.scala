@@ -23,6 +23,8 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
   def load(table: TableMapBinlogEvent) : Unit = {
     val row = for (col <- 0 until num_cols) yield
       load_column(col, table.column_types(col))
+
+    println(row)
   }
 
   private def load_column(col: Int, column_type: Byte) : String = {
@@ -32,6 +34,7 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
 
     column_type match {
       case 0x01 => "fnord"
+      case _    => "fnord"
     }
   }
 
