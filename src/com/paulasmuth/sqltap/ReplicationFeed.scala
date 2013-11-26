@@ -25,7 +25,7 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
 
   def binlog(event: BinlogEvent) : Unit = event match {
     case evt: UpdateRowsBinlogEvent => {
-      println("UPDATE", evt, evt.table_id, table_map(evt.table_id), evt.num_cols)
+      println("UPDATE", evt, evt.table_id, table_map(evt.table_id), evt.num_cols, table_map(evt.table_id).table_name)
     }
 
     case evt: TableMapBinlogEvent => {

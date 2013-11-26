@@ -28,8 +28,13 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
   val num_cols = num_cols_._1
   cur          = num_cols_._2
 
-  // skip columns-present-bitmap{1,2}
-  cur += ((num_cols + 7) / 8) * 2
+  val columns_present_map1 = BinaryInteger.read(data, cur, (num_cols + 7) / 8)
+  val columns_present_num1 = Integer.bitCount(columns_present_map1)
+  cur += (num_cols + 7) / 8
 
-  
+  val columns_present_map2 = BinaryInteger.read(data, cur, (num_cols + 7) / 8)
+  val columns_present_num2 = Integer.bitCount(columns_present_map2)
+  cur += (num_cols + 7) / 8
+
+  println(columns_present_num1, columns_present_num2)
 }
