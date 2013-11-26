@@ -338,7 +338,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_BINLOG => {
-      println("RETRIEVE BINLOG OKAY")
+      BinlogEventPacket.load(pkt)
     }
 
   }
