@@ -6,35 +6,72 @@
 // the License at: http://opensource.org/licenses/MIT
 
 package com.paulasmuth.sqltap.mysql
+import scala.collection.mutable.{HashMap,ListBuffer}
 
 class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBinlogEvent) extends BinlogEvent {
-  var cur       = 0
-  val timestamp = ts
+  private var cur = 0
 
-  val table_id  = if (fmt.header_length(0x1f) == 6) {
-    cur = 24; BinaryInteger.read(data, 20, 4)
-  } else {
-    cur = 26; BinaryInteger.read(data, 20, 6)
+  val timestamp   = ts
+  val table_id    = read_table_id
+  val flags       = read_flags
+  val extra_data  = read_extra_data
+  val num_cols    = read_num_cols
+  val column_map  = read_column_map
+  val column_set  = Integer.bitCount(column_map)
+  var rows        = new ListBuffer[List[String]]()
+
+  def load(table: TableMapBinlogEvent) : Unit = {
+    val row = for (col <- 0 until num_cols) yield
+      load_column(col, table.column_types(col))
   }
 
-  val flags = BinaryInteger.read(data, cur, 2)
-  cur += 2
+  private def load_column(col: Int, column_type: Byte) : String = {
+    if ((column_map & (1 << col)) == 0) {
+      return null
+    }
 
-  val extra_len  = BinaryInteger.read(data, cur, 2)
-  val extra_data = if (extra_len > 2) BinaryString.read(data, cur + 2, extra_len - 2) else null
-  cur += extra_len
+    column_type match {
+      case 0x01 => "fnord"
+    }
+  }
 
-  private val num_cols_ = LengthEncodedInteger.read(data, cur)
-  val num_cols = num_cols_._1
-  cur          = num_cols_._2
+  private def read_table_id() : Int = {
+    if (fmt.header_length(0x1f) == 6) {
+      cur = 24
+      BinaryInteger.read(data, 20, 4)
+    } else {
+      cur = 26
+      BinaryInteger.read(data, 20, 6)
+    }
+  }
 
-  val columns_present_map1 = BinaryInteger.read(data, cur, (num_cols + 7) / 8)
-  val columns_present_num1 = Integer.bitCount(columns_present_map1)
-  cur += (num_cols + 7) / 8
+  private def read_flags() : Int = {
+    cur += 2
+    BinaryInteger.read(data, cur - 2, 2)
+  }
 
-  val columns_present_map2 = BinaryInteger.read(data, cur, (num_cols + 7) / 8)
-  val columns_present_num2 = Integer.bitCount(columns_present_map2)
-  cur += (num_cols + 7) / 8
+  private def read_extra_data() : String = {
+    val len = BinaryInteger.read(data, cur, 2)
+    cur += len
 
-  println(columns_present_num1, columns_present_num2)
+    if (len > 2) {
+      BinaryString.read(data, cur + 2 - len, len - 2)
+    } else {
+      null
+    }
+  }
+
+  private def read_num_cols() : Int = {
+    val num = LengthEncodedInteger.read(data, cur)
+    cur     = num._2
+    num._1
+  }
+
+  private def read_column_map() : Int = {
+    val len = (num_cols + 7) / 8
+    val map = BinaryInteger.read(data, cur, len)
+    cur    += len
+    map
+  }
+
 }

@@ -10,7 +10,6 @@ package com.paulasmuth.sqltap
 import com.paulasmuth.sqltap.mysql._
 import java.nio.channels.{ServerSocketChannel,SelectionKey,SocketChannel}
 import java.nio.channels.spi.SelectorProvider
-import scala.collection.mutable.HashMap
 
 /**
  * The ReplicationFeed thread is responsible only for a single SQL Connection
@@ -19,17 +18,12 @@ import scala.collection.mutable.HashMap
 object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
   val loop = SelectorProvider.provider().openSelector()
   private val query     = new SQLQuery("SHOW BINARY LOGS;")
-  private val table_map = new HashMap[Int, TableMapBinlogEvent]()
 
   Logger.log("replication feed starting...")
 
   def binlog(event: BinlogEvent) : Unit = event match {
     case evt: UpdateRowsBinlogEvent => {
-      println("UPDATE", evt, evt.table_id, table_map(evt.table_id), evt.num_cols, table_map(evt.table_id).table_name)
-    }
-
-    case evt: TableMapBinlogEvent => {
-      table_map += ((evt.table_id, evt))
+      println("UPDATE", evt, evt.table_id)
     }
 
     case _ => ()

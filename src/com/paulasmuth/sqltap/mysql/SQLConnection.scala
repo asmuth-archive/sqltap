@@ -8,7 +8,7 @@
 package com.paulasmuth.sqltap.mysql
 
 import com.paulasmuth.sqltap.{Logger,ExecutionException,Statistics,TimeoutScheduler,TimeoutCallback}
-import scala.collection.mutable.{ListBuffer}
+import scala.collection.mutable.{ListBuffer,HashMap}
 import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
@@ -51,6 +51,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   private var initial_handshake : HandshakePacket = null
   private var heartbeat = TimeoutScheduler.schedule(5000, this)
   private var bl_format : FormatDescriptionBinlogEvent = null
+  private val table_map = new HashMap[Int, TableMapBinlogEvent]()
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
@@ -331,10 +332,15 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_BINLOG => {
-      BinlogEventPacket.load(pkt, bl_format) match {
+      val binlog_event = BinlogEventPacket.load(pkt, bl_format)
+
+      binlog_event match {
         case e: FormatDescriptionBinlogEvent => bl_format = e
-        case e: BinlogEvent                  => pool.binlog(e)
+        case e: TableMapBinlogEvent => table_map += ((e.table_id, e))
+        case e: UpdateRowsBinlogEvent => e.load(table_map.get(e.table_id).get)
       }
+
+      pool.binlog(binlog_event)
     }
 
   }
