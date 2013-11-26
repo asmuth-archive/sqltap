@@ -235,23 +235,14 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
+    val f = (pkt(0) & 0x000000ff) match {
+      case 0x00 => packet_ok _
+      case 0xff => packet_err _
+      case 0xfe => if (pkt.size == 5) packet_eof _ else packet _
+      case _    => packet _
+    }
 
-    // err packet
-    if ((pkt(0) & 0x000000ff) == 0xff)
-      packet_err(event, pkt)
-
-    // ok packet
-    else if ((pkt(0) & 0x000000ff) == 0x00)
-      packet_ok(event, pkt)
-
-    // eof packet
-    else if ((pkt(0) & 0x000000ff) == 0xfe && pkt.size == 5)
-      packet_eof(event, pkt)
-
-    // other packets
-    else
-      packet(event, pkt)
-
+    f(event, pkt)
   }
 
   private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {

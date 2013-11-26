@@ -4,6 +4,8 @@ SQLTap
 SQLTap is a caching HTTP+JSON <=> MySQL gateway. It fetches nested records from the
 database without using SQL JOIN and parallelizes queries where possible.
 
+SQLTap requires MySQL 5.6+ with Row Based Replication enabled.
+
 ### Rationale
 
 A question that comes up frequently is "Why would I want use a proxy to retrieve records
