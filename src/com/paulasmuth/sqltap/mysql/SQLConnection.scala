@@ -50,6 +50,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   private var last_event : SelectionKey = null
   private var initial_handshake : HandshakePacket = null
   private var heartbeat = TimeoutScheduler.schedule(5000, this)
+  private var bl_format : FormatDescriptionBinlogEvent = null
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
@@ -330,7 +331,10 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_BINLOG => {
-      pool.binlog(BinlogEventPacket.load(pkt))
+      BinlogEventPacket.load(pkt, bl_format) match {
+        case e: FormatDescriptionBinlogEvent => bl_format = e
+        case e: BinlogEvent                  => pool.binlog(e)
+      }
     }
 
   }
