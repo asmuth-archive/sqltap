@@ -13,7 +13,7 @@ SQLTap was created at DaWanda.com, one of Germany's largest ecommerce sites, whe
 of millions of requests per day. It has greatly reduced page render times and has reduced the number
 of SQL queries that hit the MySQL database by XX%.
 
-SQLTap requires MySQL 5.6+ with row based replication enabled.
+SQLTap requires MySQL 5.6+ with Row Based Replication enabled.
 
 ### Table of Contents
 

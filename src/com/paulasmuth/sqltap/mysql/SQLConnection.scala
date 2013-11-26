@@ -50,6 +50,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   private var last_event : SelectionKey = null
   private var initial_handshake : HandshakePacket = null
   private var heartbeat = TimeoutScheduler.schedule(5000, this)
+  private var bl_format : FormatDescriptionBinlogEvent = null
 
   private var cur_seq : Int = 0
   private var cur_len : Int = 0
@@ -221,26 +222,28 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   }
 
   def start_binlog(file: String, position: Int) : Unit = {
-    val pkt = new BinlogDumpPacket(23, file, position) // FIXPAUL server id
+    cur_seq -= 1
 
     if (state != SQL_STATE_IDLE) {
       throw new SQLProtocolError("connection busy")
     }
 
-    state = SQL_STATE_BINLOG
-    cur_seq -= 1
+    Logger.debug("Execute: COM_BINLOG_DUMP")
+    write_packet(new BinlogDumpPacket(42, file, position)) // FIXPAUL server id
 
-    write_packet(pkt)
     last_event.interestOps(SelectionKey.OP_WRITE)
+    state = SQL_STATE_BINLOG
   }
 
   private def next(event: SelectionKey, pkt: Array[Byte]) : Unit = {
-    (pkt(0) & 0x000000ff) match {
-      case 0x00 => packet_ok(event, pkt)
-      case 0xff => packet_err(event, pkt)
-      case 0xfe => if (pkt.size == 5) packet_eof(event, pkt) else packet(event, pkt)
-      case _    => packet(event, pkt)
+    val f = (pkt(0) & 0x000000ff) match {
+      case 0x00 => packet_ok _
+      case 0xff => packet_err _
+      case 0xfe => if (pkt.size == 5) packet_eof _ else packet _
+      case _    => packet _
     }
+
+    f(event, pkt)
   }
 
   private def packet(event: SelectionKey, pkt: Array[Byte]) : Unit = state match {
@@ -328,7 +331,10 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_BINLOG => {
-      println("packet", pkt(0), pkt.length)
+      BinlogEventPacket.load(pkt, bl_format) match {
+        case e: FormatDescriptionBinlogEvent => bl_format = e
+        case e: BinlogEvent                  => pool.binlog(e)
+      }
     }
 
   }
