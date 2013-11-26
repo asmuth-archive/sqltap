@@ -8,7 +8,12 @@
 package com.paulasmuth.sqltap.mysql
 
 class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBinlogEvent) extends BinlogEvent {
+  var cur       = 0
   val timestamp = ts
 
-  println("u-u-u-update!")
+  val table_id  = if (fmt.header_length(0x1f) == 6) {
+    cur = 22;  BinaryInteger.read(data, 18, 4)
+  } else {
+    cur = 24;  BinaryInteger.read(data, 18, 6)
+  }
 }

@@ -21,8 +21,12 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
 
   Logger.log("replication feed starting...")
 
-  def binlog(event: BinlogEvent) : Unit = {
-    //println("received binlog event", event)
+  def binlog(event: BinlogEvent) : Unit = event match {
+    case evt: UpdateRowsBinlogEvent => {
+      println("UPDATE", evt)
+    }
+
+    case _ => ()
   }
 
   def ready(conn: SQLConnection) : Unit = {

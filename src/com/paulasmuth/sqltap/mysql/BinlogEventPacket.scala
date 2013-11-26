@@ -23,8 +23,6 @@ object BinlogEventPacket {
       if ((event_size - ep) > 3) println(new String(data, ep, event_size - ep - 3))
     }*/
 
-    println(log_pos, event_type)
-
     event_type match {
       case 0x0f => new FormatDescriptionBinlogEvent(data, timestamp)
       case 0x1f => new UpdateRowsBinlogEvent(data, timestamp, format)
