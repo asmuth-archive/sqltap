@@ -24,7 +24,7 @@ SQLTap requires MySQL 5.6+ with Row Based Replication enabled.
 + [Query Language](#query-language)
 + [Caching](#caching)
 + [Internals](#internals)
-+ [Examples](#internals)
++ [Examples](#examples)
 + [License](#license)
 
 
