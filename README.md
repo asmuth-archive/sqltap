@@ -4,8 +4,8 @@ SQLTap
 SQLTap is a document-oriented query frontend and cache for MySQL.
 
 You send it requests for complex documents (usually involving "joins" over multiple tables) using a
-HTTP + JSON API. SQLTap rewrites and pipelines these requests and executes them on the backend MySQL
-servers. It caches common data partials in memcached, reducing query latency and database load. This
+HTTP API. SQLTap rewrites and pipelines these requests before executing them on the backend MySQL
+servers. It also caches common data partials in memcached, reducing query latency and database load. This
 is completely transparent to the end user and does not require explicit cache expiration since SQLTap
 acts as a MySQL slave and updates cached data partials when they are changed.
 
