@@ -34,7 +34,7 @@ Rationale
 A question that comes up frequently is "Why would I want use a proxy to retrieve records
 from MySQL rather than accessing it directly"?
 
-SQLTap was created under the name "LoveOS Fast Fetch Service" while re-designing substantial
+SQLTap was created under the name "LoveOS Fast Fetch Service" while re-designing a substantial
 part of the DaWanda.com ecommerce application. The goal was to improve page render times and
 to obviate some of the anti-patterns that are commonly found in ORM-based web apps. These are
 the main reasons that led to the decision:
@@ -49,7 +49,7 @@ the product record.
 The naive way to do this without putting the burden on the database by using an
 expensive join operation is to sequentially execute multiple SQL queries. E.g. first
 retrieve the product record and then retrieve all the image records. This is also what
-some ORMs like ActiveRecord will do by default.
+some ORMs like Rail's ActiveRecord will do by default.
 
 On the other hand, retrieving the records in parallel rather than sequentially can result
 in a huge drop in response time, which is highly desirable for user facing applications.
@@ -85,6 +85,8 @@ SQLTap permits only a subset of SQL to be executed and enforces limits on maximu
 time and result set size. This is to prevent SQL queries that might seem harmless at first,
 but turn out to be a bottleneck as the data set grows.
 
+#### Document Oriented Query Language
+
 Some of the modern web frameworks encourage you to use an ORM for database access. This often
 results in bad code where requests to the sql database are scattered all over the code and
 sometimes even the templates. In these codebases it can get really hard to predict the runtime
@@ -93,17 +95,17 @@ of a method/template and whether it will block.
 Take as an example a helper method that renders one entry in a navigation menu. For each entry
 the helper calls something like "entry.translation" which in turn issues a request to the
 database to retrieve the translation record for this entry. As the number of entries in the
-navigation grows, this would lead to potentially thousands of sql queries being executed just
+navigation grows, this leads to potentially thousands of sql queries being executed just
 to render a simple navigation menu.
 
-The SQLTap query language encourages you to write descriptive queries (you specify what you
-want rather than in which way you want it to be retrieved) and to fetch all required data with
-a single, large query. This will hopefully make applications easier to maintain and less bloated
-in the long term.
+The SQLTap query language encourages you to fetch all required data with only a few but therefore
+large and nested queries (documents). This will hopefully make applications easier to maintain and
+less bloated in the long term.
+
 
 #### Query Optimizations
 
-SQLTap performs some trivial query optimizations (i.e. eliminating redundant queries)
+SQLTap also performs some trivial query optimizations (i.e. eliminating redundant queries)
 
 
 Usage
