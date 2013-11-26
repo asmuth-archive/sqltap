@@ -338,7 +338,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     }
 
     case SQL_STATE_BINLOG => {
-      BinlogEventPacket.load(pkt)
+      pool.binlog(BinlogEventPacket.load(pkt))
     }
 
   }

@@ -71,6 +71,10 @@ class SQLConnectionPool(config: Map[Symbol,String], _loop: Selector) extends Abs
     connections_idle -= connection
   }
 
+  def binlog(event: BinlogEvent) : Unit = {
+    // do nothing
+  }
+
   private def get() : SQLConnection = {
     if (connections.length < max_connections)
       connect()

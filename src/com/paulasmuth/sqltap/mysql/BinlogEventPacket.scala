@@ -9,7 +9,7 @@ package com.paulasmuth.sqltap.mysql
 
 object BinlogEventPacket {
 
-  def load(data: Array[Byte]) : Option[BinlogEvent] = {
+  def load(data: Array[Byte]) : BinlogEvent = {
     val timestamp  = BinaryInteger.read(data, 1, 4)
     val event_type = data(5)
     val server_id  = BinaryInteger.read(data, 6, 4)
@@ -18,8 +18,8 @@ object BinlogEventPacket {
     val flags      = BinaryInteger.read(data, 16, 2)
 
     event_type match {
-      case 0x18 => Some(new UpdateRowsBinlogEvent(data, timestamp))
-      case _    => None
+      case 0x18 => new UpdateRowsBinlogEvent(data, timestamp)
+      case _    => new UnknownBinlogEvent(data, timestamp)
     }
   }
 
