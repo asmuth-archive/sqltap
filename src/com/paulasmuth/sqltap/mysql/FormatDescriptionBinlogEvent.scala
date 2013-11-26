@@ -8,7 +8,18 @@
 package com.paulasmuth.sqltap.mysql
 
 class FormatDescriptionBinlogEvent(data: Array[Byte], ts: Long) extends BinlogEvent {
-  val timestamp = ts
+  val timestamp      = ts
+  val binlog_version = BinaryInteger.read(data, 18, 2)
+  val mysql_version  = BinaryString.read(data, 20, 50)
+  val create_time    = BinaryInteger.read(data, 70, 4)
 
-  System.exit(0)
+  if (data(76) != 19) {
+    throw new Exception(
+      "mysql binlog: event_header_length != 19 in FORMAT_DESCRIPTION_EVENT, " +
+      "maybe unsupported mysql version?")
+  }
+
+  def header_length(event_type: Int) : Int = {
+    data(75 + event_type).toInt
+  }
 }
