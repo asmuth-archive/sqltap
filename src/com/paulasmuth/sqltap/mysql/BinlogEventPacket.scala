@@ -15,7 +15,7 @@ object BinlogEventPacket {
     val server_id  = BinaryInteger.read(data, 6, 4)
     val event_size = BinaryInteger.read(data, 10, 4)
     val log_pos    = BinaryInteger.read(data, 14, 4)
-    val flags      = BinaryInteger.read(data, 16, 2)
+    val flags      = BinaryInteger.read(data, 18, 2)
 
     /*if (event_type == 2) {
       var ep = event_size - 1

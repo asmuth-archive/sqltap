@@ -19,19 +19,17 @@ import scala.collection.mutable.HashMap
 object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
   val loop = SelectorProvider.provider().openSelector()
   private val query     = new SQLQuery("SHOW BINARY LOGS;")
-  private val table_map = new HashMap[Int, String]()
+  private val table_map = new HashMap[Int, TableMapBinlogEvent]()
 
   Logger.log("replication feed starting...")
 
   def binlog(event: BinlogEvent) : Unit = event match {
     case evt: UpdateRowsBinlogEvent => {
-      println("UPDATE", evt, evt.table_id, table_map(evt.table_id))
+      println("UPDATE", evt, evt.table_id, table_map(evt.table_id), evt.num_cols)
     }
 
     case evt: TableMapBinlogEvent => {
-      if (!table_map.contains(evt.table_id)) {
-        table_map += ((evt.table_id, evt.table_name))
-      }
+      table_map += ((evt.table_id, evt))
     }
 
     case _ => ()
