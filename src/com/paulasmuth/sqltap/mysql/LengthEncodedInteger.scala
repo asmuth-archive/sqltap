@@ -36,4 +36,35 @@ object LengthEncodedInteger {
     return value
   }
 
+  def read(data: Array[Byte], pos: Int) : ((Int, Int)) = {
+    var value  : Int = 0
+    var length : Int = 0
+
+    if ((data(pos) & 0x000000ff) < 0xfb) {
+      length = 1
+      value += (data(pos) & 0x000000ff)
+    }
+
+    else if ((data(pos) & 0x000000ff) == 0xfc) {
+      length = 3
+      value += (data(pos + 1) & 0x000000ff)
+      value += (data(pos + 2) & 0x000000ff) << 8
+    }
+
+    else if ((data(pos) & 0x000000ff) == 0xfd) {
+      length = 4
+      value += (data(pos + 1) & 0x000000ff)
+      value += (data(pos + 2) & 0x000000ff) << 8
+      value += (data(pos + 3) & 0x000000ff) << 16
+    }
+
+    else if ((data(pos) & 0x000000ff) == 0xfe)
+      throw new SQLProtocolError("length encoded integer too large!")
+
+    else
+      throw new SQLProtocolError("invalid length encoded integer")
+
+    return ((value, pos + length))
+  }
+
 }

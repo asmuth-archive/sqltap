@@ -12,22 +12,29 @@ class TableMapBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBin
   val timestamp = ts
 
   val table_id  = if (fmt.header_length(0x13) == 6) {
-    cur = 22; BinaryInteger.read(data, 18, 4)
+    cur = 26; BinaryInteger.read(data, 20, 4)
   } else {
-    cur = 24; BinaryInteger.read(data, 18, 6)
+    cur = 28; BinaryInteger.read(data, 20, 6)
   }
 
-  val flags = BinaryInteger.read(data, cur, 2)
-  cur += 2
+  private val schema_name_  = BinaryString.read_null(data, cur + 1)
+  val schema_name  = schema_name_._1
+  cur              = schema_name_._2
 
-  private val schema_name_ = BinaryString.read_null(data, cur + 2)
-  val schema_name = schema_name_._1
-  cur             = schema_name_._2
+  private val table_name_  = BinaryString.read_null(data, cur + 1)
+  val table_name   = table_name_._1
+  cur              = table_name_._2
 
-  private val table_name_ = BinaryString.read_null(data, cur + 1)
-  val table_name  = table_name_._1
-  cur             = table_name_._2
+  private val column_count_ = LengthEncodedInteger.read(data, cur)
+  val column_count = column_count_._1
+  cur              = column_count_._2
 
-  println("tableid", table_id, schema_name, table_name)
+  val column_def  = BinaryString.read(data, cur, column_count)
+  cur            += column_count
 
+  private val column_meta_ = LengthEncodedString.read(data, cur)
+  val column_meta = column_meta_._1
+  cur             = column_meta_._2
+
+  val null_bitmap = BinaryInteger.read(data, cur, (column_count + 7) / 8)
 }
