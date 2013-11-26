@@ -19,10 +19,12 @@ SQLTap requires MySQL 5.6+ with Row Based Replication enabled.
 
 + [Rationale](#rationale)
 + [Usage](#usage)
++ [HTTP API](#http-api)
 + [Configuration](#configuration)
 + [Query Language](#query-language)
 + [Caching](#caching)
 + [Internals](#internals)
++ [Examples](#internals)
 + [License](#license)
 
 
@@ -32,9 +34,10 @@ Rationale
 A question that comes up frequently is "Why would I want use a proxy to retrieve records
 from MySQL rather than accessing it directly"?
 
-SQLTap was created under the name "Fast Fetch Service" while re-designing a substantial
-part of the DaWanda.com ecommerce application. The goal was to improve page render time
-and to obviate some of the anti-patterns that are commonly found in ORM-based web apps.
+SQLTap was created under the name "LoveOS Fast Fetch Service" while re-designing substantial
+part of the DaWanda.com ecommerce application. The goal was to improve page render times and
+to obviate some of the anti-patterns that are commonly found in ORM-based web apps. These are
+the main reasons that led to the decision:
 
 #### Automatic Parallelization
 
@@ -111,13 +114,8 @@ Usage
     ./sqltap --mysql-host localhost --mysql-port 3006 --mysql-user root --mysql-database mydb --http 8080 -c config.xml
 
 
-### Schema and Relations
-
-    mkdir -p config
-    cp project/example_resource.xml config/my_resource.xml
-
-
-### Sending queries
+HTTP API
+--------
 
 retrieve user record id#2342 with all fields:
 
@@ -131,11 +129,22 @@ retrieve user record with id#2342 with all orders and all fields::
 
     /query?q=user.findOne(2342){*,orders.findAll{*}}
 
+you can send multiple queries seperated by semicolon (`;`):
+
+    /query?q=user.findOne(1){*};user.findOne(2){*}
+
+you can repeat a single queries n times using this syntax...
+
+    /query?q=user.findOne($){*}&for=1,2,3
+
+is the same as:
+
+    /query?q=user.findOne(1){*};user.findOne(2){*};user.findOne(3){*}
+
+
 
 Query Language
 --------------
-
-### Instructions
 
 ##### resource.findOne(id){...}
 ##### relation.findOne{...}
@@ -195,38 +204,10 @@ example (count the first 10 valid products):
     products.countAllWhere("is_valid = 1"){}
 
 
-
-### XML Schema
-
-here be dragons
-
-
-### Configuration
+Configuration
+-------------
 
 here be dragons
-
-
-### Installation
-
-You need java and sbt to build SQLTap:
-
-    ./build jar
-
-
-
-### Sending Multiple Queries
-
-you can send multiple queries seperated by semicolon (`;`):
-
-    /query?q=user.findOne(1){*};user.findOne(2){*}
-
-you can repeat a single queries n times using this syntax...
-
-    /query?q=user.findOne($){*}&for=1,2,3
-
-is the same as:
-
-    /query?q=user.findOne(1){*};user.findOne(2){*};user.findOne(3){*}
 
 
 Internals
@@ -258,14 +239,13 @@ Instructions and each CTree query must start with a findOne Instruction.
 
 + All memcache contents are gzipped
 
-Bechmarks
----------
+### Bechmarks
 
 ab / weighttp benchmarks here
 
 
-Example Queries
----------------
+Examples
+--------
 
 Real-life product detail page:
 
