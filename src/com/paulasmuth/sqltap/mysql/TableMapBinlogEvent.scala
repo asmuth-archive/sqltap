@@ -13,6 +13,7 @@ class TableMapBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBin
 
   val timestamp    = ts
   val table_id     = read_table_id
+  val flags        = read_flags
   val schema_name  = read_null_string
   val table_name   = read_null_string
   val column_count = read_column_count

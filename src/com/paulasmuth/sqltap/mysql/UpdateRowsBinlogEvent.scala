@@ -11,30 +11,37 @@ import scala.collection.mutable.{HashMap,ListBuffer}
 class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBinlogEvent) extends BinlogEvent {
   private var cur = 0
 
-  val timestamp   = ts
-  val table_id    = read_table_id
-  val flags       = read_flags
-  val extra_data  = read_extra_data
-  val num_cols    = read_num_cols
-  val column_map  = read_column_map
-  val column_set  = Integer.bitCount(column_map)
-  var rows        = new ListBuffer[List[String]]()
+  var rows         = new ListBuffer[List[String]]()
+  val timestamp    = ts
+  val table_id     = read_table_id
+  val flags        = read_flags
+  val extra_data   = read_extra_data
+  val num_cols     = read_num_cols
+  val column_map1  = read_column_map
+  val column_set1  = Integer.bitCount(column_map1)
+  val column_map2  = read_column_map
+  val column_set2  = Integer.bitCount(column_map2)
 
   def load(table: TableMapBinlogEvent) : Unit = {
+    val null_bitmap = read_int((column_set1 + 7) / 8)
+
     val row = for (col <- 0 until num_cols) yield
       load_column(col, table.column_types(col))
 
-    println(row)
+    println(table.table_name, table.schema_name, row)
   }
 
   private def load_column(col: Int, column_type: Byte) : String = {
-    if ((column_map & (1 << col)) == 0) {
+    if ((column_map1 & (1 << col)) == 0) {
       return null
     }
 
     column_type match {
-      case 0x01 => "fnord"
-      case _    => "fnord"
+      case 0x03 => read_int(4).toString
+
+      case c: Byte => {
+        throw new Exception("unknown mysql column type: " + c.toString)
+      }
     }
   }
 
@@ -75,6 +82,12 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
     val map = BinaryInteger.read(data, cur, len)
     cur    += len
     map
+  }
+
+  private def read_int(bytes: Int) : Int = {
+    val num = BinaryInteger.read(data, cur, bytes)
+    cur += bytes
+    num
   }
 
 }
