@@ -25,6 +25,7 @@ object BinlogEventPacket {
 
     event_type match {
       case 0x0f => new FormatDescriptionBinlogEvent(data, timestamp)
+      case 0x13 => new TableMapBinlogEvent(data, timestamp, format)
       case 0x1f => new UpdateRowsBinlogEvent(data, timestamp, format)
       case _    => new UnknownBinlogEvent(data, timestamp)
     }

@@ -12,8 +12,8 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
   val timestamp = ts
 
   val table_id  = if (fmt.header_length(0x1f) == 6) {
-    cur = 22;  BinaryInteger.read(data, 18, 4)
+    cur = 22; BinaryInteger.read(data, 18, 4)
   } else {
-    cur = 24;  BinaryInteger.read(data, 18, 6)
+    cur = 24; BinaryInteger.read(data, 18, 6)
   }
 }
