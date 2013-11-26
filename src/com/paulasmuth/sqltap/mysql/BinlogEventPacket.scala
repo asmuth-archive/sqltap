@@ -17,8 +17,14 @@ object BinlogEventPacket {
     val log_pos    = BinaryInteger.read(data, 14, 4)
     val flags      = BinaryInteger.read(data, 16, 2)
 
+    /*if (event_type == 2) {
+      var ep = event_size - 1
+      while (data(ep) != '\0') { ep -= 1 }
+      if ((event_size - ep) > 3) println(new String(data, ep, event_size - ep - 3))
+    }*/
+
     event_type match {
-      case 0x18 => new UpdateRowsBinlogEvent(data, timestamp)
+      case 0x1f => new UpdateRowsBinlogEvent(data, timestamp)
       case _    => new UnknownBinlogEvent(data, timestamp)
     }
   }

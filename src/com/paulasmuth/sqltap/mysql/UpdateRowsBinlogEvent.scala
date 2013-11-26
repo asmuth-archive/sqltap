@@ -10,4 +10,5 @@ package com.paulasmuth.sqltap.mysql
 class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long) extends BinlogEvent {
   val timestamp = ts
 
+  println("u-u-u-update!")
 }

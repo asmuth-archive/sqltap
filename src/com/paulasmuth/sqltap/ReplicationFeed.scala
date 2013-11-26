@@ -22,19 +22,17 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
   Logger.log("replication feed starting...")
 
   def binlog(event: BinlogEvent) : Unit = {
-    println("received binlog event", event)
+    //println("received binlog event", event)
   }
 
   def ready(conn: SQLConnection) : Unit = {
     if (query.running) {
-      println("qrying")
       conn.execute(query)
     } else {
       val row = query.rows.last
       val position = row.last.toInt
       val filename = row.first
 
-      println("start the engines... ;)")
       conn.start_binlog(filename, position)
     }
   }
@@ -62,7 +60,6 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
           val conn = event.attachment.asInstanceOf[mysql.SQLConnection]
 
           if (event.isConnectable) {
-            println("CONNECTED!")
             conn.ready(event)
           }
 

@@ -227,8 +227,9 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
       throw new SQLProtocolError("connection busy")
     }
 
-    println("writing COM_BINLOG_DUMP")
-    write_packet(new BinlogDumpPacket(23, file, position)) // FIXPAUL server id
+    Logger.debug("Execute: COM_BINLOG_DUMP")
+    write_packet(new BinlogDumpPacket(42, file, position)) // FIXPAUL server id
+
     last_event.interestOps(SelectionKey.OP_WRITE)
     state = SQL_STATE_BINLOG
   }
