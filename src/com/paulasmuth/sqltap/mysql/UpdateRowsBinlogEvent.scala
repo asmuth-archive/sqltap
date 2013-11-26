@@ -37,6 +37,7 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
     }
 
     column_type match {
+      case 0x01 => read_int(1).toString
       case 0x03 => read_int(4).toString
 
       case c: Byte => {
