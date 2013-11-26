@@ -1,10 +1,33 @@
 SQLTap
 ======
 
-SQLTap is a caching HTTP+JSON <=> MySQL gateway. It fetches nested records from the
-database without using SQL JOIN and parallelizes queries where possible.
+SQLTap is a document-oriented query frontend and cache for MySQL.
 
-### Rationale
+You send it requests for complex documents (usually involving "joins" over multiple tables) using a
+HTTP+JSON API. SQLTap rewrites and pipelines these requests and executes them on the backend MySQL
+servers. It caches common data partials in memcached, reducing query latency and database load. This
+is completely transparent to the end user and does not require explicit cache expiration since SQLTap
+acts as a MySQL slave and updates cached data partials when they are changed.
+
+SQLTap was created at DaWanda.com, one of Germany's largest ecommerce sites, where it serves hundreds
+of millions of requests per day. It has greatly reduced page render times and has reduced the number
+of SQL queries that hit the MySQL database by XX%.
+
+SQLTap requires MySQL 5.6+ with row based replication enabled.
+
+### Table of Contents
+
++ [#Usage](Rationale)
++ [#Usage](Usage)
++ [#Usage](Configuration)
++ [#Usage](Query Language)
++ [#Usage](Caching)
++ [#Usage](Internals)
++ [#Usage](License)
+
+
+Rationale
+---------
 
 A question that comes up frequently is "Why would I want use a proxy to retrieve records
 from MySQL rather than accessing it directly"?
@@ -75,7 +98,7 @@ want rather than in which way you want it to be retrieved) and to fetch all requ
 a single, large query. This will hopefully make applications easier to maintain and less bloated
 in the long term.
 
-#### Query Optimization
+#### Query Optimizations
 
 SQLTap performs some trivial query optimizations (i.e. eliminating redundant queries)
 
@@ -108,6 +131,9 @@ retrieve user record with id#2342 with all orders and all fields::
 
     /query?q=user.findOne(2342){*,orders.findAll{*}}
 
+
+Query Language
+--------------
 
 ### Instructions
 
