@@ -18,18 +18,22 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
   val extra_data   = read_extra_data
   val num_cols     = read_num_cols
   val column_map1  = read_bitmap(num_cols)
-  val column_set1  = bitmap_count(num_cols, column_map1)
   val column_map2  = read_bitmap(num_cols)
-  val column_set2  = bitmap_count(num_cols, column_map2)
 
   def load(table: TableMapBinlogEvent) : Unit = {
     println(data.map{ x => x & 0x000000ff}.toList)
+    println(table.table_name)
 
-    val null_bitmap = read_bitmap(column_set1)
+    val null_bitmap = read_bitmap(num_cols)
+    println(null_bitmap)
 
     val row = for (col <- 0 until num_cols) {
-      val column_value = load_column(col, table.column_types(col))
-      println("READ COL", col, table.column_types(col), cur, column_value)
+      val column_value = bitmap_test(null_bitmap, col) match {
+        case false => load_column(col, table.column_types(col))
+        case true  => null
+      }
+
+      println("READ COL", col, table.column_types(col), cur, column_value, bitmap_test(null_bitmap, col), bitmap_test(column_map1, col))
     }
   }
 
@@ -41,7 +45,6 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
     column_type match {
       case 0x01 => read_int(1).toString
       case 0x03 => read_int(4).toString
-      case 0x07 => read_date()
       case 0x0a => read_date()
       case 0x0c => read_date()
       case 0x0f => read_varchar()
@@ -90,15 +93,17 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
   }
 
   private def read_date() : String = {
-    val len = BinaryInteger.read(data, cur, 1)
-    cur    += 1 + len
+    val len = data(cur) & 0x000000ff
+    //println("DATE LEN", data(cur - 1) & 0x000000ff)
+    //println("DATE LEN", data(cur) & 0x000000ff)
+    //println("DATE LEN", data(cur + 1) & 0x000000ff)
+    cur    += 7
     "date"
   }
 
   private def read_varchar() : String = {
     val str = LengthEncodedString.read(data, cur)
-    println(data(cur), str._1)
-    cur     = str._2 + 1
+    cur     = str._2
     str._1
   }
 
@@ -116,7 +121,7 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
 
   private def bitmap_test(pos: Int, bit: Int) : Boolean = {
     val byte = data(pos + (bit / 8)) & 0x000000ff
-    (byte & (1 << (pos % 8))) > 0
+    (byte & (1 << (bit % 8))) > 0
   }
 
 }
