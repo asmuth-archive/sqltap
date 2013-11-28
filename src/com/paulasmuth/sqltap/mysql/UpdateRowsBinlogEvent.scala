@@ -20,10 +20,12 @@ class UpdateRowsBinlogEvent(d: Array[Byte], ts: Long, fmt: FormatDescriptionBinl
   val column_map2  = read_bitmap(num_cols)
 
   def load(table: TableMapBinlogEvent) : Unit = {
-    println(data.map{ x => x & 0x000000ff}.toList)
-    println(table.table_name)
-    load_row_part(table, column_map1)
-    System.exit(0)
+    if (table.table_name == "products") {
+      println(data.map{ x => x & 0x000000ff}.toList)
+      println(table.table_name)
+      load_row_part(table, column_map1)
+      System.exit(0)
+    }
   }
 
   private def load_row_part(table: TableMapBinlogEvent, colmap: Int) : IndexedSeq[(Int, String)] = {

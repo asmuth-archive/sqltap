@@ -84,6 +84,7 @@ trait RowsBinlogEvent extends BinlogEvent {
   }
 
   def read_varchar() : String = {
+    println("STRLEN: ", data(cur) & 0x000000ff)
     val str = LengthEncodedString.read(data, cur)
     cur     = str._2
     str._1
@@ -100,9 +101,11 @@ trait RowsBinlogEvent extends BinlogEvent {
     old
   }
 
-  def bitmap_count(len: Int, pos: Int) : Int = {
+  def bitmap_count(pos: Int, len: Int) : Int = {
     (0 until (len + 7) / 8).foldLeft(0) {
-      (m, c) => m + Integer.bitCount(data(pos + c) & 0x000000ff)
+      (m, c) => {
+        m + Integer.bitCount(data(pos + c) & 0x000000ff)
+      }
     }
   }
 
