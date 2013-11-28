@@ -23,35 +23,45 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
   def load(table: TableMapBinlogEvent) : Unit = {
     println(data.map{ x => x & 0x000000ff}.toList)
     println(table.table_name)
+    load_row_part(table, column_map1)
+    System.exit(0)
+  }
 
-    val null_bitmap = read_bitmap(num_cols)
-    println(null_bitmap)
+  private def load_row_part(table: TableMapBinlogEvent, colmap: Int) : IndexedSeq[(Int, String)] = {
+    val cols_present = bitmap_count(colmap, num_cols)
+    val null_bitmap  = read_bitmap(cols_present)
+    def test(c: Int) = bitmap_test(colmap, c) && !bitmap_test(null_bitmap, c)
 
-    val row = for (col <- 0 until num_cols) {
-      val column_value = bitmap_test(null_bitmap, col) match {
-        case false => load_column(col, table.column_types(col))
-        case true  => null
+    for (col <- 0 until num_cols)
+      yield (test(col)) match {
+        case true  => ((col, load_column(col, table.column_types(col))))
+        case false => ((col, null))
       }
-
-      println("READ COL", col, table.column_types(col), cur, column_value, bitmap_test(null_bitmap, col), bitmap_test(column_map1, col))
-    }
   }
 
   private def load_column(col: Int, column_type: Byte) : String = {
-    if (!bitmap_test(column_map1, col)) {
-      return null
-    }
-
-    column_type match {
-      case 0x01 => read_int(1).toString
-      case 0x03 => read_int(4).toString
-      case 0x0a => read_date()
-      case 0x0c => read_date()
-      case 0x0f => read_varchar()
+    val x = column_type match {
+      case 0x01 => read_int(1).toString       // 0x01 TINY
+      case 0x02 => read_int(2).toString       // 0x02 SHORT
+      case 0x03 => read_int(4).toString       // 0x03 LONG
+      case 0x04 => read_float(4).toString     // 0x04 FLOAT
+      case 0x05 => read_float(8).toString     // 0x05 DOUBLE
+      case 0x06 => null                       // 0x06 NULL
+      case 0x07 => read_int(4).toString       // 0x07 TIMESTAMP
+      case 0x08 => read_int(8).toString       // 0x08 LONGLONG
+      case 0x09 => read_int(3).toString       // 0x09 INT24
+      case 0x0a => read_date(3)               // 0x0a DATE
+      case 0x0b => read_date(3)               // 0x0b TIME
+      case 0x0c => read_date(8)               // 0x0c DATETIME
+      case 0x0d => read_date(1)               // 0x0d YEAR
+      case 0x0f => read_varchar()             // 0x0f VARCHAR
       case c: Byte => {
         throw new Exception("unknown mysql column type: " + c.toString)
       }
     }
+
+    println("READ COL", cur, col, column_type, x)
+    x
   }
 
   private def read_table_id() : Int = {
@@ -92,19 +102,24 @@ class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionB
     num
   }
 
-  private def read_date() : String = {
-    val len = data(cur) & 0x000000ff
+  private def read_date(len: Int) : String = {
+    //println(java.util.Arrays.copyOfRange(data, cur, cur + 11).toList.map{x=>x&0x000000ff})
     //println("DATE LEN", data(cur - 1) & 0x000000ff)
     //println("DATE LEN", data(cur) & 0x000000ff)
     //println("DATE LEN", data(cur + 1) & 0x000000ff)
-    cur    += 7
-    "date"
+    cur    += len
+    "date" // FIXPAUL
   }
 
   private def read_varchar() : String = {
     val str = LengthEncodedString.read(data, cur)
     cur     = str._2
     str._1
+  }
+
+  private def read_float(len: Int) : Double = {
+    val value = read_int(len)
+    java.lang.Double.longBitsToDouble(value) // FIXPAUL
   }
 
   private def read_bitmap(len: Int) : Integer = {
