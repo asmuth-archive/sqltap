@@ -84,10 +84,10 @@ trait RowsBinlogEvent extends BinlogEvent {
   }
 
   def read_varchar() : String = {
-    println("STRLEN: ", data(cur) & 0x000000ff)
-    val str = LengthEncodedString.read(data, cur)
-    cur     = str._2
-    str._1
+    val len = data(cur) & 0x000000ff
+    val str = BinaryString.read(data, cur + 1, len + 1)
+    cur    += len + 2
+    str
   }
 
   def read_float(len: Int) : Double = {
