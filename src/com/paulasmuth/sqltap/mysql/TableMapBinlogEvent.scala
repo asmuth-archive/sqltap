@@ -18,9 +18,42 @@ class TableMapBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBin
   val table_name   = read_null_string
   val column_count = read_column_count
   val column_types = read_column_types
+  println(data.toList.map(x => x & 0x000000ff))
+  println(table_name)
+  val column_metas = read_column_metas
 
   private def read_column_types() : IndexedSeq[Byte] = {
-    for (c <- 0 until column_count) yield data(cur + c)
+    val types = for (c <- 0 until column_count) yield data(cur + c)
+    cur      += column_count 
+    types
+  }
+
+  private def read_column_metas() : IndexedSeq[Int] = {
+    column_types.map(read_column_meta(_))
+  }
+
+  private def read_column_meta(column_type: Byte) : Int = {
+    val x = column_type match {
+      case 0x01 => 0               // 0x01 TINY
+      case 0x02 => 0               // 0x02 SHORT
+      case 0x03 => 0               // 0x03 LONG
+      case 0x04 => read_int(1)     // 0x04 FLOAT
+      case 0x05 => read_int(1)     // 0x05 DOUBLE
+      case 0x06 => 0               // 0x06 NULL
+      case 0x07 => 0               // 0x07 TIMESTAMP
+      case 0x08 => 0               // 0x08 LONGLONG
+      case 0x09 => 0               // 0x09 INT24
+      case 0x0a => 0               // 0x0a DATE
+      case 0x0b => 0               // 0x0b TIME
+      case 0x0c => 0               // 0x0c DATETIME
+      case 0x0d => 0               // 0x0d YEAR
+      case 0x0f => read_int(2)     // 0x0f VARCHAR
+      case c: Byte => {
+        throw new Exception("unknown mysql column type: " + c.toString)
+      }
+    }
+    println("READ META",column_type, x)
+    x
   }
 
   private def read_table_id() : Int = {
@@ -50,5 +83,12 @@ class TableMapBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBin
     meta_cur  = cur + count._1
     count._1
   }
+
+  def read_int(bytes: Int) : Int = {
+    val num = BinaryInteger.read(data, cur, bytes)
+    cur    += bytes
+    num
+  }
+
 
 }

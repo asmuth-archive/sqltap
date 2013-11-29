@@ -11,7 +11,7 @@ trait RowsBinlogEvent extends BinlogEvent {
   val data : Array[Byte]
   var cur = 0
 
-  def load_column(col: Int, column_type: Byte) : String = {
+  def load_column(col: Int, column_type: Byte, meta: Int) : String = {
     val x = column_type match {
       case 0x01 => read_int(1).toString       // 0x01 TINY
       case 0x02 => read_int(2).toString       // 0x02 SHORT
@@ -26,7 +26,7 @@ trait RowsBinlogEvent extends BinlogEvent {
       case 0x0b => read_date(3)               // 0x0b TIME
       case 0x0c => read_date(8)               // 0x0c DATETIME
       case 0x0d => read_date(1)               // 0x0d YEAR
-      case 0x0f => read_varchar()             // 0x0f VARCHAR
+      case 0x0f => read_varchar(meta)         // 0x0f VARCHAR
       case c: Byte => {
         throw new Exception("unknown mysql column type: " + c.toString)
       }
@@ -83,10 +83,20 @@ trait RowsBinlogEvent extends BinlogEvent {
     "date" // FIXPAUL
   }
 
-  def read_varchar() : String = {
-    val len = data(cur) & 0x000000ff
-    val str = BinaryString.read(data, cur + 1, len + 1)
-    cur    += len + 2
+  def read_varchar(maxlen: Int) : String = {
+    var len = data(cur) & 0x000000ff
+
+    println("STRLEN", len)
+    if (maxlen > 255) {
+      len += (data(cur) & 0x000000ff) << 8
+      println("STRLEN", len)
+      cur += 2
+    } else {
+      cur += 1
+    }
+
+    val str = BinaryString.read(data, cur, len + 1)
+    cur    += len
     str
   }
 
