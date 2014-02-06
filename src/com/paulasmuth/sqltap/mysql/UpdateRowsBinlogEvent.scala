@@ -6,89 +6,38 @@
 // the License at: http://opensource.org/licenses/MIT
 
 package com.paulasmuth.sqltap.mysql
-import scala.collection.mutable.{HashMap,ListBuffer}
+import scala.collection.mutable.{ListBuffer}
 
-class UpdateRowsBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBinlogEvent) extends BinlogEvent {
-  private var cur = 0
-
+class UpdateRowsBinlogEvent(d: Array[Byte], ts: Long, fmt: FormatDescriptionBinlogEvent) extends RowsBinlogEvent {
   var rows         = new ListBuffer[List[String]]()
   val timestamp    = ts
-  val table_id     = read_table_id
+  val data         = d
+  val table_id     = read_table_id(fmt)
   val flags        = read_flags
   val extra_data   = read_extra_data
   val num_cols     = read_num_cols
-  val column_map1  = read_column_map
-  val column_set1  = Integer.bitCount(column_map1)
-  val column_map2  = read_column_map
-  val column_set2  = Integer.bitCount(column_map2)
+  val column_map1  = read_bitmap(num_cols)
+  val column_map2  = read_bitmap(num_cols)
 
   def load(table: TableMapBinlogEvent) : Unit = {
-    val null_bitmap = read_int((column_set1 + 7) / 8)
+    //println(data.map{ x => x & 0x000000ff}.toList)
 
-    val row = for (col <- 0 until num_cols) yield
-      load_column(col, table.column_types(col))
-
-    println(table.table_name, table.schema_name, row)
+    println(data.toList.map{ x => x & 0x000000ff })
+    println(table.table_name, num_cols)
+    load_row_part(table, column_map1)
   }
 
-  private def load_column(col: Int, column_type: Byte) : String = {
-    if ((column_map1 & (1 << col)) == 0) {
-      return null
-    }
+  private def load_row_part(table: TableMapBinlogEvent, colmap: Int) : IndexedSeq[(Int, String)] = {
+    val cols_present = bitmap_count(colmap, num_cols)
+    val null_bitmap  = read_bitmap(cols_present)
+    def test(c: Int) = bitmap_test(colmap, c) && !bitmap_test(null_bitmap, c)
+    def load(c: Int) = load_column(c, table.column_types(c), table.column_metas(c))
 
-    column_type match {
-      case 0x01 => read_int(1).toString
-      case 0x03 => read_int(4).toString
-
-      case c: Byte => {
-        throw new Exception("unknown mysql column type: " + c.toString)
+    for (col <- 0 until num_cols)
+      yield (test(col)) match {
+        case true  => ((col, load(col)))
+        case false => ((col, null))
       }
-    }
-  }
-
-  private def read_table_id() : Int = {
-    if (fmt.header_length(0x1f) == 6) {
-      cur = 24
-      BinaryInteger.read(data, 20, 4)
-    } else {
-      cur = 26
-      BinaryInteger.read(data, 20, 6)
-    }
-  }
-
-  private def read_flags() : Int = {
-    cur += 2
-    BinaryInteger.read(data, cur - 2, 2)
-  }
-
-  private def read_extra_data() : String = {
-    val len = BinaryInteger.read(data, cur, 2)
-    cur += len
-
-    if (len > 2) {
-      BinaryString.read(data, cur + 2 - len, len - 2)
-    } else {
-      null
-    }
-  }
-
-  private def read_num_cols() : Int = {
-    val num = LengthEncodedInteger.read(data, cur)
-    cur     = num._2
-    num._1
-  }
-
-  private def read_column_map() : Int = {
-    val len = (num_cols + 7) / 8
-    val map = BinaryInteger.read(data, cur, len)
-    cur    += len
-    map
-  }
-
-  private def read_int(bytes: Int) : Int = {
-    val num = BinaryInteger.read(data, cur, bytes)
-    cur += bytes
-    num
   }
 
 }
