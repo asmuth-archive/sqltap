@@ -108,10 +108,13 @@ object SQLTap{
     Manifest.load(new File(Config.get('config_base)))
     RelationTrace.load(Manifest.resources)
     ExpirationHandlerFactory.configure(Config.get('expiration_handler))
-    ReplicationFeed.start()
 
-    //val server = new Server(Config.get('threads).toInt)
-    //server.run(Config.get('http_port).toInt)
+    // disable the replication feed for now as I am not convinced it is
+    // stable enough for production yet... ~paul
+    // ReplicationFeed.start()
+
+    val server = new Server(Config.get('threads).toInt)
+    server.run(Config.get('http_port).toInt)
   } catch {
     case e: Exception => Logger.exception(e, true)
   }

@@ -49,7 +49,7 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
 
   override def run : Unit = try {
     val conn = new SQLConnection(this)
-    conn.configure(Config.get())
+    conn.configure(Config.get() + (('binlog, "enable")))
     conn.connect()
 
     while (true) {

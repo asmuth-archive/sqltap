@@ -20,6 +20,7 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
   var password  : String  = ""
   var database  : String  = ""
   var safe_mode : Boolean = false
+  var binlog    : Boolean = false
 
   private val SQL_STATE_SYN     = 1
   private val SQL_STATE_ACK     = 2
@@ -220,6 +221,10 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     if (config contains 'mysql_db) {
       database = config('mysql_db)
     }
+
+    if (config contains 'binlog) {
+      binlog   = true
+    }
   }
 
   def start_binlog(file: String, position: Int) : Unit = {
@@ -413,9 +418,13 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
     state = SQL_STATE_SINIT
     cur_seq = 0
 
-    write_query("SET @master_binlog_checksum = @@global.binlog_checksum;")
-
-    event.interestOps(SelectionKey.OP_WRITE)
+    if (binlog) {
+      write_query("SET @master_binlog_checksum = @@global.binlog_checksum;")
+      event.interestOps(SelectionKey.OP_WRITE)
+    } else {
+      println("SKIP SINIT")
+      idle(event)
+    }
   }
 
   private def write_packet(packet: SQLClientIssuedPacket) = {
