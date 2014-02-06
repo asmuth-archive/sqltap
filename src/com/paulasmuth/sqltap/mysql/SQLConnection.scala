@@ -422,7 +422,6 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
       write_query("SET @master_binlog_checksum = @@global.binlog_checksum;")
       event.interestOps(SelectionKey.OP_WRITE)
     } else {
-      println("SKIP SINIT")
       idle(event)
     }
   }

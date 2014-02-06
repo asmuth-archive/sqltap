@@ -17,6 +17,9 @@ object CacheBackendFactory {
       case "memcache" =>
         new MemcacheConnectionPool()
 
+      case "noop" =>
+        new NoopCacheBackend()
+
       case _ =>
         throw new ParseException("unknown cache backend: " + name)
 
