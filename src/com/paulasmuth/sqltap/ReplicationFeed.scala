@@ -15,20 +15,19 @@ import java.nio.channels.spi.SelectorProvider
  * The ReplicationFeed thread is responsible only for a single SQL Connection
  * that pulls the binlog event stream from MySQL.
  */
-object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
-  val loop = SelectorProvider.provider().openSelector()
+object ReplicationFeed extends Worker with AbstractSQLConnectionPool {
+  //val loop = SelectorProvider.provider().openSelector()
   private val query     = new SQLQuery("SHOW BINARY LOGS;")
-  private val worker    = new Worker()
+  //private val worker    = new Worker()
 
   Logger.log("replication feed starting...")
-  worker.start()
 
   def binlog(event: BinlogEvent) : Unit = event match {
     case evt: UpdateRowsBinlogEvent => {
       if (Manifest.has_table(evt.table_name)) {
         Logger.debug("[Expire] table: " + evt.table_name + ", id: " + evt.primary_key)
 
-        CTreeCache.expire(worker,
+        CTreeCache.expire(this,
           Manifest.resource_name_for_table(evt.table_name),
           evt.primary_key.toInt)
       }
@@ -59,34 +58,7 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
     val conn = new SQLConnection(this)
     conn.configure(Config.get() + (('binlog, "enable")))
     conn.connect()
-
-    while (true) {
-      loop.select()
-      val events = loop.selectedKeys().iterator()
-
-      while (events.hasNext) {
-        val event = events.next()
-        events.remove()
-
-        if (event.isValid) {
-          val conn = event.attachment.asInstanceOf[mysql.SQLConnection]
-
-          if (event.isConnectable) {
-            conn.ready(event)
-          }
-
-          if (event.isValid && event.isReadable) {
-            conn.read(event)
-          }
-
-          if (event.isValid && event.isWritable) {
-            conn.write(event)
-          }
-        }
-      }
-    }
-
-    Logger.log("replication feed closed")
+    super.run()
   } catch {
     case e: Exception => {
       Logger.error("[SQL] [Replication] exception: " + e.toString, false)
