@@ -18,12 +18,17 @@ import java.nio.channels.spi.SelectorProvider
 object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
   val loop = SelectorProvider.provider().openSelector()
   private val query     = new SQLQuery("SHOW BINARY LOGS;")
+  private val worker    = new Worker()
 
   Logger.log("replication feed starting...")
+  worker.start()
 
   def binlog(event: BinlogEvent) : Unit = event match {
     case evt: UpdateRowsBinlogEvent => {
-      println("UPDATE", evt.table_name, evt.primary_key)
+      if (Manifest.has_table(evt.table_name))
+        CTreeCache.expire(worker,
+          Manifest.resource_name_for_table(evt.table_name),
+          evt.primary_key.toInt)
     }
 
     case _ => ()

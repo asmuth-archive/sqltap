@@ -29,7 +29,7 @@ class SQLConnectionPool(config: Map[Symbol,String], _loop: Selector) extends Abs
   for (n <- (0 until max_connections))
     connect()
 
-  def execute(query: SQLQuery) : Unit = {
+  def execute(query: SQLQuery) : Unit = synchronized {
     val connection = get
 
     if (connection == null) {
@@ -42,7 +42,7 @@ class SQLConnectionPool(config: Map[Symbol,String], _loop: Selector) extends Abs
     }
   }
 
-  def ready(connection: SQLConnection) : Unit = {
+  def ready(connection: SQLConnection) : Unit = synchronized {
     connections_idle += connection
 
     val pending = math.min(connections_idle.length, queue.length)

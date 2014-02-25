@@ -110,8 +110,8 @@ object SQLTap{
     ExpirationHandlerFactory.configure(Config.get('expiration_handler))
     ReplicationFeed.start()
 
-    val server = new Server(Config.get('threads).toInt)
-    server.run(Config.get('http_port).toInt)
+    //val server = new Server(Config.get('threads).toInt)
+    //server.run(Config.get('http_port).toInt)
   } catch {
     case e: Exception => Logger.exception(e, true)
   }

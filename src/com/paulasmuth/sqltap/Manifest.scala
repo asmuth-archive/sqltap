@@ -11,7 +11,8 @@ import scala.collection.mutable.{HashMap}
 
 object Manifest {
 
-  private val manifest = HashMap[String,ResourceManifest]()
+  private val manifest  = HashMap[String,ResourceManifest]()
+  private val table_map = HashMap[String,String]()
 
   def resource(name: String) : ResourceManifest = {
     manifest(name)
@@ -23,6 +24,14 @@ object Manifest {
 
   def has_resource(name: String) : Boolean = {
     manifest.contains(name)
+  }
+
+  def has_table(table_name: String) : Boolean = {
+    table_map.contains(table_name)
+  }
+
+  def resource_name_for_table(table_name: String) : String = {
+    table_map(table_name)
   }
 
   def load(cfg_base: java.io.File) : Unit = {
@@ -52,7 +61,8 @@ object Manifest {
       for (elem <- resources) {
         val resource = new ResourceManifest(elem)
         Logger.debug("Loading resource: " + resource.name)
-        manifest += ((resource.name, resource))
+        table_map += ((resource.table_name, resource.name))
+        manifest  += ((resource.name, resource))
       }
 
       for (elem <- ctrees) {
