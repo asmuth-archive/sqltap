@@ -25,10 +25,13 @@ object ReplicationFeed extends Thread with AbstractSQLConnectionPool {
 
   def binlog(event: BinlogEvent) : Unit = event match {
     case evt: UpdateRowsBinlogEvent => {
-      if (Manifest.has_table(evt.table_name))
+      if (Manifest.has_table(evt.table_name)) {
+        Logger.debug("[Expire] table: " + evt.table_name + ", id: " + evt.primary_key)
+
         CTreeCache.expire(worker,
           Manifest.resource_name_for_table(evt.table_name),
           evt.primary_key.toInt)
+      }
     }
 
     case _ => ()

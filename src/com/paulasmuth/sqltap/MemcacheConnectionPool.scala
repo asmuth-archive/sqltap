@@ -24,7 +24,7 @@ class MemcacheConnectionPool extends CacheBackend {
   private val queue            = new ListBuffer[CacheRequest]()
   private val get_queue        = new ListBuffer[CacheGetRequest]()
 
-  def execute(requests: List[CacheRequest]) : Unit = {
+  def execute(requests: List[CacheRequest]) : Unit = synchronized {
     if (queue.length >= max_queue_len) {
       requests.foreach(_.ready())
 
@@ -48,7 +48,7 @@ class MemcacheConnectionPool extends CacheBackend {
     execute_next()
   }
 
-  def ready(connection: MemcacheConnection) : Unit = {
+  def ready(connection: MemcacheConnection) : Unit = synchronized {
     connections_idle += connection
 
     execute_next()
