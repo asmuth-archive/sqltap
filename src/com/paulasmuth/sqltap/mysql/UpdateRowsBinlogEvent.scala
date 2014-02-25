@@ -33,7 +33,8 @@ class UpdateRowsBinlogEvent(d: Array[Byte], ts: Long, fmt: FormatDescriptionBinl
     def test(c: Int) = bitmap_test(colmap, c) && !bitmap_test(null_bitmap, c)
     def load(c: Int) = load_column(c, table.column_types(c), table.column_metas(c))
 
-    for (col <- 0 until num_cols)
+    //for (col <- 0 until num_cols)
+    for (col <- 0 until 1)
       yield (test(col)) match {
         case true  => ((col, load(col)))
         case false => ((col, null))

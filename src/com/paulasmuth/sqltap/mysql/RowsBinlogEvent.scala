@@ -86,10 +86,8 @@ trait RowsBinlogEvent extends BinlogEvent {
   def read_varchar(maxlen: Int) : String = {
     var len = data(cur) & 0x000000ff
 
-    println("STRLEN", len)
     if (maxlen > 255) {
-      len += (data(cur) & 0x000000ff) << 8
-      println("STRLEN", len)
+      //len += (data(cur) & 0x000000ff) << 8
       cur += 2
     } else {
       cur += 1
