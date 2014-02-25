@@ -12,7 +12,7 @@ trait RowsBinlogEvent extends BinlogEvent {
   var cur = 0
 
   def load_column(col: Int, column_type: Byte, meta: Int) : String = {
-    val x = column_type match {
+    column_type match {
       case 0x01 => read_int(1).toString       // 0x01 TINY
       case 0x02 => read_int(2).toString       // 0x02 SHORT
       case 0x03 => read_int(4).toString       // 0x03 LONG
@@ -31,9 +31,6 @@ trait RowsBinlogEvent extends BinlogEvent {
         throw new Exception("unknown mysql column type: " + c.toString)
       }
     }
-
-    println("READ COL", cur, col, column_type, x)
-    x
   }
 
   def read_table_id(fmt: FormatDescriptionBinlogEvent) : Int = {

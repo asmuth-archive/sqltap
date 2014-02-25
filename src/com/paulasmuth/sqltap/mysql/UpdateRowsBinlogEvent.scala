@@ -18,13 +18,15 @@ class UpdateRowsBinlogEvent(d: Array[Byte], ts: Long, fmt: FormatDescriptionBinl
   val num_cols     = read_num_cols
   val column_map1  = read_bitmap(num_cols)
   val column_map2  = read_bitmap(num_cols)
+  var primary_key  = ""
+  var table_name   = ""
 
   def load(table: TableMapBinlogEvent) : Unit = {
-    //println(data.map{ x => x & 0x000000ff}.toList)
+    val rows = load_row_part(table, column_map1)
 
-    println(data.toList.map{ x => x & 0x000000ff })
-    println(table.table_name, num_cols)
-    load_row_part(table, column_map1)
+    // FIXPAUL: hack!!!
+    table_name  = table.table_name
+    primary_key = rows(0)._2
   }
 
   private def load_row_part(table: TableMapBinlogEvent, colmap: Int) : IndexedSeq[(Int, String)] = {
@@ -33,7 +35,6 @@ class UpdateRowsBinlogEvent(d: Array[Byte], ts: Long, fmt: FormatDescriptionBinl
     def test(c: Int) = bitmap_test(colmap, c) && !bitmap_test(null_bitmap, c)
     def load(c: Int) = load_column(c, table.column_types(c), table.column_metas(c))
 
-    //for (col <- 0 until num_cols)
     for (col <- 0 until 1)
       yield (test(col)) match {
         case true  => ((col, load(col)))
