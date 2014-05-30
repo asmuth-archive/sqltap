@@ -205,6 +205,19 @@ example (count the first 10 valid products):
 
     products.countAllWhere("is_valid = 1"){}
 
+WARNING: this doesn't work that well when used on a relation
+
+Compare
+
+  /query?q=product.findOne(44244778){id,votes.findAllWhere("created_at>'2014-01-01'"){}}
+  
+to
+
+  /query?q=product.findOne(44244778){id,votes.countAllWhere("created_at>'2014-01-01'"){}}
+
+and 
+
+  /query?q=vote.countAllWhere("product_id = 44244778 and created_at>'2014-01-01'"){}
 
 Configuration
 -------------
