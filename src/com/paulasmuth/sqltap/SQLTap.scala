@@ -1,5 +1,5 @@
 // This file is part of the "SQLTap" project
-//   (c) 2011-2013 Paul Asmuth <paul@paulasmuth.com>
+//   (c) 2014 Paul Asmuth, Google Inc. <asmuth@google.com>
 //
 // Licensed under the MIT License (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,7 @@ import java.io.File
 
 object SQLTap{
 
-  val VERSION = "v0.7.19"
+  val VERSION = "v0.7.20"
 
   def main(args: Array[String]) : Unit = {
     var n = 0
@@ -108,7 +108,6 @@ object SQLTap{
     Manifest.load(new File(Config.get('config_base)))
     RelationTrace.load(Manifest.resources)
     ExpirationHandlerFactory.configure(Config.get('expiration_handler))
-    ReplicationFeed.start()
 
     val server = new Server(Config.get('threads).toInt)
     server.run(Config.get('http_port).toInt)
@@ -118,7 +117,7 @@ object SQLTap{
 
   def usage(head: Boolean = true) = {
     if (head)
-      println("sqltapd " + VERSION + " (c) 2012 Paul Asmuth\n")
+      println("sqltapd " + VERSION + " (c) 2014 Paul Asmuth\n")
 
     println("usage: sqltapd [options]                                                        ")
     println("  -c, --config           <dir>     path to xml config files                     ")

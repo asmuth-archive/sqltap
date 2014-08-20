@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<schema>
+
+  <resource name="user" table_name="users" id_field="id">
+    <field name="id" />
+    <field name="username" />
+  </resource>
+
+</schema>

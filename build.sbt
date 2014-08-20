@@ -4,7 +4,7 @@ name := "SQLTap"
 
 organization := "com.paulasmuth"
 
-version := "0.7.19"
+version := "0.7.20"
 
 mainClass in (Compile, run) := Some("com.paulasmuth.sqltap.SQLTap")
 
@@ -14,6 +14,6 @@ scalaVersion := "2.9.1"
 
 assemblySettings
 
-jarName in assembly <<= (version) { v => "sqltap_" + v + ".jar" }
+jarName in assembly := "sqltap_0.7.20.jar"
 
 fork in run := true

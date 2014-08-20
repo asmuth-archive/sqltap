@@ -1,5 +1,5 @@
 // This file is part of the "SQLTap" project
-//   (c) 2011-2013 Paul Asmuth <paul@paulasmuth.com>
+//   (c) 2014 Paul Asmuth, Google Inc. <asmuth@google.com>
 //
 // Licensed under the MIT License (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of
@@ -30,8 +30,10 @@ object ExpirationHandlerFactory {
       case "noop" =>
         handler = new NoopExpirationHandler()
 
-      case "purge" =>
+      case "purge" => {
         handler = new PurgeExpirationHandler()
+        ReplicationFeed.start()
+      }
 
       case _ =>
         throw new ParseException("unknown expiration handler: " + name)

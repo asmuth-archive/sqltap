@@ -1,0 +1,19 @@
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS likes;
+CREATE TABLE likes (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id1` INT NOT NULL,
+  `user_id2` INT NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO users VALUES (NULL, "hans");
+INSERT INTO users VALUES (NULL, "peter");
+INSERT INTO users VALUES (NULL, "i_lövé_ümlautß");
+
