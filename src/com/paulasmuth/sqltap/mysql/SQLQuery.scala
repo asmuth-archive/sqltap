@@ -1,10 +1,9 @@
 // This file is part of the "SQLTap" project
-//   (c) 2011-2013 Paul Asmuth <paul@paulasmuth.com>
+//   (c) 2014 Paul Asmuth, Google Inc. <asmuth@google.com>
 //
 // Licensed under the MIT License (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of
 // the License at: http://opensource.org/licenses/MIT
-
 package com.paulasmuth.sqltap.mysql
 
 import com.paulasmuth.sqltap._
@@ -44,8 +43,14 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
     tok = System.nanoTime
     qtime = tok - tik
 
-    Statistics.incr('sql_request_time_mean, qtime / 1000000.0)
-    Logger.debug("Finished (" + (qtime / 1000000.0) + "ms): " + query)
+    val runtime_millis = qtime / 1000000.0
+    Statistics.incr('sql_request_time_mean, runtime_millis)
+    Logger.debug("Finished (" + runtime_millis + "ms): " + query)
+
+    if (Config.has_key('log_slow_queries) &&
+        runtime_millis >= Config.get('log_slow_queries).toInt) {
+      Logger.log("[SQL] [Slow Query] (" + runtime_millis + "ms): " + query)
+    }
   }
 
   def error(err: Throwable) : Unit = {

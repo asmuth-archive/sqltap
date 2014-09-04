@@ -1,10 +1,9 @@
 // This file is part of the "SQLTap" project
-//   (c) 2011-2013 Paul Asmuth <paul@paulasmuth.com>
+//   (c) 2014 Paul Asmuth, Google Inc. <asmuth@google.com>
 //
 // Licensed under the MIT License (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of
 // the License at: http://opensource.org/licenses/MIT
-
 package com.paulasmuth.sqltap
 
 import java.nio.channels.{SocketChannel,SelectionKey}
@@ -23,6 +22,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   private val parser = new HTTPParser()
   private var state = HTTP_STATE_INIT
   private var last_event : SelectionKey = null
+  private var last_uri : String = "<unknown>" // for debugging only
   private var keepalive : Boolean = false
   private var resp_buf : ByteBuffer = null
 
@@ -190,6 +190,7 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
 
     idle_timer.cancel()
     stime = System.nanoTime
+    last_uri = parser.http_uri
     seq += 1
 
     if (parser.http_version == "1.1")
@@ -302,8 +303,13 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
   }
 
   def finish() : Unit = {
-    Statistics.incr('http_request_time_mean,
-      (System.nanoTime - stime) / 1000000.0)
+    val runtime_millis = (System.nanoTime - stime) / 1000000.0
+    Statistics.incr('http_request_time_mean, runtime_millis)
+
+    if (Config.has_key('log_slow_queries) &&
+        runtime_millis >= Config.get('log_slow_queries).toInt) {
+      Logger.log("[HTTP] [Slow Query] (" + runtime_millis + "ms): " + last_uri)
+    }
 
     if (!keepalive)
       return close()
