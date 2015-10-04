@@ -147,6 +147,12 @@ class MemcacheConnection(pool: MemcacheConnectionPool) extends TimeoutCallback {
     idle(event)
   }
 
+  /**
+   * Read algo:
+   *   - fill read buffer until at least one response is ready
+   *   - read all full responses from the read buffer
+   *   - copy the remainder of the read buffer to the beginning of the read buffer
+   */
   def read(event: SelectionKey) : Unit = {
     val chunk = sock.read(read_buf)
 
