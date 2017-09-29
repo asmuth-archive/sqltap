@@ -1,111 +1,44 @@
 SQLTap
 ======
 
+_This project is old and has become obsolete; it has not been verified to work with newer versions
+of MySQL and there is only a single company that uses it in production that I know of which maintains
+their own private fork. Additionally, Facebook published the GraphQL project, which looks like a much
+nicer API and has gained significant momentum (GraphQL was released many years after SQLTap). This
+means I will not maintain or work on this code anymore._
+
 SQLTap is a document-oriented query frontend and cache for MySQL.
 
-You send it requests for complex documents (usually involving "joins" over multiple tables) using a
-HTTP API. SQLTap rewrites and pipelines these requests before executing them on the backend MySQL
-servers. It also caches common data partials in memcached, reducing query latency and database load. This
-is completely transparent to the end user and does not require explicit cache expiration since SQLTap
-acts as a MySQL slave and updates cached data partials when they are changed.
+Users request (nested) documents using a custom declarative query language (see
+below). SQLTap takes these requests and rewrites them into many small SQL queries,
+which are then executed on the backend MySQL database. Once all data has
+been returned from the database, SQLTap assembles the responses into a
+single JSON document and returns it to the user.
 
-SQLTap was created at DaWanda.com, one of Germany's largest ecommerce sites, where it serves hundreds
-of millions of requests per day. It has greatly reduced page render times and has reduced the number
-of SQL queries that hit the MySQL database by XX%.
+SQLTap is a caching proxy; responses from MySQL are also stored in a local
+memcache server. This allows SQLTap - after a short warmup phase - to answer most
+repetitive queries without actually having to consult the database. It is important
+to note that SQLTap caches _partial_ query responses, i.e. it doesn't cache the
+full query response, but the individual parts from which the response was constructed.
+The cached data partials are shared accross similar queries, reducing the total
+cache size and increasing hitrate.
+
+The query cache is completely transparent to the user - there is no need for
+explicit expiration and SQLTap will never serve stale data. This is achieved by
+using the MySQL's row based replication protocol to subscribe to notifications on
+row changes and expiring cached data partials accordingly.
 
 SQLTap requires MySQL 5.6+ with Row Based Replication enabled.
 
+
 ### Table of Contents
 
-+ [Rationale](#rationale)
 + [Usage](#usage)
 + [HTTP API](#http-api)
-+ [Configuration](#configuration)
 + [Query Language](#query-language)
-+ [Caching](#caching)
 + [Internals](#internals)
 + [Examples](#examples)
 + [License](#license)
-
-
-Rationale
----------
-
-A question that comes up frequently is "Why would I want use a proxy to retrieve records
-from MySQL rather than accessing it directly"?
-
-SQLTap was created under the name "LoveOS Fast Fetch Service" while re-designing a substantial
-part of the DaWanda.com ecommerce application. The goal was to improve page render times and
-to obviate some of the anti-patterns that are commonly found in ORM-based web apps. These are
-the main reasons that led to the decision:
-
-#### Automatic Parallelization
-
-In a web application context, you often need to retrieve a collection of related
-database records to fulfill a http request. For example, to render a product detail page,
-you might need to retrieve a 'product' record and all 'image' records that belong to
-the product record.
-
-The naive way to do this without putting the burden on the database by using an
-expensive join operation is to sequentially execute multiple SQL queries. E.g. first
-retrieve the product record and then retrieve all the image records. This is also what
-some ORMs like Rail's ActiveRecord will do by default.
-
-On the other hand, retrieving the records in parallel rather than sequentially can result
-in a huge drop in response time, which is highly desirable for user facing applications.
-
-As an example, assume retrieving a single record takes 10ms. Then retrieving 5 records
-using sequential execution would take 50ms, but retrieving them in parallel would (in a
-perfect world) still only take 10ms.
-
-While this parallelization could be implemented explicitly in your application code, it
-would introduce redundant logic and unnessecary complexity; Running parallel sql queries
-from a single threaded web framework is not trivial, as the MySQL protocol does not allow
-for pipelining per se and most MySQL client implementations use blocking I/O.
-
-SQLTap executes all sql queries in parallel where possible using multiple connections to
-MySQL and non-blocking I/O.
-
-#### Query Caching
-
-SQLTap caches partial query responses in memcache, which speeds up some queries by
-multiple orders of magnitude and greatly reduces the load on the MySQL database.
-
-It doesn't cache the full query responses, but only normalized common query subtrees which
-means that the cached data partials are shared accross similar queries. This makes the cache
-more space efficient (as it contains fewer redundancies) and increases the hit-rate.
-
-The query cache is completely transparent as there is no need for explicit expiration and it
-will never serve stale data: SQLTap uses MySQL's row based replication protocol to get
-notifications on record changes and refresh the cached data partials accordingly.
-
-#### Encapsulation
-
-SQLTap permits only a subset of SQL to be executed and enforces limits on maximum execution
-time and result set size. This is to prevent SQL queries that might seem harmless at first,
-but turn out to be a bottleneck as the data set grows.
-
-#### Document Oriented Query Language
-
-Some of the modern web frameworks encourage you to use an ORM for database access. This often
-results in bad code where requests to the sql database are scattered all over the code and
-sometimes even the templates. In these codebases it can get really hard to predict the runtime
-of a method/template and whether it will block.
-
-Take as an example a helper method that renders one entry in a navigation menu. For each entry
-the helper calls something like "entry.translation" which in turn issues a request to the
-database to retrieve the translation record for this entry. As the number of entries in the
-navigation grows, this leads to potentially thousands of sql queries being executed just
-to render a simple navigation menu.
-
-The SQLTap query language encourages you to fetch all required data with only a few but therefore
-large and nested queries (documents). This will hopefully make applications easier to maintain and
-less bloated in the long term.
-
-
-#### Query Optimizations
-
-SQLTap also performs some trivial query optimizations (i.e. eliminating redundant queries)
 
 
 Usage
@@ -113,7 +46,13 @@ Usage
 
 ### Starting SQLTap
 
-    ./sqltap --mysql-host localhost --mysql-port 3006 --mysql-user root --mysql-database mydb --http 8080 -c config.xml
+    ./sqltap \
+        --mysql-host localhost \
+        --mysql-port 3006 \
+        --mysql-user root \
+        --mysql-database mydb \
+        --http 8080 \
+        -c config.xml
 
 
 HTTP API
@@ -144,9 +83,8 @@ is the same as:
     /query?q=user.findOne(1){*};user.findOne(2){*};user.findOne(3){*}
 
 
-
 Query Language
---------------
+------------
 
 ##### resource.findOne(id){...}
 ##### relation.findOne{...}
@@ -219,11 +157,6 @@ and
 
   /query?q=vote.countAllWhere("product_id = 44244778 and created_at>'2014-01-01'"){}
 
-Configuration
--------------
-
-here be dragons
-
 
 Internals
 ---------
@@ -243,26 +176,13 @@ are also thread local. This means there is very little locking in the hot path
 worker owns one sql connection pool which opens a fixed max number of connections
 and also contains a query queue.
 
-+ Main thread also runs watchdog; kills dead workers.
-
-+ The QueryParser and the HTTP and SQL protocl are implemented as simple state
-machines.
-
-+ CTrees are only used if the CTree is a subtree of the request - a ctree is not used
-when the ctree is a "supertree" of the request. CTree are only matched on findOne
-Instructions and each CTree query must start with a findOne Instruction.
-
-+ All memcache contents are gzipped
-
-### Bechmarks
-
-ab / weighttp benchmarks here
++ Cached partial query responses are gzipped and cached in memcache
 
 
 Examples
 --------
 
-Real-life product detail page:
+Real-life product detail page query:
 
     product.findOne(12345){
       deleted_at,view_counter,category_id,category_parent_id,is_valid,id,
